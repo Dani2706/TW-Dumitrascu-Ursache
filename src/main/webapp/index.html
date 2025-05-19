@@ -1,1 +1,31 @@
-<h1>ahdhashda</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REM</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <img src="images/logo.png" alt="Logo" class="logo">
+
+        <h1>Autentificare</h1>
+        <form action="/login" method="post">
+            <label for="username">Email sau nume de utilizator:</label>
+            <input type="text" id="username" name="username" required>
+
+            <br>
+
+            <label for="password">Parola:</label>
+            <input type="password" id="password" name="password" required>
+
+            <br>
+
+            <button type="submit">Conectare</button>
+        </form>
+
+        <p>Ai uitat parola? <a href="reset_password.html">Recuperează-o</a></p>
+        <p>Nu ai cont? <a href="register.html">Creează unul</a></p>
+    </div>
+</body>
