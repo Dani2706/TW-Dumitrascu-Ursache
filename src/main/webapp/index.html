@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REM</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/app.js" defer></script>
 </head>
 <body>
-    <div class="login-container">
-        <img src="images/logo.png" alt="Logo" class="logo">
 
-        <h1>Autentificare</h1>
-        <form action="/login" method="post">
-            <label for="username">Email sau nume de utilizator:</label>
-            <input type="text" id="username" name="username" required>
+<header>
+    <h1>REM - Gaseste locuinta perfecta!</h1>
+    <nav>
+        <a href="#">Acasă</a>
+    </nav>
+</header>
 
-            <br>
-
-            <label for="password">Parola:</label>
-            <input type="password" id="password" name="password" required>
-
-            <br>
-
-            <button type="submit">Conectare</button>
-        </form>
-
-        <p>Ai uitat parola? <a href="reset_password.html">Recuperează-o</a></p>
-        <p>Nu ai cont? <a href="register.html">Creează unul</a></p>
+<main id="main-content">
+    <div class="property-list">
+        <h2><a href="#" onclick="loadHtmlIntoMain('property.html', () => loadPropertyDetails(1))">
+            Apartament 2 camere în Iași
+        </a></h2>
+        <p>Preț: 60.000 €</p>
     </div>
+</main>
+
+<footer>
+    <p>&copy; 2025 REM - Gaseste locuinta perfecta!</p>
+</footer>
+
 </body>
+</html>
