@@ -2,13 +2,14 @@ import { Router } from "./router.js";
 import { HomeComponent } from "../components/HomeComponent/HomeComponent.js";
 import { ProfileComponent } from "../components/ProfileComponent/ProfileComponent.js";
 import { PropertyComponent } from "../components/PropertyComponent/PropertyComponent.js";
+import { LoginComponent } from "../components/LoginComponent/LoginComponent.js";
 
 const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
 const routes = {
             "/" : HomeComponent,
             "/profile" : ProfileComponent,
             "/property" : PropertyComponent,
-            "/login" : PropertyComponent
+            "/login" : LoginComponent
         }
 const router = new Router('#main-window', basePath, routes);
 console.log("Router initialized with base path:", basePath);
