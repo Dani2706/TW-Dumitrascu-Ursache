@@ -12,7 +12,7 @@
 
 .property-card img {
     width: 100%;
-    height: auto;
+    max-height: 60vh;
     border-radius: 12px;
     object-fit: cover;
 }
@@ -25,6 +25,34 @@
     margin-top: 0;
     font-size: 1.8rem;
     color: #333;
+}
+
+.property-tags {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.property-tag, .transaction-tag {
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.property-tag {
+    background-color: #e6f2ff;
+    color: #003366;
+    border: 1px solid #003366;
+}
+
+.transaction-tag {
+    background-color: #ffe6e6;
+    color: #cc0000;
+    border: 1px solid #cc0000;
 }
 
 .property-header {
@@ -46,6 +74,15 @@
     color: #003366;
     font-size: 1.8rem;
 }
+
+.property-date {
+    display: block;
+    font-size: 0.9rem;
+    color: #7a7a7a;
+    margin-top: 5px;
+    font-style: italic;
+}
+
 
 /* Stilul pentru secțiunea cu preț */
 .property-price-section {

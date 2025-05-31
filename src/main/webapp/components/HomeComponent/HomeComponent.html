@@ -1,10 +1,26 @@
-<h1>Welcome to the Home Component</h1>
-<p>This is a simple home component loaded from HTML file.</p>
-<ul class="home-list">
-    <li>Item 1</li>
-    <li>Item 2</li>
-    <li>Item 3</li>
-    <li>Item 4</li>
-    <li>Item 5</li>
-</ul>
-<button class="home-button">Click Me!</button>
+<div class="home-container">
+    <div class="search-section">
+        <h1>Find Your Dream Property</h1>
+        <div class="search-bar">
+            <input type="text" id="property-search" placeholder="Search properties...">
+            <button id="search-button">Search</button>
+        </div>
+    </div>
+
+    <div class="categories-section">
+        <h2>Browse by Category</h2>
+        <div class="category-buttons">
+            <button class="category-btn" data-category="apartment">Apartments</button>
+            <button class="category-btn" data-category="house">Houses</button>
+            <button class="category-btn" data-category="land">Lands</button>
+            <button class="category-btn" data-category="commercial">Commercial Spaces</button>
+        </div>
+    </div>
+
+    <div class="featured-properties">
+        <h2>Featured Properties</h2>
+        <div id="properties-container">
+            <!-- Properties will be loaded dynamically -->
+        </div>
+    </div>
+</div>

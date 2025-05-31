@@ -12,8 +12,8 @@ public class ConnectionPoolInitializer implements ServletContextListener {
     public ConnectionPoolInitializer() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:oracle:thin:@localhost:1521:xe");
-        config.setUsername("tw");
-        config.setPassword("TW123");
+        config.setUsername("remdb");
+        config.setPassword("parola");
         config.setDriverClassName("oracle.jdbc.OracleDriver");
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);

@@ -1,13 +1,50 @@
-.app{
+/* Updated header styles */
+.header {
+    background-color: #003366;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.nav-bar {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-bar a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.nav-bar a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Keep the rest of your styles as they were */
+.app {
     display: flex;
     flex-direction: column;
 }
 
-.header, .footer {
+.footer {
     background-color: #003366;
     color: white;
     padding: 1rem;
-    text-align:center;
+    text-align: center;
 }
 
 body {
