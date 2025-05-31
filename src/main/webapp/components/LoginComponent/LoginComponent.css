@@ -1,0 +1,85 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Container styling */
+.login-container {
+  width: 35%;
+  margin-inline: auto;
+  margin: auto;
+  padding: 30px;
+  background-color: #fdfdfd;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Headline */
+.login-container h2 {
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+/* Form styling */
+.login-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label styling */
+.login-container label {
+  margin-bottom: 6px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* Input fields */
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  padding: 10px;
+  margin-bottom: 18px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.login-container input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Button styling */
+.login-container button {
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-container button:hover {
+  background-color: #0056b3;
+}
+
+/* Links */
+.login-container p {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.login-container a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.login-container a:hover {
+  text-decoration: underline;
+}
