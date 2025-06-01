@@ -2,6 +2,12 @@ package controller;
 
 import entity.Property;
 import service.PropertyService;
+import exceptions.PropertyNotFoundException;
+import exceptions.InvalidPropertyIdException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import service.PropertyService;
+import util.HandleErrorUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,40 +21,43 @@ import java.io.PrintWriter;
 @WebServlet("/property")
 public class GetPropertyServlet extends HttpServlet {
 
+    private static final Logger logger = LoggerFactory.getLogger(GetPropertyServlet.class);
     private PropertyService propertyService;
 
     @Override
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         this.propertyService = new PropertyService(dataSource);
+        logger.info("GetPropertyServlet initialized with PropertyService");
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        System.out.println("Received request for property details");
+        logger.debug("Received request for property details");
         String idParam = request.getParameter("id");
-        System.out.println("ID parameter: " + idParam);
-
-        if(idParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().println("Missing 'id' parameter");
-            return;
-        }
-
-        int id;
-        try {
-            id = Integer.parseInt(idParam);
-        } catch(NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().println("Invalid 'id' parameter");
-            return;
-        }
+        logger.debug("ID parameter: {}", idParam);
 
         try {
+            if(idParam == null) {
+                logger.warn("Missing 'id' parameter in request");
+                throw new InvalidPropertyIdException("Missing 'id' parameter");
+            }
+
+            int id;
+            try {
+                id = Integer.parseInt(idParam);
+            } catch(NumberFormatException e) {
+                logger.warn("Invalid 'id' parameter: {}", idParam);
+                throw new InvalidPropertyIdException("Invalid 'id' parameter: must be a number");
+            }
+
             Property property = propertyService.getPropertyById(id);
+            if (property == null) {
+                throw new PropertyNotFoundException("No property found with ID: " + id);
+            }
 
             response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
             PrintWriter out = response.getWriter();
 
             String json = "{" +
@@ -74,17 +83,20 @@ public class GetPropertyServlet extends HttpServlet {
                     "}";
 
             out.write(json);
+            logger.debug("Successfully returned property data for ID: {}", id);
 
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidPropertyIdException e) {
+            logger.error("Invalid property ID: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().println("Error: " + e.getMessage());
-        } catch (RuntimeException e) {
+            HandleErrorUtil.handleError(response, e.getMessage(), logger);
+        } catch (PropertyNotFoundException e) {
+            logger.error("Property not found: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            response.getWriter().println("Error: " + e.getMessage());
+            HandleErrorUtil.handleError(response, e.getMessage(), logger);
         } catch (Exception e) {
+            logger.error("Internal server error when fetching property", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().println("Internal server error");
-            e.printStackTrace();
+            HandleErrorUtil.handleError(response, "Internal server error", logger);
         }
     }
 }

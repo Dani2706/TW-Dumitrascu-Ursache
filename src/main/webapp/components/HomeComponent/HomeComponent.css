@@ -92,7 +92,50 @@
 }
 
 #properties-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.property-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    background-color: #fff;
+    cursor: pointer;
+    min-height: 150px;
+    padding: 15px;
+    text-align: center;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.property-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.property-info h3 {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    color: #333;
+    text-align: center;
+}
+
+.property-price {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-top: auto;
+    text-align: center;
 }

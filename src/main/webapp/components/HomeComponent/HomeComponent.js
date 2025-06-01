@@ -9,8 +9,6 @@ export class HomeComponent extends AbstractComponent {
     //@Override
     async init() {
         await super.init();
-        // Depending on the page, you can comment the next line
-        this.dynamicallyLoadData();
     }
 
     //@Override
@@ -43,17 +41,64 @@ export class HomeComponent extends AbstractComponent {
         container.className = this.className;
         container.innerHTML = this.template;
         this.eventListenerLoader(container);
-        console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
+
+        // Load data AFTER initial render
+        this.dynamicallyLoadData(container);
 
         return container;
     }
 
-    dynamicallyLoadData() {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = this.getTemplate();
+    async dynamicallyLoadData(container) {
+        try {
+            // Fetch property data from backend API
+            console.log("Fetching property data...");
+            const response = await fetch('http://localhost:8081/TW_Dumitrascu_Ursache_war_exploded/api/properties/top');
 
-        // Add logic to dynamically load data into the component
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        this.setTemplate(tempDiv.innerHTML);
+            const properties = await response.json();
+            console.log("Received properties:", properties);
+
+            // Generate HTML for property cards
+            const cardsHTML = properties.map(property => `
+                <div class="property-card">
+                    <h3>${property.title}</h3>
+                    <div class="property-details">
+                        <span class="property-price">${this.formatPrice(property.price)}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update template with property cards
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.getTemplate();
+
+            const propertiesContainer = container.querySelector('#properties-container');
+            if (propertiesContainer) {
+                propertiesContainer.innerHTML = cardsHTML;
+            }
+        } catch (error) {
+            console.error('Error loading property data:', error);
+            // Fallback content if loading fails
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.getTemplate();
+
+            const container = tempDiv.querySelector('#properties-container');
+            if (container) {
+                container.innerHTML = '<p>Unable to load properties at this time. Please try again later.</p>';
+            }
+
+            this.setTemplate(tempDiv.innerHTML);
+        }
+    }
+
+    formatPrice(price) {
+        // Format price with thousand separators and currency symbol
+        return `€${price.toLocaleString('ro-RO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        })}`;
     }
 }
