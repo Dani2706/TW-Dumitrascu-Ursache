@@ -57,6 +57,33 @@ public class Property {
         logger.debug("Created Property with ID: {}, Title: {}", propertyId, title);
     }
 
+    public Property(String title, String description, String propertyType, String transactionType,
+                    int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
+                    int yearBuilt, Date createdAt, String address, String city, String state,
+                    String contactName, String contactPhone, String contactEmail) {
+
+        this.setTitle(title);
+        this.setDescription(description);
+        this.setPropertyType(propertyType);
+        this.setTransactionType(transactionType);
+        this.setPrice(price);
+        this.setSurface(surface);
+        this.setRooms(rooms);
+        this.setBathrooms(bathrooms);
+        this.setFloor(floor);
+        this.setTotalFloors(totalFloors);
+        this.setYearBuilt(yearBuilt);
+        this.setCreatedAt(createdAt);
+        this.setAddress(address);
+        this.setCity(city);
+        this.setState(state);
+        this.setContactName(contactName);
+        this.setContactPhone(contactPhone);
+        this.setContactEmail(contactEmail);
+
+        logger.debug("Created new Property for insertion, Title: {}", title);
+    }
+
     public int getPropertyId() {
         return propertyId;
     }

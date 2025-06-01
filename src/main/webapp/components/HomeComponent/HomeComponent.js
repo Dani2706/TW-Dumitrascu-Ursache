@@ -42,7 +42,6 @@ export class HomeComponent extends AbstractComponent {
         container.innerHTML = this.template;
         this.eventListenerLoader(container);
 
-        // Load data AFTER initial render
         this.dynamicallyLoadData(container);
 
         return container;
@@ -50,7 +49,6 @@ export class HomeComponent extends AbstractComponent {
 
     async dynamicallyLoadData(container) {
         try {
-            // Fetch property data from backend API
             console.log("Fetching property data...");
             const response = await fetch('http://localhost:8081/TW_Dumitrascu_Ursache_war_exploded/api/properties/top');
 
@@ -61,7 +59,6 @@ export class HomeComponent extends AbstractComponent {
             const properties = await response.json();
             console.log("Received properties:", properties);
 
-            // Generate HTML for property cards
             const cardsHTML = properties.map(property => `
                 <div class="property-card">
                     <h3>${property.title}</h3>
@@ -71,7 +68,6 @@ export class HomeComponent extends AbstractComponent {
                 </div>
             `).join('');
 
-            // Update template with property cards
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.getTemplate();
 
@@ -81,7 +77,6 @@ export class HomeComponent extends AbstractComponent {
             }
         } catch (error) {
             console.error('Error loading property data:', error);
-            // Fallback content if loading fails
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.getTemplate();
 
@@ -95,7 +90,6 @@ export class HomeComponent extends AbstractComponent {
     }
 
     formatPrice(price) {
-        // Format price with thousand separators and currency symbol
         return `€${price.toLocaleString('ro-RO', {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0

@@ -1,4 +1,3 @@
-/* Updated header styles */
 .header {
     background-color: #003366;
     color: white;
@@ -34,7 +33,6 @@
     transform: translateY(-2px);
 }
 
-/* Keep the rest of your styles as they were */
 .app {
     display: flex;
     flex-direction: column;

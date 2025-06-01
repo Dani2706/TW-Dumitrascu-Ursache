@@ -81,7 +81,6 @@ public class GetTopPropertiesServlet extends HttpServlet {
         }
     }
 
-    // Helper method to escape special characters in JSON strings
     private String escapeJsonString(String input) {
         if (input == null) {
             return "";
