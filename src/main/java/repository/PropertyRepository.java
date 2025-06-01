@@ -1,3 +1,7 @@
+package repository;
+
+import entity.Property;
+
 import javax.sql.DataSource;
 import java.sql.*;
 

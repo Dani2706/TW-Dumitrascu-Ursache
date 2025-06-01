@@ -1,3 +1,7 @@
+package controller;
+
+import entity.Property;
+import service.PropertyService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

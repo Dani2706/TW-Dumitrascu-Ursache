@@ -1,3 +1,5 @@
+package entity;
+
 import java.sql.Date;
 
 public class Property {

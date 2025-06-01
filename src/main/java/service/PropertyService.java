@@ -1,3 +1,8 @@
+package service;
+
+import entity.Property;
+import repository.PropertyRepository;
+
 import javax.sql.DataSource;
 
 public class PropertyService {

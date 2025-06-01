@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import exceptions.EmailAlreadyInUse;
