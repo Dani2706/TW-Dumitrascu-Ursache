@@ -11,7 +11,7 @@ export class PropertyComponent extends AbstractComponent {
     //@Override
     async init() {
         await super.init();
-        this.dynamicallyLoadData();
+        await this.dynamicallyLoadData();
     }
 
     //@Override
@@ -85,7 +85,7 @@ export class PropertyComponent extends AbstractComponent {
         return container;
     }
 
-    dynamicallyLoadData() {
+    async dynamicallyLoadData() {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = this.getTemplate();
         console.log(`Dynamically loading data for ${this.className}`);
@@ -93,7 +93,7 @@ export class PropertyComponent extends AbstractComponent {
         // Extrage ID-ul din URL sau dintr-o altă sursă
         const propertyId = this.getPropertyIdFromContext();
         if (propertyId) {
-            this.loadPropertyDetails(propertyId);
+            await this.loadPropertyDetails(propertyId);
         }
     }
 
@@ -123,22 +123,25 @@ export class PropertyComponent extends AbstractComponent {
         return 1;
     }
 
-    loadPropertyDetails(id) {
+    async loadPropertyDetails(id) {
         console.log(`Attempting to fetch property with id: ${id}`);
-        fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${id}`)
-            .then(response => {
-                console.log('Response status:', response.status);
-                if (!response.ok) throw new Error("Proprietatea nu a fost găsită");
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received data:', data);
-                this.populatePropertyData(data);
-            })
-            .catch(error => {
-                console.error("Detailed error:", error);
-                this.handleError(error);
-            });
+
+        try {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${id}`);
+            console.log('Response status:', response.status);
+
+            if (!response.ok) {
+                throw new Error("Proprietatea nu a fost găsită");
+            }
+
+            const data = await response.json();
+            console.log('Received data:', data);
+            this.populatePropertyData(data);
+
+        } catch (error) {
+            console.error("Detailed error:", error);
+            this.handleError(error);
+        }
     }
 
     populatePropertyData(data) {
