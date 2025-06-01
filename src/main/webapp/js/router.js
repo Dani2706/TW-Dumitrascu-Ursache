@@ -24,16 +24,17 @@ export class Router {
             const fullPath = window.location.pathname;
             const path = fullPath.replace(this.basePath, '');
             console.log(`Current path on load: ${path}`);
-            this.render(path); // Load the correct view on page load
+            this.navigate(path); // Load the correct view on page load
         });
     }
 
     navigate(path) {
-        if (this.routes[path]) {
-            const fullPath = `${this.basePath}${path}`;
-            history.pushState({}, '', fullPath);
-            this.render(path);
+        if (!this.routes[path]) {
+            path = '/';
         }
+        const fullPath = `${this.basePath}${path}`;
+        history.pushState({}, '', fullPath);
+        this.render(path);
         console.log('Navigating to:', path);
     }
 

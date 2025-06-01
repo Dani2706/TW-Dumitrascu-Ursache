@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import service.UserService;
 import util.HandleErrorUtil;
 
-@WebServlet("/register")
+@WebServlet("/api/register")
 public class RegisterController extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
     private final UserService userService;
