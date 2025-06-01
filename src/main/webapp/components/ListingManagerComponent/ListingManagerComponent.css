@@ -1,0 +1,227 @@
+/* Styles for ListingManagerComponent */
+.ListingManagerComponent {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.add-property-section {
+    margin-bottom: 30px;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.wide-button {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-align: center;
+    text-decoration: none;
+}
+
+.wide-button:hover {
+    background-color: #45a049;
+}
+
+.properties-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.property-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.property-card h3 {
+    padding: 15px 20px;
+    margin: 0;
+    font-size: 18px;
+    border-bottom: 1px solid #f0f0f0;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.property-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #f9f9f9;
+}
+
+.edit-button, .delete-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.edit-button {
+    background-color: #2196F3;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.edit-button:hover {
+    background-color: #0d8aed;
+    box-shadow: 0 2px 5px rgba(33, 150, 243, 0.3);
+}
+
+.delete-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #e53935;
+    box-shadow: 0 2px 5px rgba(244, 67, 54, 0.3);
+}
+
+@media (max-width: 900px) {
+    .properties-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .properties-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.properties-grid p {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.5s;
+}
+
+.delete-confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s;
+}
+
+.delete-confirmation-modal {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    max-width: 90%;
+    overflow: hidden;
+    animation: slideUp 0.3s;
+}
+
+.delete-confirmation-content {
+    padding: 24px;
+}
+
+.delete-confirmation-content h3 {
+    margin-top: 0;
+    color: #f44336;
+    border-bottom: none;
+}
+
+.delete-confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    gap: 12px;
+}
+
+.btn-cancel, .btn-confirm {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.btn-cancel:hover {
+    background-color: #d0d0d0;
+}
+
+.btn-confirm {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background-color: #e53935;
+    box-shadow: 0 2px 5px rgba(244, 67, 54, 0.3);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.5s;
+}

@@ -66,6 +66,136 @@ public class PropertyRepository {
         return property;
     }
 
+    public List<Property> findPropertiesByUserId(int userId) throws DatabaseException {
+        logger.debug("Retrieving properties for user with ID: {}", userId);
+        List<Property> properties = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "SELECT * FROM properties WHERE user_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Property property = new Property(
+                        rs.getInt("property_id"),
+                        rs.getString("title"),
+                        rs.getString("description"),
+                        rs.getString("property_type"),
+                        rs.getString("transaction_type"),
+                        rs.getInt("price"),
+                        rs.getInt("surface_area"),
+                        rs.getInt("rooms"),
+                        rs.getInt("bathrooms"),
+                        rs.getInt("floor"),
+                        rs.getInt("total_floors"),
+                        rs.getInt("year_built"),
+                        rs.getDate("created_at"),
+                        rs.getString("address"),
+                        rs.getString("city"),
+                        rs.getString("state"),
+                        rs.getString("contact_name"),
+                        rs.getString("contact_phone"),
+                        rs.getString("contact_email")
+                );
+                properties.add(property);
+            }
+
+            logger.debug("Found {} properties for user ID: {}", properties.size(), userId);
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving properties for user ID: {}", userId, e);
+            throw new DatabaseException("Error retrieving user properties: " + e.getMessage(), e);
+        }
+
+        return properties;
+    }
+
+    public int addProperty(Property property) throws DatabaseException {
+        logger.debug("Adding new property: {}", property.getTitle());
+
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "INSERT INTO properties (title, description, property_type, transaction_type, "
+                    + "price, surface_area, rooms, bathrooms, floor, total_floors, year_built, "
+                    + "created_at, address, city, state, contact_name, contact_phone, contact_email, user_id) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"property_id"});
+            stmt.setString(1, property.getTitle());
+            stmt.setString(2, property.getDescription());
+            stmt.setString(3, property.getPropertyType());
+            stmt.setString(4, property.getTransactionType());
+            stmt.setInt(5, property.getPrice());
+            stmt.setInt(6, property.getSurface());
+            stmt.setInt(7, property.getRooms());
+            stmt.setInt(8, property.getBathrooms());
+            stmt.setInt(9, property.getFloor());
+            stmt.setInt(10, property.getTotalFloors());
+            stmt.setInt(11, property.getYearBuilt());
+            stmt.setDate(12, property.getCreatedAt());
+            stmt.setString(13, property.getAddress());
+            stmt.setString(14, property.getCity());
+            stmt.setString(15, property.getState());
+            stmt.setString(16, property.getContactName());
+            stmt.setString(17, property.getContactPhone());
+            stmt.setString(18, property.getContactEmail());
+            stmt.setInt(19, 1); // hardcoded for demo
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                logger.error("Creating property failed, no rows affected");
+                throw new DatabaseException("Failed to create property, no rows affected");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    logger.info("Added new property with ID: {}", id);
+                    return id;
+                } else {
+                    logger.error("Creating property failed, no ID obtained");
+                    throw new DatabaseException("Failed to create property, no ID obtained");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Database error when adding property: {}", e.getMessage(), e);
+            throw new DatabaseException("Error adding property: " + e.getMessage(), e);
+        }
+    }
+
+    public void deleteProperty(int propertyId, int userId) throws DatabaseException, PropertyNotFoundException {
+        logger.debug("Attempting to delete property with ID: {} for user ID: {}", propertyId, userId);
+
+        try (Connection conn = dataSource.getConnection()) {
+
+            String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND user_id = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+            checkStmt.setInt(1, propertyId);
+            checkStmt.setInt(2, userId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (!rs.next()) {
+                logger.warn("Property with ID {} not found or doesn't belong to user ID {}", propertyId, userId);
+                throw new PropertyNotFoundException("Property not found or doesn't belong to this user");
+            }
+
+            String sql = "DELETE FROM properties WHERE property_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, propertyId);
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                logger.error("No rows affected when deleting property {}", propertyId);
+                throw new DatabaseException("Failed to delete property, no rows affected");
+            }
+
+            logger.info("Successfully deleted property with ID: {}", propertyId);
+        } catch (SQLException e) {
+            logger.error("Database error when deleting property ID: {}", propertyId, e);
+            throw new DatabaseException("Error deleting property: " + e.getMessage(), e);
+        }
+    }
+
     public List<TopProperty> findTopProperties() throws DatabaseException {
         logger.debug("Retrieving top properties");
         List<TopProperty> topProperties = new ArrayList<>();

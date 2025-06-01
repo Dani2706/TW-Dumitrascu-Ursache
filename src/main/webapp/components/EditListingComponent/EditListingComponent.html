@@ -1,0 +1,120 @@
+<div class="edit-property-container">
+    <h2>Edit Listing</h2>
+
+    <form id="editPropertyForm" class="property-form">
+        <!-- Hidden field for property ID -->
+        <input type="hidden" id="propertyId" name="propertyId" value="">
+
+        <h3>Basic Information</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="propertyType">Property Type</label>
+                <select id="propertyType" name="propertyType" required>
+                    <option value="APARTMENT">Apartment</option>
+                    <option value="HOUSE">House</option>
+                    <option value="STUDIO">Studio</option>
+                    <option value="VILLA">Villa</option>
+                    <option value="LAND">Land</option>
+                    <option value="COMMERCIAL">Commercial</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="transactionType">Transaction Type</label>
+                <select id="transactionType" name="transactionType" required>
+                    <option value="SALE">Sale</option>
+                    <option value="RENT">Rent</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="4" required></textarea>
+        </div>
+
+        <h3>Property Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="surfaceArea">Surface Area (m²)</label>
+                <input type="number" id="surfaceArea" name="surfaceArea" min="0" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="rooms">Rooms</label>
+                <input type="number" id="rooms" name="rooms" min="0">
+            </div>
+            <div class="form-group">
+                <label for="bathrooms">Bathrooms</label>
+                <input type="number" id="bathrooms" name="bathrooms" min="0">
+            </div>
+            <div class="form-group">
+                <label for="floor">Floor</label>
+                <input type="number" id="floor" name="floor" min="0">
+            </div>
+            <div class="form-group">
+                <label for="totalFloors">Total Floors</label>
+                <input type="number" id="totalFloors" name="totalFloors" min="0">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="yearBuilt">Year Built</label>
+                <input type="number" id="yearBuilt" name="yearBuilt" min="1800" max="2030">
+            </div>
+        </div>
+
+        <h3>Location</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city" required>
+            </div>
+            <div class="form-group">
+                <label for="state">State/Province</label>
+                <input type="text" id="state" name="state" required>
+            </div>
+        </div>
+
+        <h3>Contact Information</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="contactName">Contact Name</label>
+                <input type="text" id="contactName" name="contactName" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="contactPhone">Phone</label>
+                <input type="tel" id="contactPhone" name="contactPhone" required>
+            </div>
+            <div class="form-group">
+                <label for="contactEmail">Email</label>
+                <input type="email" id="contactEmail" name="contactEmail" required>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" id="updateProperty" class="btn btn-primary">Update Property</button>
+            <a href="#" id="cancelEdit" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>

@@ -11,7 +11,7 @@ export class PropertyComponent extends AbstractComponent {
     //@Override
     async init() {
         await super.init();
-        await this.dynamicallyLoadData();
+        this.dynamicallyLoadData();
     }
 
     //@Override
@@ -90,7 +90,6 @@ export class PropertyComponent extends AbstractComponent {
         tempDiv.innerHTML = this.getTemplate();
         console.log(`Dynamically loading data for ${this.className}`);
 
-        // Extrage ID-ul din URL sau dintr-o altă sursă
         const propertyId = this.getPropertyIdFromContext();
         if (propertyId) {
             await this.loadPropertyDetails(propertyId);
@@ -98,7 +97,6 @@ export class PropertyComponent extends AbstractComponent {
     }
 
     getPropertyIdFromContext() {
-        // Încearcă să obții ID-ul din URL
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
 
@@ -106,21 +104,19 @@ export class PropertyComponent extends AbstractComponent {
             return parseInt(id);
         }
 
-        // Sau din hash
         const hash = window.location.hash;
         const hashMatch = hash.match(/#property\/(\d+)/);
         if (hashMatch) {
             return parseInt(hashMatch[1]);
         }
 
-        // Sau dintr-un atribut data
         const container = document.querySelector(`.${this.className}`);
         if (container && container.dataset.propertyId) {
             return parseInt(container.dataset.propertyId);
         }
 
         console.log('No ID found, using default ID 1 for demo');
-        return 1;
+        return 2; // hardcoded for demo
     }
 
     async loadPropertyDetails(id) {
@@ -145,7 +141,6 @@ export class PropertyComponent extends AbstractComponent {
     }
 
     populatePropertyData(data) {
-        // Găsește elementele în contextul componentei curente
         const container = this.currentContainer || document.querySelector(`.${this.className}`);
 
         if (!container) {
@@ -153,7 +148,6 @@ export class PropertyComponent extends AbstractComponent {
             return;
         }
 
-        // Populează datele folosind querySelector în context
         this.setElementText(container, "#property-title", data.title);
         this.setElementText(container, "#property-description", data.description);
         this.setElementText(container, "#property-type", data.propertyType);
@@ -200,7 +194,7 @@ export class PropertyComponent extends AbstractComponent {
         const container = this.currentContainer || document.querySelector(`.${this.className}`);
         if (container) {
             const mainContent = container.querySelector("#main-content") || container;
-            mainContent.innerHTML = "<p>Nu s-au putut încărca detaliile proprietății.</p>";
+            mainContent.innerHTML = "<p>Property details could not be loaded.</p>";
         }
     }
 

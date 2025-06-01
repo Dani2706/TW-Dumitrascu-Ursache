@@ -4,11 +4,17 @@ import { ProfileComponent } from "../components/ProfileComponent/ProfileComponen
 import { PropertyComponent } from "../components/PropertyComponent/PropertyComponent.js";
 import { LoginComponent } from "../components/LoginComponent/LoginComponent.js";
 import { RegisterComponent } from "../components/RegisterComponent/RegisterComponent.js";
+import { AddPropertyComponent } from "../components/AddPropertyComponent/AddPropertyComponent.js";
+import { ListingManagerComponent } from "../components/ListingManagerComponent/ListingManagerComponent.js";
+import { EditListingComponent } from "../components/EditListingComponent/EditListingComponent.js";
 
 const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
 const routes = {
             "/" : HomeComponent,
             "/profile" : ProfileComponent,
+            "/manage-listings" : ListingManagerComponent,
+            "/add-property" : AddPropertyComponent,
+            "/edit-listing" : EditListingComponent,
             "/property" : PropertyComponent,
             "/login" : LoginComponent,
             "/register" : RegisterComponent
