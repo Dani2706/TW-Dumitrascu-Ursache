@@ -1,6 +1,7 @@
 package controller;
 
 import entity.Property;
+import service.PropertyService;
 import exceptions.PropertyNotFoundException;
 import exceptions.InvalidPropertyIdException;
 import org.slf4j.Logger;

@@ -63,18 +63,20 @@ export class LoginComponent extends AbstractComponent {
     async login(event) {
         event.preventDefault();
         const formData = new FormData(this);
+        const plainObject = Object.fromEntries(formData.entries());
 
         const response = await fetch("/TW_Dumitrascu_Ursache_1_0_SNAPSHOT_war/api/login", {
                 method : "POST",
-                body : new URLSearchParams(formData),
+                body : JSON.stringify(plainObject),
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 }
             }
         );
         
-        const result = await response.text();
+        const result = await response.json();
         if (response.ok) {
+            window.sessionStorage.setItem("jwt", result.token)
             window.location.href = "/TW_Dumitrascu_Ursache_1_0_SNAPSHOT_war/profile";
         }
         else {

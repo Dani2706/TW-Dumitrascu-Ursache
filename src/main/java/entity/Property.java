@@ -1,10 +1,9 @@
 package entity;
 
+import java.sql.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import exceptions.PropertyValidationException;
-
-import java.sql.Date;
 
 public class Property {
     private static final Logger logger = LoggerFactory.getLogger(Property.class);
