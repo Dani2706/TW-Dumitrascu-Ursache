@@ -10,13 +10,39 @@ export class EditListingComponent extends AbstractComponent {
     //@Override
     async init() {
         await super.init();
+
         const urlParams = new URLSearchParams(window.location.search);
         this.propertyId = urlParams.get('id');
 
         if (!this.propertyId) {
+            this.propertyId = sessionStorage.getItem('editPropertyId');
+        }
+
+        if (!this.propertyId) {
             console.error('No property ID provided for editing');
+        } else {
+            console.log("Successfully found property ID:", this.propertyId);
+            await this.prefetchPropertyData();
         }
     }
+
+    async prefetchPropertyData() {
+        try {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${this.propertyId}`);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch property data: ${response.status}`);
+            }
+
+            const propertyData = await response.json();
+            sessionStorage.setItem('editPropertyData', JSON.stringify(propertyData));
+            return propertyData;
+        } catch (error) {
+            console.error('Error pre-fetching property data:', error);
+            return null;
+        }
+    }
+
 
     //@Override
     eventListenerLoader(container) {
@@ -99,13 +125,22 @@ export class EditListingComponent extends AbstractComponent {
 
     async fetchAndPopulatePropertyData(container) {
         try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${this.propertyId}`);
+            let propertyData;
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch property data: ${response.status}`);
+            const cachedData = sessionStorage.getItem('editPropertyData');
+            if (cachedData) {
+                propertyData = JSON.parse(cachedData);
+                console.log("Using cached property data:", propertyData);
+            } else {
+                const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${this.propertyId}`);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch property data: ${response.status}`);
+                }
+
+                propertyData = await response.json();
+                console.log("Fetched property data:", propertyData);
             }
-
-            const propertyData = await response.json();
 
             const renderedContainer = document.querySelector(`.${this.className}`);
             if (!renderedContainer) {
@@ -119,6 +154,8 @@ export class EditListingComponent extends AbstractComponent {
             const form = renderedContainer.querySelector('#editPropertyForm');
 
             if (propertyData && form) {
+                console.log("All property data keys:", Object.keys(propertyData));
+
                 const textFields = ['title', 'description', 'address', 'city', 'state',
                     'contactName', 'contactPhone', 'contactEmail'];
 
@@ -129,9 +166,12 @@ export class EditListingComponent extends AbstractComponent {
                     }
                 });
 
-                const numberFields = ['price', 'surfaceArea', 'rooms', 'bathrooms',
-                    'floor', 'totalFloors', 'yearBuilt'];
+                const surfaceAreaField = form.querySelector('#surfaceArea');
+                if (surfaceAreaField && propertyData.surface !== undefined) {
+                    surfaceAreaField.value = propertyData.surface;
+                }
 
+                const numberFields = ['price', 'rooms', 'bathrooms', 'floor', 'totalFloors', 'yearBuilt'];
                 numberFields.forEach(field => {
                     const input = form.querySelector(`#${field}`);
                     if (input && propertyData[field] !== undefined) {
@@ -139,14 +179,39 @@ export class EditListingComponent extends AbstractComponent {
                     }
                 });
 
-                const selectFields = ['propertyType', 'transactionType'];
+                const propertyTypeField = form.querySelector('#propertyType');
+                if (propertyTypeField && propertyData.propertyType) {
+                    const typeMap = {
+                        'Flat': 'FLAT',
+                        'House': 'HOUSE',
+                        'Land': 'LAND',
+                        'Commercial': 'COMMERCIAL'
+                    };
 
-                selectFields.forEach(field => {
-                    const select = form.querySelector(`#${field}`);
-                    if (select && propertyData[field] !== undefined) {
-                        select.value = propertyData[field];
+                    const mappedType = typeMap[propertyData.propertyType.toLowerCase()];
+                    if (mappedType) {
+                        propertyTypeField.value = mappedType;
+                        console.log(`Mapped property type ${propertyData.propertyType} to ${mappedType}`);
+                    } else {
+                        console.warn(`No mapping found for property type: ${propertyData.propertyType}`);
                     }
-                });
+                }
+
+                const transactionTypeField = form.querySelector('#transactionType');
+                if (transactionTypeField && propertyData.transactionType) {
+                    const transactionMap = {
+                        'Sell': 'SELL',
+                        'Rent': 'RENT'
+                    };
+
+                    const mappedTransaction = transactionMap[propertyData.transactionType.toLowerCase()];
+                    if (mappedTransaction) {
+                        transactionTypeField.value = mappedTransaction;
+                        console.log(`Mapped transaction type ${propertyData.transactionType} to ${mappedTransaction}`);
+                    } else {
+                        console.warn(`No mapping found for transaction type: ${propertyData.transactionType}`);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error loading property data:', error);
@@ -177,11 +242,11 @@ export class EditListingComponent extends AbstractComponent {
             const formData = new FormData(form);
 
             const propertyData = {
-                propertyId: formData.get('propertyId'),
+                propertyId: parseInt(formData.get('propertyId')),
                 title: formData.get('title'),
                 description: formData.get('description'),
-                propertyType: formData.get('propertyType'),
-                transactionType: formData.get('transactionType'),
+                propertyType: formData.get('propertyType').toLowerCase(),
+                transactionType: formData.get('transactionType').toLowerCase(),
                 price: parseInt(formData.get('price')) || 0,
                 surfaceArea: parseInt(formData.get('surfaceArea')) || 0,
                 rooms: parseInt(formData.get('rooms')) || 0,
@@ -197,6 +262,8 @@ export class EditListingComponent extends AbstractComponent {
                 contactEmail: formData.get('contactEmail')
             };
 
+            console.log('Submitting property data:', propertyData);
+
             const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/update-property', {
                 method: 'POST',
                 headers: {
@@ -205,23 +272,68 @@ export class EditListingComponent extends AbstractComponent {
                 body: JSON.stringify(propertyData)
             });
 
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const result = await response.json();
+            const text = await response.text();
+            console.log('Server response:', text);
 
-                if (response.ok) {
-                    this.replaceFormWithSuccess(this.propertyId);
-                } else {
-                    this.showMessage(`Error: ${result.message || 'Failed to update property'}`, 'error');
-                }
-            } else {
-                const text = await response.text();
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
                 console.error('Server returned non-JSON response:', text);
-                this.showMessage('Server error occurred. Check console for details.', 'error');
+                this.showMessage('Server returned invalid response format', 'error');
+                return;
+            }
+
+            if (response.ok && result.success) {
+                this.replaceFormWithSuccessAndCountdown(propertyData.propertyId);
+            } else {
+                this.showMessage(`Error: ${result.message || 'Failed to update property'}`, 'error');
             }
         } catch (error) {
             console.error('Error updating property:', error);
             this.showMessage(`Error updating property: ${error.message}`, 'error');
+        }
+    }
+
+    replaceFormWithSuccessAndCountdown(propertyId) {
+        const container = document.querySelector('.edit-property-container');
+        const form = document.querySelector('#editPropertyForm');
+
+        if (container && form) {
+            form.style.display = 'none';
+
+            const successContent = document.createElement('div');
+            successContent.className = 'success-content';
+
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message success-message';
+            messageElement.innerHTML = `
+            <h3>Property updated successfully!</h3>
+            <p>Your property has been updated.</p>
+        `;
+            successContent.appendChild(messageElement);
+
+            const countdownElement = document.createElement('div');
+            countdownElement.className = 'countdown-message';
+            countdownElement.innerHTML = `You will be redirected to manage listings in <span class="countdown">5</span> seconds...`;
+            successContent.appendChild(countdownElement);
+
+            container.appendChild(successContent);
+
+            let count = 5;
+            const countdownSpan = countdownElement.querySelector('.countdown');
+
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (countdownSpan) {
+                    countdownSpan.textContent = count;
+                }
+
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+                }
+            }, 1000);
         }
     }
 

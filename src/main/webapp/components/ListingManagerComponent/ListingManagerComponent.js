@@ -35,10 +35,15 @@ export class ListingManagerComponent extends AbstractComponent {
 
     handleEditProperty(event, propertyId) {
         event.preventDefault();
-        if (propertyId && window.router) {
-            window.router.navigate(`/edit-listing?id=${propertyId}`);
+        console.log("Navigating with property ID:", propertyId);
+
+        sessionStorage.setItem('editPropertyId', propertyId);
+
+        if (window.router) {
+            window.router.navigate('/edit-listing');
         } else {
-            console.error('Cannot navigate to edit page: missing property ID or router');
+            console.error('Router not available for navigation');
+            window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/edit-listing`;
         }
     }
 
@@ -196,7 +201,7 @@ export class ListingManagerComponent extends AbstractComponent {
         try {
             console.log("Fetching user properties data...");
             const userId = 1; // hardcoded for demo
-            const response = await fetch(`http://localhost:8081/TW_Dumitrascu_Ursache_war_exploded/user-properties?userId=${userId}`);
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/user-properties?userId=${userId}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

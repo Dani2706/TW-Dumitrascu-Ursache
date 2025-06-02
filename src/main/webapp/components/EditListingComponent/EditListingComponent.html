@@ -2,7 +2,6 @@
     <h2>Edit Listing</h2>
 
     <form id="editPropertyForm" class="property-form">
-        <!-- Hidden field for property ID -->
         <input type="hidden" id="propertyId" name="propertyId" value="">
 
         <h3>Basic Information</h3>
@@ -14,10 +13,8 @@
             <div class="form-group">
                 <label for="propertyType">Property Type</label>
                 <select id="propertyType" name="propertyType" required>
-                    <option value="APARTMENT">Apartment</option>
+                    <option value="FLAT">Flat</option>
                     <option value="HOUSE">House</option>
-                    <option value="STUDIO">Studio</option>
-                    <option value="VILLA">Villa</option>
                     <option value="LAND">Land</option>
                     <option value="COMMERCIAL">Commercial</option>
                 </select>
@@ -25,7 +22,7 @@
             <div class="form-group">
                 <label for="transactionType">Transaction Type</label>
                 <select id="transactionType" name="transactionType" required>
-                    <option value="SALE">Sale</option>
+                    <option value="SELL">Sell</option>
                     <option value="RENT">Rent</option>
                 </select>
             </div>
