@@ -1,54 +1,33 @@
-✨ Features
-User Authentication
+## ✨ Features
 
-User registration and login functionality
+### 🔐 User Authentication
+- User registration and login
+- Secure access to personal listings
 
-Secure access to user-specific features
+### 🏠 Property Page
+- View detailed listings with:
+  - 📸 Images
+  - 📝 Descriptions
+  - 🏷️ Tags  
+- ⚠️ *Upcoming*: map with a location pin for property positioning
 
-Property Page
+### 🌟 Featured Properties Section
+Displayed on the homepage, this section shows **5 curated listings**:
+- 🏢 1 apartment for sale  
+- 🏘️ 1 apartment for rent  
+- 🏡 1 house  
+- 🌾 1 land plot  
+- 🏬 1 commercial space  
 
-View detailed property listings with:
+#### ✅ Selection Criteria:
+- Posted between **7 and 30 days ago**
+- From users who **haven’t had a featured listing** in the past year
+- Listings with at least **5% favorite rate** *(favorites / views)*
+- Chosen based on the **highest number of views** within those constraints
 
-Images
+🔄 Updated **weekly** using a **PL/SQL stored procedure** triggered by an **Oracle DBMS scheduler job**
 
-Descriptions
-
-Tags
-
-(Upcoming: interactive map with location pin)
-
-Featured Properties Section
-
-Displayed on the homepage, this section highlights 5 dynamically selected properties:
-
-1 apartment for sale
-
-1 apartment for rent
-
-1 house
-
-1 land plot
-
-1 commercial space
-
-Selection criteria:
-
-Posted between 7–30 days ago
-
-From users who haven’t had a featured listing in the past year
-
-Listings with at least 5% favorite rate (favorites / views)
-
-Chosen based on highest number of views
-
-Automatically updated weekly via a PL/SQL stored procedure triggered by a scheduler job
-
-Listing Management Panel
-
-Authenticated users can:
-
-Add new property listings
-
-Edit existing listings
-
-Delete their own listings
+### 🛠️ Listings Management Panel
+- Add new property listings
+- Edit active listings
+- Delete own listings
