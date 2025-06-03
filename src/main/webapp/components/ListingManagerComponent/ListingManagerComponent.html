@@ -1,14 +1,58 @@
 <div class="listing-manager">
     <div class="listing-manager-component">
-        <div class="add-property-section">
-            <a data-route="/add-property" class="wide-button">Add New Listing</a>
+        <div class="header-section">
+            <h1>Your Property Listings</h1>
+            <p class="subtitle">Manage and track all your real estate listings in one place</p>
         </div>
 
-        <h2>Active listings</h2>
+        <div class="stats-section">
+            <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <span class="stat-value" id="total-listings">0</span>
+                <span class="stat-label">Total Listings</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">👁️</span>
+                <span class="stat-value" id="total-views">--</span>
+                <span class="stat-label">Total Views</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">⭐</span>
+                <span class="stat-value" id="featured-listings">--</span>
+                <span class="stat-label">Featured</span>
+            </div>
+        </div>
 
-        <div id="user-properties-container" class="properties-grid">
-            <!-- Property cards will be inserted here dynamically -->
-            <p>Loading your listings...</p>
+        <div class="add-property-section">
+            <a data-route="/add-property" class="add-button">
+                <span class="add-icon">+</span>
+                <span class="add-text">Add New Listing</span>
+            </a>
+        </div>
+
+        <div class="filters-section">
+            <div class="search-box">
+                <input type="text" id="search-listings" placeholder="Search your listings...">
+                <button class="search-btn">🔍</button>
+            </div>
+            <div class="filter-options">
+                <select id="sort-options">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="listings-container">
+            <h2>Your Active Listings</h2>
+
+            <div id="user-properties-container" class="properties-grid">
+                <!-- Property cards will be inserted here dynamically -->
+                <div class="loader-container">
+                    <div class="loader"></div>
+                    <p>Loading your listings...</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

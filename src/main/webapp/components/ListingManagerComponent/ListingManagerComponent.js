@@ -11,6 +11,9 @@ export class ListingManagerComponent extends AbstractComponent {
         await super.init();
         // Depending on the page, you can comment the next line
         this.dynamicallyLoadData();
+
+        this.initSearchFunctionality();
+        this.initSortingFunctionality();
     }
 
     //@Override
@@ -54,6 +57,94 @@ export class ListingManagerComponent extends AbstractComponent {
         }
     }
 
+    initSortingFunctionality() {
+        // Wait for the DOM to be fully loaded
+        setTimeout(() => {
+            const sortSelect = document.getElementById('sort-options');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', (e) => {
+                    this.sortProperties(e.target.value);
+                });
+            }
+        }, 100);
+    }
+
+    sortProperties(sortOption) {
+        const propertiesContainer = document.getElementById('user-properties-container');
+        const propertyCards = Array.from(propertiesContainer.querySelectorAll('.property-card'));
+
+        if (propertyCards.length === 0) return;
+
+        propertyCards.sort((a, b) => {
+            const dateA = new Date(a.querySelector('.creation-date').textContent.replace('Created on: ', ''));
+            const dateB = new Date(b.querySelector('.creation-date').textContent.replace('Created on: ', ''));
+
+            if (sortOption === 'newest') {
+                return dateB - dateA; // Newest first
+            } else {
+                return dateA - dateB; // Oldest first
+            }
+        });
+
+        // Clear the container
+        propertiesContainer.innerHTML = '';
+
+        // Add sorted cards back
+        propertyCards.forEach(card => {
+            propertiesContainer.appendChild(card);
+        });
+    }
+
+    initSearchFunctionality() {
+        // Wait for the DOM to be fully loaded
+        setTimeout(() => {
+            const searchInput = document.getElementById('search-listings');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.filterProperties(e.target.value.toLowerCase());
+                });
+            }
+        }, 100);
+    }
+
+
+
+    filterProperties(searchTerm) {
+        const propertyCards = document.querySelectorAll('.property-card');
+
+        propertyCards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+
+            if (searchTerm === '' || title.includes(searchTerm)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show "no results" message if no properties are visible
+        const visibleCards = [...propertyCards].filter(card => card.style.display !== 'none');
+        const container = document.getElementById('user-properties-container');
+
+        // Remove any existing no-results message first
+        const existingMessage = container.querySelector('.no-results-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        // Show message if no results
+        if (visibleCards.length === 0 && searchTerm !== '') {
+            const noResultsMsg = document.createElement('p');
+            noResultsMsg.className = 'no-results-message';
+            noResultsMsg.style.gridColumn = '1 / -1';
+            noResultsMsg.style.textAlign = 'center';
+            noResultsMsg.style.padding = '30px';
+            noResultsMsg.style.color = '#7f8c8d';
+            noResultsMsg.innerHTML = `No properties found matching "<strong>${searchTerm}</strong>"`;
+            container.appendChild(noResultsMsg);
+        }
+    }
+
     async handleDeleteProperty(event, propertyId) {
         console.log("Delete button clicked");
         console.log("Property ID:", propertyId);
@@ -73,7 +164,26 @@ export class ListingManagerComponent extends AbstractComponent {
                 if (response.ok) {
                     this.showSuccessMessage('Property deleted successfully!');
 
-                    await this.dynamicallyLoadData();
+                    // Remove the deleted property card from the DOM
+                    const deletedCard = document.querySelector(`.property-card .delete-button[data-id="${propertyId}"]`).closest('.property-card');
+                    if (deletedCard) {
+                        deletedCard.remove();
+
+                        // Update the total listings count
+                        const totalListingsElement = document.getElementById('total-listings');
+                        if (totalListingsElement) {
+                            const currentCount = parseInt(totalListingsElement.textContent);
+                            if (!isNaN(currentCount)) {
+                                totalListingsElement.textContent = currentCount - 1;
+                            }
+                        }
+                    }
+
+                    // Check if there are no properties left
+                    const propertiesContainer = document.getElementById('user-properties-container');
+                    if (propertiesContainer && !propertiesContainer.querySelector('.property-card')) {
+                        propertiesContainer.innerHTML = '<p>No properties found. Add some properties to get started!</p>';
+                    }
                 } else {
                     const errorText = await response.text();
                     let errorMessage = 'Could not delete property';
@@ -101,12 +211,22 @@ export class ListingManagerComponent extends AbstractComponent {
         const messageElement = document.createElement('div');
         messageElement.className = 'error-message';
         messageElement.innerHTML = message;
+        messageElement.style.backgroundColor = '#f8d7da';
+        messageElement.style.color = '#721c24';
+        messageElement.style.padding = '15px';
+        messageElement.style.marginBottom = '20px';
+        messageElement.style.borderRadius = '8px';
+        messageElement.style.textAlign = 'center';
 
+        // More reliable insertion point
         const container = document.querySelector('.listing-manager-component');
-        const propertiesGrid = document.querySelector('#user-properties-container');
-
-        if (container && propertiesGrid) {
-            container.insertBefore(messageElement, propertiesGrid.previousElementSibling);
+        if (container) {
+            const headerSection = container.querySelector('.header-section');
+            if (headerSection && headerSection.nextElementSibling) {
+                container.insertBefore(messageElement, headerSection.nextElementSibling);
+            } else {
+                container.insertBefore(messageElement, container.firstChild);
+            }
 
             setTimeout(() => {
                 if (messageElement.parentNode) {
@@ -162,12 +282,22 @@ export class ListingManagerComponent extends AbstractComponent {
         const messageElement = document.createElement('div');
         messageElement.className = 'success-message';
         messageElement.innerHTML = message;
+        messageElement.style.backgroundColor = '#d4edda';
+        messageElement.style.color = '#155724';
+        messageElement.style.padding = '15px';
+        messageElement.style.marginBottom = '20px';
+        messageElement.style.borderRadius = '8px';
+        messageElement.style.textAlign = 'center';
 
+        // More reliable insertion point
         const container = document.querySelector('.listing-manager-component');
-        const propertiesGrid = document.querySelector('#user-properties-container');
-
-        if (container && propertiesGrid) {
-            container.insertBefore(messageElement, propertiesGrid.previousElementSibling);
+        if (container) {
+            const headerSection = container.querySelector('.header-section');
+            if (headerSection && headerSection.nextElementSibling) {
+                container.insertBefore(messageElement, headerSection.nextElementSibling);
+            } else {
+                container.insertBefore(messageElement, container.firstChild);
+            }
 
             setTimeout(() => {
                 if (messageElement.parentNode) {
@@ -210,16 +340,37 @@ export class ListingManagerComponent extends AbstractComponent {
             const properties = await response.json();
             console.log("Received user properties:", properties);
 
+            // Update the total listings count in the UI
+            const totalListingsElement = document.getElementById('total-listings');
+            if (totalListingsElement) {
+                totalListingsElement.textContent = properties.length;
+            }
+
             const cardsHTML = properties.length > 0
-                ? properties.map(property => `
-            <div class="property-card">
-                <h3>${property.title}</h3>
-                <div class="property-actions">
-                    <a href="#" class="edit-button" data-route="/edit-listing" data-id="${property.id}">Edit</a>
-                    <button class="delete-button" data-id="${property.id}">Delete</button>
+                ? properties.map(property => {
+                    // Format the date for display
+                    const creationDate = new Date(property.creationDate);
+                    const formattedDate = creationDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    return `
+                <div class="property-card">
+                    <div class="content">
+                        <div class="title-wrapper">
+                            <h3>${property.title}</h3>
+                            <p class="creation-date">Created on: ${formattedDate}</p>
+                        </div>
+                    </div>
+                    <div class="property-actions">
+                        <a href="#" class="edit-button" data-route="/edit-listing" data-id="${property.id}">Edit</a>
+                        <button class="delete-button" data-id="${property.id}">Delete</button>
+                    </div>
                 </div>
-            </div>
-        `).join('')
+                `;
+                }).join('')
                 : '<p>No properties found. Add some properties to get started!</p>';
 
             const tempDiv = document.createElement('div');
@@ -230,12 +381,21 @@ export class ListingManagerComponent extends AbstractComponent {
                 propertiesContainer.innerHTML = cardsHTML;
             }
 
+            // Also update the total listings in the template
+            const totalListingsTemplateElement = tempDiv.querySelector('#total-listings');
+            if (totalListingsTemplateElement) {
+                totalListingsTemplateElement.textContent = properties.length;
+            }
+
             this.setTemplate(tempDiv.innerHTML);
 
             const renderedPropertiesContainer = document.querySelector('#user-properties-container');
             if (renderedPropertiesContainer) {
                 renderedPropertiesContainer.innerHTML = cardsHTML;
             }
+
+            // Apply initial sorting (newest first)
+            this.sortProperties('newest');
 
         } catch (error) {
             console.error('Error loading user property data:', error);

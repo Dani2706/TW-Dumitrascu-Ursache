@@ -57,7 +57,8 @@ public class GetUserPropertiesServlet extends HttpServlet {
                 Property property = properties.get(i);
                 json.append("{");
                 json.append("\"id\":").append(property.getPropertyId()).append(",");
-                json.append("\"title\":\"").append(property.getTitle()).append("\"");
+                json.append("\"title\":\"").append(property.getTitle()).append("\",");
+                json.append("\"creationDate\":\"").append(property.getCreatedAt()).append("\"");
                 json.append("}");
                 if (i < properties.size() - 1) {
                     json.append(",");
