@@ -56,7 +56,7 @@ public class LoginController extends HttpServlet {
         } catch (InvalidUsernameException | InvalidPasswordException e) {
             logger.error("", e);
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            HandleErrorUtil.handleError(resp, e.getMessage(), logger);
+            HandleErrorUtil.handleError(resp, e.getClass().getSimpleName(), logger);
         } catch (Exception e) {
             logger.error("", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

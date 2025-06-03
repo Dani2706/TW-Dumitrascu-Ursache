@@ -70,3 +70,7 @@ body {
     width: 100%;
     display: grid;
 }
+
+.logout-buton {
+    color: red;
+}

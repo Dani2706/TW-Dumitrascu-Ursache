@@ -1,14 +1,16 @@
 <section class = "login-container">
     <h2>Login</h2>
     <form class="login-form">
-        <label for="username">Email or username</label>
+        <label for="username">Username</label>
         <input type="text" id="username" name="username" required>
         <br>
 
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required>
-        <br>
 
+        <p class="login-failed-error-message">* Contul nu exista sau username-ul si parola sunt gresite</p>
+
+        <br>
         <button type="submit">Login</button>
     </form>
 

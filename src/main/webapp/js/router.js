@@ -1,3 +1,5 @@
+import { environment } from "../environment.js";
+
 export class Router {
     constructor(containerSelector, basePath, routes) {
         this.container = document.querySelector(containerSelector);
@@ -8,6 +10,8 @@ export class Router {
         this.currentRenderedComponentDOM = null;
     }
 
+    //This sets the eventlisteners that are ment to happen 
+    //for things outside the #main-window
     eventListenerLoader(){
         window.addEventListener('popstate', () => {
             const fullPath = location.pathname;
@@ -21,11 +25,38 @@ export class Router {
             }
         });
         document.addEventListener('DOMContentLoaded', () => {
+            this.manageNavBarElementsInHeader();
             const fullPath = window.location.pathname;
             const path = fullPath.replace(this.basePath, '');
             console.log(`Current path on load: ${path}`);
             this.navigate(path); // Load the correct view on page load
         });
+        document.querySelector(".logout-button")
+            .addEventListener('click', () => {
+                window.sessionStorage.clear();
+                window.location.href = environment.navigationUrl + "/";
+            })
+    }
+
+    manageNavBarElementsInHeader(){
+        let loginTrueDisplayStatus = "";
+        let loginFalseDisplayStatus = "";
+        const loginTrue = document.querySelectorAll(".login-true");
+        const loginFalse = document.querySelectorAll(".login-false");
+        if (window.sessionStorage.getItem("isLoggedIn") === "true"){
+            loginTrueDisplayStatus = "block";
+            loginFalseDisplayStatus = "none";
+        }
+        else {
+            loginTrueDisplayStatus = "none";
+            loginFalseDisplayStatus = "block";
+        }
+        loginTrue.forEach(el => {
+            el.style.display = loginTrueDisplayStatus;
+        })
+        loginFalse.forEach(el => {
+            el.style.display = loginFalseDisplayStatus;
+        })
     }
 
     navigate(path) {
@@ -53,6 +84,7 @@ export class Router {
                 console.error(`Error initializing component for path ${path}:`, error);
             });
             this.currentRenderedComponentDOM = instance.render();
+            //this.container = #main-window
             this.container.appendChild(this.currentRenderedComponentDOM);
             this.currentRenderedComponentInstance = instance;
         }

@@ -68,11 +68,11 @@
 }
 
 /* Links */
-.register-container p {
-  margin-top: 12px;
-  text-align: center;
+.register-form p {
+  margin-top: -12px;
+  text-align: left;
   font-size: 0.95em;
-  color: #555;
+  color: red;
 }
 
 .register-container a {
@@ -82,4 +82,13 @@
 
 .register-container a:hover {
   text-decoration: underline;
+}
+
+.frontend-username-error-message,
+.backend-username-error-message,
+.frontend-email-error-message,
+.backend-email-error-message,
+.password-error-message,
+.confirm-password-error-message {
+  display: none;
 }
