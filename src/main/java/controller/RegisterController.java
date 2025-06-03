@@ -50,7 +50,7 @@ public class RegisterController extends HttpServlet {
         } catch (UsernameAlreadyInUse | EmailAlreadyInUse e) {
             logger.error("", e);
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            HandleErrorUtil.handleError(resp, e.getMessage(), logger);
+            HandleErrorUtil.handleError(resp, e.getClass().getSimpleName(), logger);
         } catch (Exception e) {
             logger.error("", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

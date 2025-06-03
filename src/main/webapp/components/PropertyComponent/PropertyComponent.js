@@ -11,7 +11,7 @@ export class PropertyComponent extends AbstractComponent {
     //@Override
     async init() {
         await super.init();
-        this.dynamicallyLoadData();
+        await this.dynamicallyLoadData();
     }
 
     //@Override
