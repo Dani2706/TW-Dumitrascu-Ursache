@@ -84,6 +84,44 @@ public class PropertyService {
         }
     }
 
+    public void updateProperty(int propertyId, int userId, String title, String description,
+                               String propertyType, String transactionType, int price,
+                               int surface, int rooms, int bathrooms, int floor,
+                               int totalFloors, int yearBuilt, String address,
+                               String city, String state, String contactName,
+                               String contactPhone, String contactEmail) throws PropertyDataException {
+
+        if (propertyId <= 0) {
+            logger.warn("Attempt to update property with invalid ID: {}", propertyId);
+            throw new PropertyDataException("Property ID must be positive");
+        }
+
+        if (userId <= 0) {
+            logger.warn("Attempt to update property with invalid user ID: {}", userId);
+            throw new PropertyDataException("User ID must be positive");
+        }
+
+        try {
+            logger.debug("Updating property with ID: {}", propertyId);
+
+            Property property = new Property(
+                    title, description, propertyType, transactionType,
+                    price, surface, rooms, bathrooms, floor, totalFloors,
+                    yearBuilt, new Date(System.currentTimeMillis()), address, city, state,
+                    contactName, contactPhone, contactEmail
+            );
+
+            propertyRepository.updateProperty(propertyId, userId, property);
+            logger.info("Successfully updated property with ID: {}", propertyId);
+        } catch (PropertyNotFoundException e) {
+            logger.warn("Property not found or doesn't belong to user - ID: {}, User ID: {}", propertyId, userId);
+            throw new PropertyDataException(e.getMessage(), e);
+        } catch (DatabaseException e) {
+            logger.error("Database error when updating property with ID: {}", propertyId, e);
+            throw new PropertyDataException("Error updating property: " + e.getMessage(), e);
+        }
+    }
+
     public void deleteProperty(int propertyId, int userId) throws PropertyDataException {
         if (propertyId <= 0) {
             logger.warn("Attempt to delete property with invalid ID: {}", propertyId);

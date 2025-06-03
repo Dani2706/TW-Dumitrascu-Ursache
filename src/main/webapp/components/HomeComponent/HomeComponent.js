@@ -50,7 +50,7 @@ export class HomeComponent extends AbstractComponent {
     async dynamicallyLoadData(container) {
         try {
             console.log("Fetching property data...");
-            const response = await fetch('http://localhost:8081/TW_Dumitrascu_Ursache_war_exploded/api/properties/top');
+            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/properties/top');
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

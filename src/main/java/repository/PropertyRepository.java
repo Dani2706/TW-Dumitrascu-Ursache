@@ -163,6 +163,66 @@ public class PropertyRepository {
         }
     }
 
+    public void updateProperty(int propertyId, int userId, Property property) throws DatabaseException, PropertyNotFoundException {
+        logger.debug("Attempting to update property with ID: {} for user ID: {}", propertyId, userId);
+
+        try (Connection conn = dataSource.getConnection()) {
+            String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND user_id = ?";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, propertyId);
+                checkStmt.setInt(2, userId);
+                ResultSet rs = checkStmt.executeQuery();
+
+                if (!rs.next()) {
+                    logger.warn("Property with ID {} not found or doesn't belong to user ID {}", propertyId, userId);
+                    throw new PropertyNotFoundException("Property not found or doesn't belong to this user");
+                }
+            }
+
+            String sql = "UPDATE properties SET " +
+                    "title = ?, description = ?, property_type = ?, transaction_type = ?, " +
+                    "price = ?, surface_area = ?, rooms = ?, bathrooms = ?, " +
+                    "floor = ?, total_floors = ?, year_built = ?, " +
+                    "address = ?, city = ?, state = ?, " +
+                    "contact_name = ?, contact_phone = ?, contact_email = ? " +
+                    "WHERE property_id = ? AND user_id = ?";
+
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, property.getTitle());
+                stmt.setString(2, property.getDescription());
+                stmt.setString(3, property.getPropertyType());
+                stmt.setString(4, property.getTransactionType());
+                stmt.setInt(5, property.getPrice());
+                stmt.setInt(6, property.getSurface());
+                stmt.setInt(7, property.getRooms());
+                stmt.setInt(8, property.getBathrooms());
+                stmt.setInt(9, property.getFloor());
+                stmt.setInt(10, property.getTotalFloors());
+                stmt.setInt(11, property.getYearBuilt());
+                stmt.setString(12, property.getAddress());
+                stmt.setString(13, property.getCity());
+                stmt.setString(14, property.getState());
+                stmt.setString(15, property.getContactName());
+                stmt.setString(16, property.getContactPhone());
+                stmt.setString(17, property.getContactEmail());
+                stmt.setInt(18, propertyId);
+                stmt.setInt(19, userId);
+
+                int rowsAffected = stmt.executeUpdate();
+
+                if (rowsAffected == 0) {
+                    logger.error("No rows affected when updating property {}", propertyId);
+                    throw new DatabaseException("Failed to update property, no rows affected");
+                }
+
+                logger.info("Successfully updated property with ID: {}", propertyId);
+            }
+        } catch (SQLException e) {
+            logger.error("Database error when updating property ID: {}", propertyId, e);
+            throw new DatabaseException("Error updating property: " + e.getMessage(), e);
+        }
+    }
+
     public void deleteProperty(int propertyId, int userId) throws DatabaseException, PropertyNotFoundException {
         logger.debug("Attempting to delete property with ID: {} for user ID: {}", propertyId, userId);
 
