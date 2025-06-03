@@ -28,6 +28,44 @@ document.addEventListener('click', (e) => {
         e.preventDefault();
         const path = link.getAttribute('data-route');
         router.navigate(path);
+        updateActiveNavLink();
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navBar = document.querySelector('.nav-bar');
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+            navBar.classList.toggle('active');
+        });
+    }
+
+    const navLinks = document.querySelectorAll('.nav-bar a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                navBar.classList.remove('active');
+            }
+        });
+    });
+
+    updateActiveNavLink();
+});
+
+function updateActiveNavLink() {
+    const currentPath = window.location.pathname.replace(basePath, '');
+    const navLinks = document.querySelectorAll('.nav-bar a');
+
+    navLinks.forEach(link => {
+        const linkPath = link.getAttribute('data-route');
+        if (linkPath === currentPath) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
+
 console.log('App initialized');
