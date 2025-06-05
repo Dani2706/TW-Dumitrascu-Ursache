@@ -59,30 +59,24 @@
             <div class="filter-group">
                 <h3>City</h3>
                 <div class="search-filter">
-                    <input type="text" placeholder="Search cities..." class="search-input">
-                    <div class="checkbox-list">
-                        <label class="checkbox-item"><input type="checkbox" value="new-york"> New York</label>
-                        <label class="checkbox-item"><input type="checkbox" value="los-angeles"> Los Angeles</label>
-                        <label class="checkbox-item"><input type="checkbox" value="chicago"> Chicago</label>
-                        <label class="checkbox-item"><input type="checkbox" value="houston"> Houston</label>
-                        <label class="checkbox-item"><input type="checkbox" value="phoenix"> Phoenix</label>
+                    <input type="text" placeholder="Search cities..." class="search-input" id="city-search">
+                    <div class="checkbox-list" id="city-options">
+                        <!-- Will be populated dynamically -->
+                        <div class="loading-options">Loading cities...</div>
                     </div>
-                    <button class="show-more-btn">Show More</button>
+                    <button class="show-more-btn" id="show-more-cities">Show More</button>
                 </div>
             </div>
 
             <div class="filter-group">
                 <h3>State</h3>
                 <div class="search-filter">
-                    <input type="text" placeholder="Search states..." class="search-input">
-                    <div class="checkbox-list">
-                        <label class="checkbox-item"><input type="checkbox" value="california"> California</label>
-                        <label class="checkbox-item"><input type="checkbox" value="texas"> Texas</label>
-                        <label class="checkbox-item"><input type="checkbox" value="florida"> Florida</label>
-                        <label class="checkbox-item"><input type="checkbox" value="new-york"> New York</label>
-                        <label class="checkbox-item"><input type="checkbox" value="illinois"> Illinois</label>
+                    <input type="text" placeholder="Search states..." class="search-input" id="state-search">
+                    <div class="checkbox-list" id="state-options">
+                        <!-- Will be populated dynamically -->
+                        <div class="loading-options">Loading states...</div>
                     </div>
-                    <button class="show-more-btn">Show More</button>
+                    <button class="show-more-btn" id="show-more-states">Show More</button>
                 </div>
             </div>
 
@@ -95,13 +89,13 @@
                     </div>
                     <div class="range-input">
                         <label for="price-max">Max ($)</label>
-                        <input type="number" id="price-max" placeholder="1,000,000">
+                        <input type="number" id="price-max">
                     </div>
                 </div>
                 <div class="slider-container">
                     <div class="slider-track"></div>
-                    <input type="range" min="0" max="1000000" value="0" class="slider" id="price-slider-min">
-                    <input type="range" min="0" max="1000000" value="1000000" class="slider" id="price-slider-max">
+                    <input type="range" id="price-slider-min" class="slider">
+                    <input type="range" id="price-slider-max" class="slider">
                 </div>
             </div>
 
@@ -114,13 +108,13 @@
                     </div>
                     <div class="range-input">
                         <label for="area-max">Max</label>
-                        <input type="number" id="area-max" placeholder="5,000">
+                        <input type="number" id="area-max">
                     </div>
                 </div>
                 <div class="slider-container">
                     <div class="slider-track"></div>
-                    <input type="range" min="0" max="5000" value="0" class="slider" id="area-slider-min">
-                    <input type="range" min="0" max="5000" value="5000" class="slider" id="area-slider-max">
+                    <input type="range" class="slider" id="area-slider-min">
+                    <input type="range" class="slider" id="area-slider-max">
                 </div>
             </div>
 
@@ -133,13 +127,13 @@
                     </div>
                     <div class="range-input">
                         <label for="bedrooms-max">Max</label>
-                        <input type="number" id="bedrooms-max" placeholder="10">
+                        <input type="number" id="bedrooms-max">
                     </div>
                 </div>
                 <div class="slider-container">
                     <div class="slider-track"></div>
-                    <input type="range" min="0" max="10" value="0" class="slider" id="bedrooms-slider-min">
-                    <input type="range" min="0" max="10" value="10" class="slider" id="bedrooms-slider-max">
+                    <input type="range" class="slider" id="bedrooms-slider-min">
+                    <input type="range" class="slider" id="bedrooms-slider-max">
                 </div>
             </div>
 
@@ -152,13 +146,13 @@
                     </div>
                     <div class="range-input">
                         <label for="bathrooms-max">Max</label>
-                        <input type="number" id="bathrooms-max" placeholder="5">
+                        <input type="number" id="bathrooms-max">
                     </div>
                 </div>
                 <div class="slider-container">
                     <div class="slider-track"></div>
-                    <input type="range" min="0" max="5" value="0" class="slider" id="bathrooms-slider-min">
-                    <input type="range" min="0" max="5" value="5" class="slider" id="bathrooms-slider-max">
+                    <input type="range" class="slider" id="bathrooms-slider-min">
+                    <input type="range" class="slider" id="bathrooms-slider-max">
                 </div>
             </div>
 
@@ -171,13 +165,13 @@
                     </div>
                     <div class="range-input">
                         <label for="floor-max">Max</label>
-                        <input type="number" id="floor-max" placeholder="30">
+                        <input type="number" id="floor-max">
                     </div>
                 </div>
                 <div class="slider-container">
                     <div class="slider-track"></div>
-                    <input type="range" min="0" max="30" value="0" class="slider" id="floor-slider-min">
-                    <input type="range" min="0" max="30" value="30" class="slider" id="floor-slider-max">
+                    <input type="range" class="slider" id="floor-slider-min">
+                    <input type="range" class="slider" id="floor-slider-max">
                 </div>
             </div>
 
@@ -186,17 +180,17 @@
                 <div class="range-inputs">
                     <div class="range-input">
                         <label for="year-min">Min</label>
-                        <input type="number" id="year-min" placeholder="1900">
+                        <input type="number" id="year-min">
                     </div>
                     <div class="range-input">
                         <label for="year-max">Max</label>
-                        <input type="number" id="year-max" placeholder="2023">
+                        <input type="number" id="year-max">
                     </div>
                 </div>
                 <div class="slider-container">
                     <div class="slider-track"></div>
-                    <input type="range" min="1900" max="2023" value="1900" class="slider" id="year-slider-min">
-                    <input type="range" min="1900" max="2023" value="2023" class="slider" id="year-slider-max">
+                    <input type="range" class="slider" id="year-slider-min">
+                    <input type="range" class="slider" id="year-slider-max">
                 </div>
             </div>
 
