@@ -33,7 +33,27 @@ export class ListingManagerComponent extends AbstractComponent {
                 event.preventDefault();
                 this.handleEditProperty(event, editButton.dataset.id);
             }
+
+            const viewButton = event.target.closest('.view-button');
+            if (viewButton) {
+                event.preventDefault();
+                this.handleViewProperty(event, viewButton.dataset.id);
+            }
         });
+    }
+
+    handleViewProperty(event, propertyId) {
+        event.preventDefault();
+        console.log("Viewing property with ID:", propertyId);
+
+        sessionStorage.setItem('viewPropertyId', propertyId);
+
+        if (window.router) {
+            window.router.navigate('/view-listing');
+        } else {
+            console.error('Router not available for navigation');
+            window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/view-listing?id=${propertyId}`;
+        }
     }
 
     handleEditProperty(event, propertyId) {
@@ -58,7 +78,6 @@ export class ListingManagerComponent extends AbstractComponent {
     }
 
     initSortingFunctionality() {
-        // Wait for the DOM to be fully loaded
         setTimeout(() => {
             const sortSelect = document.getElementById('sort-options');
             if (sortSelect) {
@@ -80,23 +99,20 @@ export class ListingManagerComponent extends AbstractComponent {
             const dateB = new Date(b.querySelector('.creation-date').textContent.replace('Created on: ', ''));
 
             if (sortOption === 'newest') {
-                return dateB - dateA; // Newest first
+                return dateB - dateA;
             } else {
-                return dateA - dateB; // Oldest first
+                return dateA - dateB;
             }
         });
 
-        // Clear the container
         propertiesContainer.innerHTML = '';
 
-        // Add sorted cards back
         propertyCards.forEach(card => {
             propertiesContainer.appendChild(card);
         });
     }
 
     initSearchFunctionality() {
-        // Wait for the DOM to be fully loaded
         setTimeout(() => {
             const searchInput = document.getElementById('search-listings');
             if (searchInput) {
@@ -122,26 +138,22 @@ export class ListingManagerComponent extends AbstractComponent {
             }
         });
 
-        // Show "no results" message if no properties are visible
         const visibleCards = [...propertyCards].filter(card => card.style.display !== 'none');
         const container = document.getElementById('user-properties-container');
 
-        // Remove any existing no-results message first
         const existingMessage = container.querySelector('.no-results-message');
         if (existingMessage) {
             existingMessage.remove();
         }
 
-        // Show message if no results
         if (visibleCards.length === 0 && searchTerm !== '') {
-            const noResultsMsg = document.createElement('p');
-            noResultsMsg.className = 'no-results-message';
-            noResultsMsg.style.gridColumn = '1 / -1';
-            noResultsMsg.style.textAlign = 'center';
-            noResultsMsg.style.padding = '30px';
-            noResultsMsg.style.color = '#7f8c8d';
-            noResultsMsg.innerHTML = `No properties found matching "<strong>${searchTerm}</strong>"`;
-            container.appendChild(noResultsMsg);
+            const noResultsHTML = `
+        <div class="no-results-message">
+            <div class="no-properties-icon">🔍</div>
+            <h3>No Matching Properties</h3>
+            <p>No properties found matching "<strong>${searchTerm}</strong>"</p>
+        </div>`;
+            container.insertAdjacentHTML('beforeend', noResultsHTML);
         }
     }
 
@@ -164,12 +176,10 @@ export class ListingManagerComponent extends AbstractComponent {
                 if (response.ok) {
                     this.showSuccessMessage('Property deleted successfully!');
 
-                    // Remove the deleted property card from the DOM
                     const deletedCard = document.querySelector(`.property-card .delete-button[data-id="${propertyId}"]`).closest('.property-card');
                     if (deletedCard) {
                         deletedCard.remove();
 
-                        // Update the total listings count
                         const totalListingsElement = document.getElementById('total-listings');
                         if (totalListingsElement) {
                             const currentCount = parseInt(totalListingsElement.textContent);
@@ -179,7 +189,6 @@ export class ListingManagerComponent extends AbstractComponent {
                         }
                     }
 
-                    // Check if there are no properties left
                     const propertiesContainer = document.getElementById('user-properties-container');
                     if (propertiesContainer && !propertiesContainer.querySelector('.property-card')) {
                         propertiesContainer.innerHTML = '<p>No properties found. Add some properties to get started!</p>';
@@ -218,7 +227,6 @@ export class ListingManagerComponent extends AbstractComponent {
         messageElement.style.borderRadius = '8px';
         messageElement.style.textAlign = 'center';
 
-        // More reliable insertion point
         const container = document.querySelector('.listing-manager-component');
         if (container) {
             const headerSection = container.querySelector('.header-section');
@@ -289,7 +297,6 @@ export class ListingManagerComponent extends AbstractComponent {
         messageElement.style.borderRadius = '8px';
         messageElement.style.textAlign = 'center';
 
-        // More reliable insertion point
         const container = document.querySelector('.listing-manager-component');
         if (container) {
             const headerSection = container.querySelector('.header-section');
@@ -340,7 +347,6 @@ export class ListingManagerComponent extends AbstractComponent {
             const properties = await response.json();
             console.log("Received user properties:", properties);
 
-            // Update the total listings count in the UI
             const totalListingsElement = document.getElementById('total-listings');
             if (totalListingsElement) {
                 totalListingsElement.textContent = properties.length;
@@ -348,7 +354,6 @@ export class ListingManagerComponent extends AbstractComponent {
 
             const cardsHTML = properties.length > 0
                 ? properties.map(property => {
-                    // Format the date for display
                     const creationDate = new Date(property.creationDate);
                     const formattedDate = creationDate.toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -365,13 +370,18 @@ export class ListingManagerComponent extends AbstractComponent {
                         </div>
                     </div>
                     <div class="property-actions">
+                        <a href="#" class="view-button" data-route="/view-listing" data-id="${property.id}">View</a>
                         <a href="#" class="edit-button" data-route="/edit-listing" data-id="${property.id}">Edit</a>
                         <button class="delete-button" data-id="${property.id}">Delete</button>
                     </div>
                 </div>
                 `;
                 }).join('')
-                : '<p>No properties found. Add some properties to get started!</p>';
+                : `<div class="no-properties-message">
+                <div class="no-properties-icon">📭</div>
+                <h3>No Properties Found</h3>
+                <p>You haven't added any properties yet. Click "Add New Listing" to get started!</p>
+               </div>`;
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.getTemplate();
@@ -381,7 +391,6 @@ export class ListingManagerComponent extends AbstractComponent {
                 propertiesContainer.innerHTML = cardsHTML;
             }
 
-            // Also update the total listings in the template
             const totalListingsTemplateElement = tempDiv.querySelector('#total-listings');
             if (totalListingsTemplateElement) {
                 totalListingsTemplateElement.textContent = properties.length;
@@ -394,7 +403,6 @@ export class ListingManagerComponent extends AbstractComponent {
                 renderedPropertiesContainer.innerHTML = cardsHTML;
             }
 
-            // Apply initial sorting (newest first)
             this.sortProperties('newest');
 
         } catch (error) {

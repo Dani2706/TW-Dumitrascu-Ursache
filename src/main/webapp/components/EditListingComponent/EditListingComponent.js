@@ -28,7 +28,7 @@ export class EditListingComponent extends AbstractComponent {
 
     async prefetchPropertyData() {
         try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${this.propertyId}`);
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${this.propertyId}`);
 
             if (!response.ok) {
                 throw new Error(`Failed to fetch property data: ${response.status}`);
@@ -132,7 +132,7 @@ export class EditListingComponent extends AbstractComponent {
                 propertyData = JSON.parse(cachedData);
                 console.log("Using cached property data:", propertyData);
             } else {
-                const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/property?id=${this.propertyId}`);
+                const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${this.propertyId}`);
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch property data: ${response.status}`);
