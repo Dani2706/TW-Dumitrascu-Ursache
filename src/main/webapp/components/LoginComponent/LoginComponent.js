@@ -75,7 +75,7 @@ export class LoginComponent extends AbstractComponent {
         const formData = new FormData(event.target);
         const plainObject = Object.fromEntries(formData.entries());
 
-        const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_1_0_SNAPSHOT_war/api/login", {
+        const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/login", {
                 method : "POST",
                 body : JSON.stringify(plainObject),
                 headers: {

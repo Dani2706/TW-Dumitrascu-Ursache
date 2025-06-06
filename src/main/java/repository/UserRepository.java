@@ -1,10 +1,8 @@
 package repository;
 
-import entity.Property;
 import exceptions.DatabaseException;
 import exceptions.EmailAlreadyInUse;
 import exceptions.UsernameAlreadyInUse;
-import oracle.jdbc.OracleTypes;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -17,7 +15,7 @@ public class UserRepository {
         this.dataSource = dataSource;
     }
 
-    public void addUser(String username, String email, String password) throws EmailAlreadyInUse, UsernameAlreadyInUse, DatabaseException {
+    public void addUser(String username, String email, String password, String phoneNumber) throws EmailAlreadyInUse, UsernameAlreadyInUse, DatabaseException {
         String addUser = "{call add_user(?,?,?)}";
         try(Connection connection = this.dataSource.getConnection();
             CallableStatement stmt = connection.prepareCall(addUser)){
@@ -25,6 +23,7 @@ public class UserRepository {
             stmt.setString(1, username);
             stmt.setString(2, email);
             stmt.setString(3, password);
+            stmt.setString(4, phoneNumber);
 
             stmt.execute();
 

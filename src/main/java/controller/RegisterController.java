@@ -46,8 +46,9 @@ public class RegisterController extends HttpServlet {
             String username = (String) bodyParams.get("username");
             String password = (String) bodyParams.get("password");
             String email = (String) bodyParams.get("email");
+            String phoneNumber = (String) bodyParams.get("phoneNumber");
 
-            this.userService.addUser(username, email, password);
+            this.userService.addUser(username, email, password, phoneNumber);
 
             resp.setStatus(HttpServletResponse.SC_CREATED);
         } catch (UsernameAlreadyInUse | EmailAlreadyInUse e) {

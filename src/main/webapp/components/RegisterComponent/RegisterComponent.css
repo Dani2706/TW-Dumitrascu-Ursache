@@ -38,7 +38,8 @@
 
 /* Input fields */
 .register-container input[type="text"],
-.register-container input[type="password"] {
+.register-container input[type="password"],
+.register-container input[type="tel"] {
   padding: 10px;
   margin-bottom: 18px;
   border: 1px solid #ccc;

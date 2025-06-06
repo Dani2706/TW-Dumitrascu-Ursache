@@ -17,9 +17,9 @@ public class UserService {
         this.userRepository = new UserRepository(dataSource);
     }
 
-    public void addUser(String username, String email, String password) throws UsernameAlreadyInUse, EmailAlreadyInUse, DatabaseException {
+    public void addUser(String username, String email, String password, String phoneNumber) throws UsernameAlreadyInUse, EmailAlreadyInUse, DatabaseException {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        userRepository.addUser(username, email, hashedPassword);
+        userRepository.addUser(username, email, hashedPassword, phoneNumber);
     }
 
     public void validateCredentials(String username, String password) throws SQLException, InvalidUsernameException, InvalidPasswordException {

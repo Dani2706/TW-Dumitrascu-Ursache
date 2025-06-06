@@ -82,7 +82,7 @@ export class RegisterComponent extends AbstractComponent {
         }
         else {
             const plainObject = Object.fromEntries(formData.entries());
-            const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_1_0_SNAPSHOT_war/api/register", {
+            const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/register", {
                 method: "POST",
                 body: JSON.stringify(plainObject),
                 headers: {
