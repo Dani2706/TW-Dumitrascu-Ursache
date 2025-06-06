@@ -1,5 +1,6 @@
 package controller;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import exceptions.DatabaseException;
 import exceptions.EmailAlreadyInUse;
 import exceptions.UsernameAlreadyInUse;
 import org.slf4j.Logger;
@@ -18,15 +20,16 @@ import util.HandleErrorUtil;
 @WebServlet("/api/register")
 public class RegisterController extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
-    private final UserService userService;
+    private UserService userService;
 
-    public RegisterController() {
-        this.userService = new UserService();
+    @Override
+    public void init() throws ServletException {
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.userService = new UserService(dataSource);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        DataSource dataSource = (DataSource) req.getServletContext().getAttribute("dataSource");
 
         // Read the request body
         StringBuilder requestBody = new StringBuilder();
@@ -44,11 +47,11 @@ public class RegisterController extends HttpServlet {
             String password = (String) bodyParams.get("password");
             String email = (String) bodyParams.get("email");
 
-            this.userService.addUser(dataSource, username, email, password);
+            this.userService.addUser(username, email, password);
 
             resp.setStatus(HttpServletResponse.SC_CREATED);
         } catch (UsernameAlreadyInUse | EmailAlreadyInUse e) {
-            logger.error("", e);
+            logger.warn("", e);
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
             HandleErrorUtil.handleError(resp, e.getClass().getSimpleName(), logger);
         } catch (Exception e) {

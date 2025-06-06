@@ -1,5 +1,9 @@
 package repository;
 
+import entity.Property;
+import exceptions.DatabaseException;
+import exceptions.EmailAlreadyInUse;
+import exceptions.UsernameAlreadyInUse;
 import oracle.jdbc.OracleTypes;
 
 import javax.sql.DataSource;
@@ -9,28 +13,38 @@ import exceptions.InvalidUsernameException;
 public class UserRepository {
     DataSource dataSource;
 
-    public UserRepository() {}
+    public UserRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
-    public String addUser(DataSource dataSource, String username, String email, String password) throws SQLException {
-        String addUser = "{? = call add_user(?,?,?)}";
-        try(Connection connection = dataSource.getConnection();
+    public void addUser(String username, String email, String password) throws EmailAlreadyInUse, UsernameAlreadyInUse, DatabaseException {
+        String addUser = "{call add_user(?,?,?)}";
+        try(Connection connection = this.dataSource.getConnection();
             CallableStatement stmt = connection.prepareCall(addUser)){
 
-            stmt.registerOutParameter(1, OracleTypes.VARCHAR);
-
-            stmt.setString(2, username);
-            stmt.setString(3, email);
-            stmt.setString(4, password);
+            stmt.setString(1, username);
+            stmt.setString(2, email);
+            stmt.setString(3, password);
 
             stmt.execute();
 
-            return stmt.getString(1);
+        } catch (SQLException e) {
+            System.err.println("SQLException: " + e.getErrorCode());
+            if (e.getErrorCode() == 20001) {
+                throw new EmailAlreadyInUse(e.getMessage());
+            }
+            if (e.getErrorCode() == 20002) {
+                throw new UsernameAlreadyInUse(e.getMessage());
+            }
+            else {
+                throw new DatabaseException(e.getMessage());
+            }
         }
     }
 
-    public String getPasswordForUser(DataSource dataSource, String username) throws SQLException, InvalidUsernameException, SQLIntegrityConstraintViolationException {
-        String stmtAsString = "SELECT password FROM users WHERE username = ?";
-        try(Connection connection = dataSource.getConnection();
+    public String getPasswordForUser(String username) throws SQLException, InvalidUsernameException, SQLIntegrityConstraintViolationException {
+        String stmtAsString = "SELECT password_hash FROM users WHERE username = ?";
+        try(Connection connection = this.dataSource.getConnection();
             PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
             stmt.setString(1, username);
             ResultSet result = stmt.executeQuery();

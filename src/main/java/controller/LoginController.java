@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import service.UserService;
 import util.HandleErrorUtil;
 
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -19,15 +20,16 @@ import java.util.Map;
 @WebServlet("/api/login")
 public class LoginController extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
-    private final UserService userService;
+    private UserService userService;
 
-    public LoginController() {
-        this.userService = new UserService();
+    @Override
+    public void init() throws ServletException {
+        DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
+        this.userService = new UserService(dataSource);
     }
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp){
-        DataSource dataSource = (DataSource) req.getServletContext().getAttribute("dataSource");
 
         // Read the request body
         StringBuilder requestBody = new StringBuilder();
@@ -44,7 +46,7 @@ public class LoginController extends HttpServlet {
             String username = (String) bodyParams.get("username");
             String password = (String) bodyParams.get("password");
 
-            this.userService.validateCredentials(dataSource, username, password);
+            this.userService.validateCredentials(username, password);
 
             String generatedToken = this.userService.generateJWT(username);
             String responseBody = "{\"token\":\"" + generatedToken + "\"}";
@@ -54,7 +56,7 @@ public class LoginController extends HttpServlet {
             resp.getWriter().write(responseBody);
 
         } catch (InvalidUsernameException | InvalidPasswordException e) {
-            logger.error("", e);
+            logger.warn("", e);
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             HandleErrorUtil.handleError(resp, e.getClass().getSimpleName(), logger);
         } catch (Exception e) {

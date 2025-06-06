@@ -21,7 +21,7 @@ import java.time.LocalDate;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-@WebServlet("/add-property")
+@WebServlet("/api/add-property")
 public class AddPropertyServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AddPropertyServlet.class);

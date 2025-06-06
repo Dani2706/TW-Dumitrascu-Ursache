@@ -99,15 +99,16 @@ export class RegisterComponent extends AbstractComponent {
             else if (response.status === 409) {
                 const result = await response.text();
                 if (result === "UsernameAlreadyInUse") {
-                    this.errorSelectorName = ".username-error-message";
+                    this.errorSelectorName = ".backend-username-error-message";
                 }
                 else if (result === "EmailAlreadyInUse") {
-                    this.errorSelectorName = ".email-error-message";
+                    this.errorSelectorName = ".backend-email-error-message";
                 }
                 this.showErrorMessage();
             } else {
                 alert("An error occured. Please try again later")
             }
+            this.isSignUpFailed = true;
         }
 
     }

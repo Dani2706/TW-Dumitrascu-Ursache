@@ -2,17 +2,17 @@ package entity;
 
 import enums.Role;
 
+import java.sql.SQLData;
+
 public class User {
     private Long id;
     private String name;
-    private Role role;
     private String email;
     private String phoneNumber;
 
-    public User(Long id, String name, Role role, String email, String phoneNumber) {
+    public User(Long id, String name, String email, String phoneNumber) {
         this.id = id;
         this.name = name;
-        this.role = role;
         this.email = email;
         this.phoneNumber = phoneNumber;
     }
@@ -31,14 +31,6 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
     }
 
     public String getEmail() {

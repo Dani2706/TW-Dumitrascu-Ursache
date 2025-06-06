@@ -1,5 +1,7 @@
 package entity;
 
+import java.math.BigDecimal;
+import java.sql.Clob;
 import java.sql.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -294,5 +296,34 @@ public class Property {
 
     private boolean isValidEmail(String email) {
         return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+    }
+
+    public Object[] mapPropertyClassToDbPropertyType (){
+        return new Object[] {
+                new BigDecimal(1),
+                new BigDecimal(1),//getUserId(),
+                getTitle(),
+                null,
+                getPropertyType(),
+                getTransactionType(),
+                new BigDecimal(getPrice()),
+                new BigDecimal(getSurface()),
+                new BigDecimal(getRooms()),
+                new BigDecimal(getBathrooms()),
+                new BigDecimal(getFloor()),
+                new BigDecimal(getTotalFloors()),
+                new BigDecimal(getYearBuilt()),
+                null, //createdAt
+                null, //updatedAt
+                "country", //country
+                getCity(),
+                getState(),
+                getAddress(),
+                null, //latitute
+                null, //longitude
+                getContactName(),
+                getContactPhone(),
+                getContactEmail(),
+        };
     }
 }

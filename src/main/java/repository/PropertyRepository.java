@@ -4,6 +4,9 @@ import entity.Property;
 import entity.TopProperty;
 import exceptions.DatabaseException;
 import exceptions.PropertyNotFoundException;
+import exceptions.PropertyValidationException;
+import oracle.sql.STRUCT;
+import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -289,5 +292,24 @@ public class PropertyRepository {
         }
 
         return topProperties;
+    }
+
+    public int test_add_property_as_object(Property property) throws DatabaseException, PropertyValidationException {
+        String test_add_property_as_object = "{call test_add(?)}";
+        try(Connection connection = this.dataSource.getConnection();
+        CallableStatement stmt = connection.prepareCall(test_add_property_as_object)){
+            Object[] obj = property.mapPropertyClassToDbPropertyType();
+            Struct propertyStruct = connection.createStruct("PROPERTY", obj);
+
+            stmt.setObject(1, propertyStruct);
+            stmt.execute();
+            return 1;
+        }
+        catch (SQLException e) {
+            if (e.getErrorCode() == 20003) {
+                throw new PropertyValidationException(e.getMessage());
+            }
+            throw new DatabaseException(e.getMessage());
+        }
     }
 }

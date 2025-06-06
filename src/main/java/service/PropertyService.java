@@ -75,7 +75,8 @@ public class PropertyService {
                     contactName, contactPhone, contactEmail
             );
 
-            int propertyId = propertyRepository.addProperty(property);
+            //int propertyId = propertyRepository.addProperty(property);
+            int propertyId = propertyRepository.test_add_property_as_object(property);
             logger.debug("Successfully added property with ID: {}", propertyId);
             return propertyId;
         } catch (Exception e) {
