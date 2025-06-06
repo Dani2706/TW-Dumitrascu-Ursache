@@ -8,10 +8,12 @@ public class PropertyForAllListings {
     private int surfaceArea;
     private String city;
     private String country;
+    private double price;
+    private String transactionType;
 
     public PropertyForAllListings() {}
 
-    public PropertyForAllListings(int propertyId, String title, int rooms, int bathrooms, int surfaceArea, String city, String country) {
+    public PropertyForAllListings(int propertyId, String title, int rooms, int bathrooms, int surfaceArea, String city, String country, double price, String transactionType) {
         this.propertyId = propertyId;
         this.title = title;
         this.rooms = rooms;
@@ -19,6 +21,8 @@ public class PropertyForAllListings {
         this.surfaceArea = surfaceArea;
         this.city = city;
         this.country = country;
+        this.price = price;
+        this.transactionType = transactionType;
     }
 
     public int getPropertyId() {
@@ -49,6 +53,14 @@ public class PropertyForAllListings {
         return country;
     }
 
+    public double getPrice() {
+        return price;
+    }
+
+    public String getTransactionType() {
+        return transactionType;
+    }
+
     public void setPropertyId(int propertyId) {
         this.propertyId = propertyId;
     }
@@ -75,5 +87,13 @@ public class PropertyForAllListings {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 }

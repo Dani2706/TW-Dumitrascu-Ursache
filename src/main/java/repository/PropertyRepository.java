@@ -375,7 +375,7 @@ public class PropertyRepository {
 //    }
 
         public List<PropertyForAllListings> getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException {
-            String stmtAsString = "SELECT property_id, title, rooms, bathrooms, surface_area, city, country FROM properties WHERE property_type = ?";
+            String stmtAsString = "SELECT property_id, title, rooms, bathrooms, surface_area, city, country, price, transaction_type FROM properties WHERE property_type = ?";
             try(Connection connection = this.dataSource.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(stmtAsString)) {
                 stmt.setString(1, filterCriteria);
@@ -392,7 +392,9 @@ public class PropertyRepository {
                             result.getInt("bathrooms"),
                             result.getInt("surface_area"),
                             result.getString("city"),
-                            result.getString("country")
+                            result.getString("country"),
+                            result.getInt("price"),
+                            result.getString("transaction_type")
                         ));
                 }
                 return properties;

@@ -29,19 +29,9 @@ public class GetAllPropertiesController extends HttpServlet {
     }
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp){
-
-        StringBuilder requestBody = new StringBuilder();
-        try (BufferedReader reader = req.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                requestBody.append(line);
-            }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
-
-            String filterCriteria = (String) bodyParams.get("filterCriteria");
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        try {
+            String filterCriteria = req.getParameter("filterCriteria");
 
             String jsonString = this.propertyService.getAllPropertiesWithCriteria(filterCriteria);
             resp.setContentType("application/json");
@@ -49,7 +39,7 @@ public class GetAllPropertiesController extends HttpServlet {
             resp.getWriter().write(jsonString);
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (Exception e) {
-            logger.error("", e);
+            logger.error("Error processing request", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

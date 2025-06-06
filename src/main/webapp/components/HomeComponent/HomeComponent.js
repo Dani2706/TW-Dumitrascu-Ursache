@@ -18,20 +18,55 @@ export class HomeComponent extends AbstractComponent {
             throw new Error('Template not loaded. Call super.init() first.');
         }
 
-        const categoryButtons = this.container.querySelectorAll('.category-btn');
-        categoryButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const category = button.getAttribute('data-category');
-                window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/properties?category=${category}`;
-            });
+        // Add event listeners for category cards
+        const categoryCards = this.container.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            const categoryType = card.dataset.category;
+            const buyButton = card.querySelector('.category-btn[data-type="buy"]');
+            const rentButton = card.querySelector('.category-btn[data-type="rent"]');
+
+            if (buyButton) {
+                buyButton.addEventListener('click', () => {
+                    // Store the property type in sessionStorage
+                    const propertyType = this.getPropertyTypeParam(categoryType);
+                    sessionStorage.setItem('propertyType', propertyType);
+                    sessionStorage.setItem('transactionType', 'sell');
+
+                    // Redirect to properties page
+                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                });
+            }
+
+            if (rentButton) {
+                rentButton.addEventListener('click', () => {
+                    // Store the property type in sessionStorage
+                    const propertyType = this.getPropertyTypeParam(categoryType);
+                    sessionStorage.setItem('propertyType', propertyType);
+                    sessionStorage.setItem('transactionType', 'rent');
+                    // Redirect to properties page
+                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                });
+            }
         });
 
         const searchButton = this.container.querySelector('#search-button');
         if (searchButton) {
             searchButton.addEventListener('click', () => {
                 const searchQuery = this.container.querySelector('#property-search').value;
-                window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/properties?search=${searchQuery}`;
+                sessionStorage.setItem('searchQuery', searchQuery);
+                window.location.href = '#/properties';
             });
+        }
+    }
+
+    // Helper method to convert category to API parameter
+    getPropertyTypeParam(category) {
+        switch(category) {
+            case 'apartments': return 'flat';
+            case 'houses': return 'house';
+            case 'land': return 'land';
+            case 'commercial': return 'commercial';
+            default: return 'flat';
         }
     }
 

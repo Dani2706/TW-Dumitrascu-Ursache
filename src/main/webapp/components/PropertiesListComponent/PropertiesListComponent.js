@@ -5,13 +5,12 @@ export class PropertiesListComponent extends AbstractComponent {
         super();
         this.setClassName(this.constructor.name);
         this.container = "";
+        this.properties = [];
     }
 
     //@Override
     async init() {
         await super.init();
-        // Depending on the page, you can comment the next line
-        this.dynamicallyLoadData();
     }
 
     //@Override
@@ -19,42 +18,202 @@ export class PropertiesListComponent extends AbstractComponent {
         if (!this.templateLoaded) {
             throw new Error('Template not loaded. Call super.init() first.');
         }
-        // Add event listeners to the container
-        //Acces the container with this.container
+
+        const categoryCards = this.container.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            const categoryType = card.dataset.category;
+            const buyButton = card.querySelector('.category-btn[data-type="buy"]');
+            const rentButton = card.querySelector('.category-btn[data-type="rent"]');
+
+            if (buyButton) {
+                buyButton.addEventListener('click', () => {
+                    // Store the property type in sessionStorage
+                    const propertyType = this.getPropertyTypeParam(categoryType);
+                    sessionStorage.setItem('propertyType', propertyType);
+                    sessionStorage.setItem('transactionType', 'sell');
+
+                    // Redirect to properties page
+                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                });
+            }
+
+            if (rentButton) {
+                rentButton.addEventListener('click', () => {
+                    // Store the property type in sessionStorage
+                    const propertyType = this.getPropertyTypeParam(categoryType);
+                    sessionStorage.setItem('propertyType', propertyType);
+                    sessionStorage.setItem('transactionType', 'rent');
+                    // Redirect to properties page
+                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                });
+            }
+        });
+
+        // Add event listeners for property cards
+        const propertyCards = this.container.querySelectorAll('.property-card');
+        propertyCards.forEach(card => {
+            const viewDetailsBtn = card.querySelector('.view-details-btn');
+            if (viewDetailsBtn) {
+                viewDetailsBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const propertyId = card.dataset.propertyId;
+                    // Save property ID to session storage
+                    sessionStorage.setItem('selectedPropertyId', propertyId);
+                    window.location.href = `property?id=$propertyId`;
+                });
+            }
+
+            card.addEventListener('click', () => {
+                const propertyId = card.dataset.propertyId;
+                sessionStorage.setItem('selectedPropertyId', propertyId);
+                window.location.href = `property?id=$propertyId`;
+            });
+        });
+
+        // Add event listener for sorting select
+        const sortSelect = this.container.querySelector('#sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                const selectedSort = sortSelect.value;
+                this.dynamicallyLoadData(selectedSort);
+            });
+        }
     }
 
     //@Override
     eventListenerRemover() {
         if (this.templateLoaded) {
-            // Remove event listeners from the container
-            //Acces the container with this.container
+            const categoryButtons = this.container.querySelectorAll('.category-btn');
+            categoryButtons.forEach(button => {
+                button.replaceWith(button.cloneNode(true));
+            });
+
+            const propertyCards = this.container.querySelectorAll('.property-card');
+            propertyCards.forEach(card => {
+                const viewDetailsBtn = card.querySelector('.view-details-btn');
+                if (viewDetailsBtn) {
+                    viewDetailsBtn.replaceWith(viewDetailsBtn.cloneNode(true));
+                }
+                card.replaceWith(card.cloneNode(true));
+            });
+
+            // Remove sort select event listener
+            const sortSelect = this.container.querySelector('#sort-select');
+            if (sortSelect) {
+                sortSelect.replaceWith(sortSelect.cloneNode(true));
+            }
         }
     }
 
     //@Override
-    destroy(){
+    destroy() {
         this.eventListenerRemover();
         super.destroy();
     }
 
     //@Override
-    render(){
+    render() {
         const container = document.createElement('div');
         container.className = this.className;
         container.innerHTML = this.template;
         this.container = container;
-        this.eventListenerLoader(container);
+
+        this.dynamicallyLoadData();
+
+        this.eventListenerLoader();
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
         return container;
     }
 
-    dynamicallyLoadData() {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = this.getTemplate();
+    async dynamicallyLoadData(sortOption = 'newest') {
+        // Get the properties grid container
+        const propertiesGrid = this.container.querySelector('.properties-grid');
+        if (!propertiesGrid) return;
 
-        // Add logic to dynamically load data into the component
+        // Show loading state
+        propertiesGrid.innerHTML = '<div class="loading">Loading properties...</div>';
 
-        this.setTemplate(tempDiv.innerHTML);
+        const propertyType = sessionStorage.getItem('propertyType') || 'flat';
+        const transactionType = sessionStorage.getItem('transactionType');
+
+        // Fetch properties and update the grid
+        try {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-properties?filterCriteria=${propertyType}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            let properties = await response.json();
+
+            if (transactionType) {
+                properties = properties.filter(property => {
+                    console.log(`Property ${property.propertyId} transaction type: ${property.transactionType}`);
+                    return property.transactionType === transactionType;
+                });
+                console.log(`Filtered to ${properties.length} properties with transaction type: ${transactionType}`);
+            }
+
+            this.properties = properties;
+
+            const propertiesCountSpan = this.container.querySelector('.properties-count');
+            if (propertiesCountSpan) {
+                propertiesCountSpan.textContent = `(${this.properties.length} listings)`;
+            }
+
+            if (this.properties.length === 0) {
+                propertiesGrid.innerHTML = '<div class="no-properties">No apartments found</div>';
+                return;
+            }
+
+            if (sortOption === 'price-asc') {
+                this.properties.sort((a, b) => a.price - b.price);
+            } else if (sortOption === 'price-desc') {
+                this.properties.sort((a, b) => b.price - a.price);
+            } else if (sortOption === 'area-asc') {
+                this.properties.sort((a, b) => a.surfaceArea - b.surfaceArea);
+            } else if (sortOption === 'area-desc') {
+                this.properties.sort((a, b) => b.surfaceArea - a.surfaceArea);
+            }
+
+            let propertiesHTML = '';
+            this.properties.forEach(property => {
+                propertiesHTML += `
+                    <div class="property-card" data-property-id="${property.propertyId}">
+                        <!-- <div class="property-image"> -->
+                        <!--    <img src="assets/images/apartment-placeholder.jpg" alt="${property.title}"> -->
+                        <!-- </div> -->
+                        <div class="property-details">
+                            <h3>${property.title}</h3>
+                            <p class="property-location">${property.city}, ${property.country}</p>
+                            <div class="property-features">
+                                <span>${property.rooms} rooms</span>
+                                <span>${property.bathrooms} bathrooms</span>
+                                <span>${property.surfaceArea} m²</span>
+                            </div>
+                            
+                            <div class="property-action-row">
+                                <div class="property-price">$${property.price.toLocaleString()}</div>
+                                <button class="view-details-btn">View Details</button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                `;
+            });
+
+            propertiesGrid.innerHTML = propertiesHTML;
+            this.eventListenerLoader();
+
+        } catch (error) {
+            console.error('Error fetching properties:', error);
+            propertiesGrid.innerHTML = '<div class="error-message">Failed to load properties. Please try again later.</div>';
+
+            // Update count to 0 if there's an error
+            const propertiesCountSpan = this.container.querySelector('.properties-count');
+            if (propertiesCountSpan) {
+                propertiesCountSpan.textContent = '(0 listings)';
+            }
+        }
     }
 }
