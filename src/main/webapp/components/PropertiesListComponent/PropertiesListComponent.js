@@ -27,29 +27,24 @@ export class PropertiesListComponent extends AbstractComponent {
 
             if (buyButton) {
                 buyButton.addEventListener('click', () => {
-                    // Store the property type in sessionStorage
                     const propertyType = this.getPropertyTypeParam(categoryType);
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'sell');
 
-                    // Redirect to properties page
                     window.location.href = 'properties-list?filterCriteria=$categoryType';
                 });
             }
 
             if (rentButton) {
                 rentButton.addEventListener('click', () => {
-                    // Store the property type in sessionStorage
                     const propertyType = this.getPropertyTypeParam(categoryType);
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'rent');
-                    // Redirect to properties page
                     window.location.href = 'properties-list?filterCriteria=$categoryType';
                 });
             }
         });
 
-        // Add event listeners for property cards
         const propertyCards = this.container.querySelectorAll('.property-card');
         propertyCards.forEach(card => {
             const viewDetailsBtn = card.querySelector('.view-details-btn');
@@ -57,7 +52,6 @@ export class PropertiesListComponent extends AbstractComponent {
                 viewDetailsBtn.addEventListener('click', (event) => {
                     event.stopPropagation();
                     const propertyId = card.dataset.propertyId;
-                    // Save property ID to session storage
                     sessionStorage.setItem('selectedPropertyId', propertyId);
                     window.location.href = `property?id=$propertyId`;
                 });
@@ -70,7 +64,6 @@ export class PropertiesListComponent extends AbstractComponent {
             });
         });
 
-        // Add event listener for sorting select
         const sortSelect = this.container.querySelector('#sort-select');
         if (sortSelect) {
             sortSelect.addEventListener('change', () => {
@@ -97,7 +90,6 @@ export class PropertiesListComponent extends AbstractComponent {
                 card.replaceWith(card.cloneNode(true));
             });
 
-            // Remove sort select event listener
             const sortSelect = this.container.querySelector('#sort-select');
             if (sortSelect) {
                 sortSelect.replaceWith(sortSelect.cloneNode(true));
@@ -127,17 +119,14 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     async dynamicallyLoadData(sortOption = 'newest') {
-        // Get the properties grid container
         const propertiesGrid = this.container.querySelector('.properties-grid');
         if (!propertiesGrid) return;
 
-        // Show loading state
         propertiesGrid.innerHTML = '<div class="loading">Loading properties...</div>';
 
         const propertyType = sessionStorage.getItem('propertyType') || 'flat';
         const transactionType = sessionStorage.getItem('transactionType');
 
-        // Fetch properties and update the grid
         try {
             const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-properties?filterCriteria=${propertyType}`);
             if (!response.ok) {
@@ -209,7 +198,6 @@ export class PropertiesListComponent extends AbstractComponent {
             console.error('Error fetching properties:', error);
             propertiesGrid.innerHTML = '<div class="error-message">Failed to load properties. Please try again later.</div>';
 
-            // Update count to 0 if there's an error
             const propertiesCountSpan = this.container.querySelector('.properties-count');
             if (propertiesCountSpan) {
                 propertiesCountSpan.textContent = '(0 listings)';

@@ -48,7 +48,6 @@ public class DeletePropertyServlet extends HttpServlet {
             int propertyId = Integer.parseInt(propertyIdParam);
             propertyService.deleteProperty(propertyId, userId);
 
-            // Return success response
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.getWriter().write("{\"success\":true,\"message\":\"Property deleted successfully\"}");

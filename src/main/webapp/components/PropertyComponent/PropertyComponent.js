@@ -90,7 +90,6 @@ export class PropertyComponent extends AbstractComponent {
         tempDiv.innerHTML = this.getTemplate();
         console.log(`Dynamically loading data for ${this.className}`);
 
-        // Extrage ID-ul din URL sau dintr-o altă sursă
         const propertyId = this.getPropertyIdFromContext();
         if (propertyId) {
             this.loadPropertyDetails(propertyId);
@@ -98,27 +97,23 @@ export class PropertyComponent extends AbstractComponent {
     }
 
     getPropertyIdFromContext() {
-        // First try to get ID from session storage
         const storedId = sessionStorage.getItem('selectedPropertyId');
         if (storedId) {
             return parseInt(storedId);
         }
 
-        // Then try to get ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         if (id) {
             return parseInt(id);
         }
 
-        // Or from hash
         const hash = window.location.hash;
         const hashMatch = hash.match(/#property\/(\d+)/);
         if (hashMatch) {
             return parseInt(hashMatch[1]);
         }
 
-        // Or from a data attribute
         const container = document.querySelector(`.${this.className}`);
         if (container && container.dataset.propertyId) {
             return parseInt(container.dataset.propertyId);
@@ -147,7 +142,6 @@ export class PropertyComponent extends AbstractComponent {
     }
 
     populatePropertyData(data) {
-        // Găsește elementele în contextul componentei curente
         const container = this.currentContainer || document.querySelector(`.${this.className}`);
 
         if (!container) {
@@ -155,7 +149,6 @@ export class PropertyComponent extends AbstractComponent {
             return;
         }
 
-        // Populează datele folosind querySelector în context
         this.setElementText(container, "#property-title", data.title);
         this.setElementText(container, "#property-description", data.description);
         this.setElementText(container, "#property-type", data.propertyType);

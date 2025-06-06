@@ -52,7 +52,6 @@
   outline: none;
 }
 
-/* Button styling */
 .register-container button {
   padding: 12px;
   background-color: #007bff;
@@ -68,7 +67,6 @@
   background-color: #0056b3;
 }
 
-/* Links */
 .register-form p {
   margin-top: -12px;
   text-align: left;

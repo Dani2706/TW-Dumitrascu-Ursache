@@ -31,7 +31,6 @@ public class LoginController extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse resp){
 
-        // Read the request body
         StringBuilder requestBody = new StringBuilder();
         try (BufferedReader reader = req.getReader()) {
             String line;
@@ -39,7 +38,6 @@ public class LoginController extends HttpServlet {
                 requestBody.append(line);
             }
 
-            // Parse JSON body
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
 

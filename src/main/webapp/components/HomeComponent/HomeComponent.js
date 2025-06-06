@@ -18,7 +18,6 @@ export class HomeComponent extends AbstractComponent {
             throw new Error('Template not loaded. Call super.init() first.');
         }
 
-        // Add event listeners for category cards
         const categoryCards = this.container.querySelectorAll('.category-card');
         categoryCards.forEach(card => {
             const categoryType = card.dataset.category;
@@ -27,23 +26,20 @@ export class HomeComponent extends AbstractComponent {
 
             if (buyButton) {
                 buyButton.addEventListener('click', () => {
-                    // Store the property type in sessionStorage
                     const propertyType = this.getPropertyTypeParam(categoryType);
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'sell');
 
-                    // Redirect to properties page
                     window.location.href = 'properties-list?filterCriteria=$categoryType';
                 });
             }
 
             if (rentButton) {
                 rentButton.addEventListener('click', () => {
-                    // Store the property type in sessionStorage
                     const propertyType = this.getPropertyTypeParam(categoryType);
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'rent');
-                    // Redirect to properties page
+
                     window.location.href = 'properties-list?filterCriteria=$categoryType';
                 });
             }
@@ -59,7 +55,6 @@ export class HomeComponent extends AbstractComponent {
         }
     }
 
-    // Helper method to convert category to API parameter
     getPropertyTypeParam(category) {
         switch(category) {
             case 'apartments': return 'flat';
