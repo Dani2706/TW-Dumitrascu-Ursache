@@ -1,8 +1,10 @@
 package repository;
 
 import entity.Property;
+import entity.PropertyForAllListings;
 import entity.TopProperty;
 import exceptions.DatabaseException;
+import exceptions.NoListingsForThisCategoryException;
 import exceptions.PropertyNotFoundException;
 import exceptions.PropertyValidationException;
 import oracle.sql.STRUCT;
@@ -11,6 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -312,4 +317,87 @@ public class PropertyRepository {
             throw new DatabaseException(e.getMessage());
         }
     }
+
+//    public String getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException {
+//        String stmtAsString = "SELECT * FROM properties WHERE property_type = ?";
+//        try(Connection connection = this.dataSource.getConnection();
+//            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+//            stmt.setString(1, filterCriteria);
+//            ResultSet result = stmt.executeQuery();
+//            List<Property> properties = new ArrayList<>();
+//            if (!result.next()) {
+//                throw new NoListingsForThisCategory("There are no listings for the category: " + filterCriteria);
+//            }
+//            else while(result.next()){
+//                Clob desc = result.getClob("description");
+//                if (desc != null) {
+//                    StringBuilder stringBuilder = new StringBuilder();
+//                    try (Reader reader = desc.getCharacterStream();
+//                         BufferedReader bufferedReader = new BufferedReader(reader)) {
+//                        String line;
+//                        while ((line = bufferedReader.readLine()) != null) {
+//                            stringBuilder.append(line);
+//                        }
+//                    }
+//                }
+//                properties.add(new Property(
+//                        result.getInt("property_id"),
+//                        result.getInt("user_id"),
+//                        result.getString("title"),
+//                        result.getClob("description"),
+//                        result.getString("property_type"),
+//                        result.getString("transaction_type"),
+//                        result.getInt("price"),
+//                        result.getInt("surface_area"),
+//                        result.getInt("rooms"),
+//                        result.getInt("bathrooms"),
+//                        result.getInt("floor"),
+//                        result.getInt("total_floors"),
+//                        result.getInt("year_built"),
+//                        result.getDate("created_at"),
+//                        result.getDate("updated_at"),
+//                        result.getString("country"),
+//                        result.getString("city"),
+//                        result.getString("state"),
+//                        result.getString("address"),
+//                        result.getInt("latitude"),
+//                        result.getInt("longitude"),
+//                        result.getString("contact_name"),
+//                        result.getString("contact_phone"),
+//                        result.getString("contact_email")
+//                ));
+//            }
+//        } catch (SQLException e) {
+//            throw new DatabaseException(e.getMessage());
+//        } catch (IOException e){
+//
+//        }
+//    }
+
+        public List<PropertyForAllListings> getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException {
+            String stmtAsString = "SELECT property_id, title, rooms, bathrooms, surface_area, city, country FROM properties WHERE property_type = ?";
+            try(Connection connection = this.dataSource.getConnection();
+                PreparedStatement stmt = connection.prepareStatement(stmtAsString)) {
+                stmt.setString(1, filterCriteria);
+                ResultSet result = stmt.executeQuery();
+                List<PropertyForAllListings> properties = new ArrayList<>();
+                if (!result.next()) {
+                    throw new NoListingsForThisCategoryException("There are no listings for the category: " + filterCriteria);
+                }
+                else while (result.next()) {
+                    properties.add(new PropertyForAllListings(
+                            result.getInt("property_id"),
+                            result.getString("title"),
+                            result.getInt("rooms"),
+                            result.getInt("bathrooms"),
+                            result.getInt("surface_area"),
+                            result.getString("city"),
+                            result.getString("country")
+                        ));
+                }
+                return properties;
+            } catch (SQLException e) {
+                throw new DatabaseException(e.getMessage());
+            }
+        }
 }

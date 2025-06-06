@@ -11,6 +11,7 @@ public class Property {
     private static final Logger logger = LoggerFactory.getLogger(Property.class);
 
     private int propertyId;
+    private int userId;
     private String title;
     private String description;
     private String propertyType;
@@ -23,9 +24,13 @@ public class Property {
     private int totalFloors;
     private int yearBuilt;
     private Date createdAt;
+    private Date updatedAt;
     private String address;
+    private String country;
     private String city;
     private String state;
+    private int latitude;
+    private int longitude;
     private String contactName;
     private String contactPhone;
     private String contactEmail;
@@ -83,6 +88,33 @@ public class Property {
         this.setContactEmail(contactEmail);
 
         logger.debug("Created new Property for insertion, Title: {}", title);
+    }
+
+    public Property(int propertyId, int userId, String title, String description, String propertyType, String transactionType, int price, int surfaceArea, int rooms, int bathrooms, int floor, int totalFloors, int yearBuilt, Date createdAt, Date updatedAt, String country, String city, String state, String address, int latitude, int longitude, String contactName, String contactPhone, String contactEmail) {
+        this.propertyId = propertyId;
+        this.userId = userId;
+        this.title = title;
+        this.description = description;
+        this.propertyType = propertyType;
+        this.transactionType = transactionType;
+        this.price = price;
+        this.surface = surfaceArea;
+        this.rooms = rooms;
+        this.bathrooms = bathrooms;
+        this.floor = floor;
+        this.totalFloors = totalFloors;
+        this.yearBuilt = yearBuilt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.address = address;
+        this.country = country;
+        this.city = city;
+        this.state = state;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.contactName = contactName;
+        this.contactPhone = contactPhone;
+        this.contactEmail = contactEmail;
     }
 
     public int getPropertyId() {

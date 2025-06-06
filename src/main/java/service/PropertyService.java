@@ -1,8 +1,12 @@
 package service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import entity.Property;
+import entity.PropertyForAllListings;
 import entity.TopProperty;
 import exceptions.DatabaseException;
+import exceptions.NoListingsForThisCategoryException;
 import exceptions.PropertyDataException;
 import exceptions.PropertyNotFoundException;
 import org.slf4j.Logger;
@@ -10,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import repository.PropertyRepository;
 
 import javax.sql.DataSource;
+import java.sql.Clob;
 import java.util.List;
 import java.sql.Date;
 
@@ -158,5 +163,12 @@ public class PropertyService {
             logger.error("Database error when retrieving top properties", e);
             throw new PropertyDataException("Error retrieving top properties: " + e.getMessage(), e);
         }
+    }
+
+    public String getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException, JsonProcessingException {
+        List<PropertyForAllListings> properties = propertyRepository.getAllPropertiesWithCriteria(filterCriteria);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(properties);
+
     }
 }
