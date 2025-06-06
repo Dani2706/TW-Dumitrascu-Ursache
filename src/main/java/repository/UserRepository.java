@@ -16,7 +16,7 @@ public class UserRepository {
     }
 
     public void addUser(String username, String email, String password, String phoneNumber) throws EmailAlreadyInUse, UsernameAlreadyInUse, DatabaseException {
-        String addUser = "{call add_user(?,?,?)}";
+        String addUser = "{call add_user(?,?,?,?)}";
         try(Connection connection = this.dataSource.getConnection();
             CallableStatement stmt = connection.prepareCall(addUser)){
 

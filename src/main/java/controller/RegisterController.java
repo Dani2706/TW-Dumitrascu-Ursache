@@ -46,7 +46,7 @@ public class RegisterController extends HttpServlet {
             String username = (String) bodyParams.get("username");
             String password = (String) bodyParams.get("password");
             String email = (String) bodyParams.get("email");
-            String phoneNumber = (String) bodyParams.get("phoneNumber");
+            String phoneNumber = (String) bodyParams.get("phone");
 
             this.userService.addUser(username, email, password, phoneNumber);
 
