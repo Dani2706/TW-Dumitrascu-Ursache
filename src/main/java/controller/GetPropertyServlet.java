@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet("/property")
+@WebServlet("/api/property")
 public class GetPropertyServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(GetPropertyServlet.class);

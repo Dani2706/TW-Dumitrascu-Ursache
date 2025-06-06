@@ -1,0 +1,251 @@
+<div class="properties-list-container">
+    <section class="category-section">
+        <div class="category-card" data-category="apartments">
+            <div class="category-icon">
+                <i class="fas fa-building"></i>
+            </div>
+            <h2>Apartments</h2>
+            <p>Modern living spaces in prime locations</p>
+            <div class="category-buttons">
+                <button class="category-btn" data-type="buy">Buy</button>
+                <button class="category-btn" data-type="rent">Rent</button>
+            </div>
+        </div>
+
+        <div class="category-card" data-category="houses">
+            <div class="category-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Houses</h2>
+            <p>Family homes with comfort and privacy</p>
+            <div class="category-buttons">
+                <button class="category-btn" data-type="buy">Buy</button>
+                <button class="category-btn" data-type="rent">Rent</button>
+            </div>
+        </div>
+
+        <div class="category-card" data-category="land">
+            <div class="category-icon">
+                <i class="fas fa-tree"></i>
+            </div>
+            <h2>Land Plots</h2>
+            <p>Build your dream property from scratch</p>
+            <div class="category-buttons">
+                <button class="category-btn" data-type="buy">Buy</button>
+                <button class="category-btn" data-type="rent">Rent</button>
+            </div>
+        </div>
+
+        <div class="category-card" data-category="commercial">
+            <div class="category-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <h2>Commercial Spaces</h2>
+            <p>Office and retail properties for businesses</p>
+            <div class="category-buttons">
+                <button class="category-btn" data-type="buy">Buy</button>
+                <button class="category-btn" data-type="rent">Rent</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="main-content">
+        <aside class="filters-sidebar">
+            <div class="filters-header">
+                <h2>Filters</h2>
+                <button class="clear-filters-btn">Clear All</button>
+            </div>
+
+            <div class="filter-group">
+                <h3>City</h3>
+                <div class="search-filter">
+                    <input type="text" placeholder="Search cities..." class="search-input" id="city-search">
+                    <div class="checkbox-list" id="city-options">
+                        <!-- Will be populated dynamically -->
+                        <div class="loading-options">Loading cities...</div>
+                    </div>
+                    <button class="show-more-btn" id="show-more-cities">Show More</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>State</h3>
+                <div class="search-filter">
+                    <input type="text" placeholder="Search states..." class="search-input" id="state-search">
+                    <div class="checkbox-list" id="state-options">
+                        <!-- Will be populated dynamically -->
+                        <div class="loading-options">Loading states...</div>
+                    </div>
+                    <button class="show-more-btn" id="show-more-states">Show More</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Price Range</h3>
+                <div class="range-inputs">
+                    <div class="range-input">
+                        <label for="price-min">Min ($)</label>
+                        <input type="number" id="price-min" placeholder="0">
+                    </div>
+                    <div class="range-input">
+                        <label for="price-max">Max ($)</label>
+                        <input type="number" id="price-max">
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <input type="range" id="price-slider-min" class="slider">
+                    <input type="range" id="price-slider-max" class="slider">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Area (sq ft)</h3>
+                <div class="range-inputs">
+                    <div class="range-input">
+                        <label for="area-min">Min</label>
+                        <input type="number" id="area-min" placeholder="0">
+                    </div>
+                    <div class="range-input">
+                        <label for="area-max">Max</label>
+                        <input type="number" id="area-max">
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <input type="range" class="slider" id="area-slider-min">
+                    <input type="range" class="slider" id="area-slider-max">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Bedrooms</h3>
+                <div class="range-inputs">
+                    <div class="range-input">
+                        <label for="bedrooms-min">Min</label>
+                        <input type="number" id="bedrooms-min" placeholder="0">
+                    </div>
+                    <div class="range-input">
+                        <label for="bedrooms-max">Max</label>
+                        <input type="number" id="bedrooms-max">
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <input type="range" class="slider" id="bedrooms-slider-min">
+                    <input type="range" class="slider" id="bedrooms-slider-max">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Bathrooms</h3>
+                <div class="range-inputs">
+                    <div class="range-input">
+                        <label for="bathrooms-min">Min</label>
+                        <input type="number" id="bathrooms-min" placeholder="0">
+                    </div>
+                    <div class="range-input">
+                        <label for="bathrooms-max">Max</label>
+                        <input type="number" id="bathrooms-max">
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <input type="range" class="slider" id="bathrooms-slider-min">
+                    <input type="range" class="slider" id="bathrooms-slider-max">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Floor</h3>
+                <div class="range-inputs">
+                    <div class="range-input">
+                        <label for="floor-min">Min</label>
+                        <input type="number" id="floor-min" placeholder="0">
+                    </div>
+                    <div class="range-input">
+                        <label for="floor-max">Max</label>
+                        <input type="number" id="floor-max">
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <input type="range" class="slider" id="floor-slider-min">
+                    <input type="range" class="slider" id="floor-slider-max">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Year Built</h3>
+                <div class="range-inputs">
+                    <div class="range-input">
+                        <label for="year-min">Min</label>
+                        <input type="number" id="year-min">
+                    </div>
+                    <div class="range-input">
+                        <label for="year-max">Max</label>
+                        <input type="number" id="year-max">
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-track"></div>
+                    <input type="range" class="slider" id="year-slider-min">
+                    <input type="range" class="slider" id="year-slider-max">
+                </div>
+            </div>
+
+            <button class="apply-filters-btn">Apply Filters</button>
+        </aside>
+
+        <section class="properties-list">
+            <div class="properties-header">
+                <h2>Properties <span class="properties-count">(24 listings)</span></h2>
+                <div class="sort-options">
+                    <label for="sort-select">Sort by:</label>
+                    <select id="sort-select">
+                        <option value="newest">Newest</option>
+                        <option value="price-asc">Price (Low to High)</option>
+                        <option value="price-desc">Price (High to Low)</option>
+                        <option value="area-asc">Area (Small to Large)</option>
+                        <option value="area-desc">Area (Large to Small)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Properties Grid - This will be populated dynamically -->
+            <div class="properties-grid">
+                <!-- Sample Property Card -->
+                <div class="property-card">
+                    <div class="thumbnail" style="background-image: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3');"></div>
+                    <div class="content">
+                        <div class="price">$450,000</div>
+                        <h3>Modern Downtown Apartment</h3>
+                        <div class="property-details">
+                            <span><i class="fas fa-bed"></i> 2 beds</span>
+                            <span><i class="fas fa-bath"></i> 2 baths</span>
+                            <span><i class="fas fa-ruler-combined"></i> 1,200 sq ft</span>
+                        </div>
+                        <p class="location"><i class="fas fa-map-marker-alt"></i> New York, NY</p>
+                    </div>
+                </div>
+
+                <!-- More property cards will be loaded dynamically -->
+                <!-- Loading State -->
+                <div class="loader-container">
+                    <div class="loader"></div>
+                    <p>Loading properties...</p>
+                </div>
+            </div>
+
+            <div class="pagination">
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <span class="pagination-ellipsis">...</span>
+                <button class="pagination-btn">10</button>
+                <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+    </div>
+</div>

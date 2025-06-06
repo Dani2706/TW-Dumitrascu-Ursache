@@ -1,9 +1,10 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 
-export class PropertyComponent extends AbstractComponent {
+export class PropertiesListComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
+        this.container = "";
     }
 
     //@Override
@@ -14,26 +15,25 @@ export class PropertyComponent extends AbstractComponent {
     }
 
     //@Override
-    eventListenerLoader(container) {
+    eventListenerLoader() {
         if (!this.templateLoaded) {
             throw new Error('Template not loaded. Call super.init() first.');
         }
         // Add event listeners to the container
+        //Acces the container with this.container
     }
 
     //@Override
-    eventListenerRemover(container) {
+    eventListenerRemover() {
         if (this.templateLoaded) {
             // Remove event listeners from the container
+            //Acces the container with this.container
         }
     }
 
     //@Override
     destroy(){
-        const container = document.createElement('div');
-        container.className = this.className;
-        container.innerHTML = this.template;
-        this.eventListenerRemover(container);
+        this.eventListenerRemover();
         super.destroy();
     }
 
@@ -42,6 +42,7 @@ export class PropertyComponent extends AbstractComponent {
         const container = document.createElement('div');
         container.className = this.className;
         container.innerHTML = this.template;
+        this.container = container;
         this.eventListenerLoader(container);
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
