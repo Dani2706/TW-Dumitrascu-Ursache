@@ -49,10 +49,11 @@ export class ListingManagerComponent extends AbstractComponent {
         sessionStorage.setItem('viewPropertyId', propertyId);
 
         if (window.router) {
-            window.router.navigate('/view-listing');
+            window.router.navigate('/property');
         } else {
             console.error('Router not available for navigation');
-            window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/view-listing?id=${propertyId}`;
+            sessionStorage.setItem('selectedPropertyId', propertyId);
+            window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/property?id=${propertyId}`;
         }
     }
 

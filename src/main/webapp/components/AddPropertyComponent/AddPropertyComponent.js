@@ -89,7 +89,7 @@ export class AddPropertyComponent extends AbstractComponent {
 
             console.log('Sending property data:', propertyData);
 
-            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/add-property', {
+            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/add-property', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

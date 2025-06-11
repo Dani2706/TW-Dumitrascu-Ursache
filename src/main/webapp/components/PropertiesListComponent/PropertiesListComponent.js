@@ -40,6 +40,7 @@ export class PropertiesListComponent extends AbstractComponent {
                     const propertyType = this.getPropertyTypeParam(categoryType);
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'rent');
+
                     window.location.href = 'properties-list?filterCriteria=$categoryType';
                 });
             }
@@ -70,6 +71,16 @@ export class PropertiesListComponent extends AbstractComponent {
                 const selectedSort = sortSelect.value;
                 this.dynamicallyLoadData(selectedSort);
             });
+        }
+    }
+
+    getPropertyTypeParam(category) {
+        switch(category) {
+            case 'flat': return 'flat';
+            case 'house': return 'house';
+            case 'land': return 'land';
+            case 'commercial': return 'commercial';
+            default: return 'flat';
         }
     }
 

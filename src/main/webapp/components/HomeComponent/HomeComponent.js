@@ -57,8 +57,8 @@ export class HomeComponent extends AbstractComponent {
 
     getPropertyTypeParam(category) {
         switch(category) {
-            case 'apartments': return 'flat';
-            case 'houses': return 'house';
+            case 'flat': return 'flat';
+            case 'house': return 'house';
             case 'land': return 'land';
             case 'commercial': return 'commercial';
             default: return 'flat';
