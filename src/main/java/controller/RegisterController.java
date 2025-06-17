@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import exceptions.DatabaseException;
 import exceptions.EmailAlreadyInUse;
 import exceptions.UsernameAlreadyInUse;
 import org.slf4j.Logger;
@@ -52,7 +51,7 @@ public class RegisterController extends HttpServlet {
         } catch (UsernameAlreadyInUse | EmailAlreadyInUse e) {
             logger.warn("", e);
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            HandleErrorUtil.handleError(resp, e.getClass().getSimpleName(), logger);
+            HandleErrorUtil.handleGetWriterError(resp, e.getClass().getSimpleName(), logger);
         } catch (Exception e) {
             logger.error("", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

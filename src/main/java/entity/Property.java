@@ -1,7 +1,6 @@
 package entity;
 
 import java.math.BigDecimal;
-import java.sql.Clob;
 import java.sql.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,7 @@ public class Property {
     public Property(int propertyId, String title, String description, String propertyType, String transactionType,
                     int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
                     int yearBuilt, Date createdAt, String address, String city, String state,
-                    String contactName, String contactPhone, String contactEmail) {
+                    String contactName, String contactPhone, String contactEmail) throws PropertyValidationException {
 
         this.setPropertyId(propertyId);
         this.setTitle(title);
@@ -66,7 +65,7 @@ public class Property {
     public Property(String title, String description, String propertyType, String transactionType,
                     int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
                     int yearBuilt, Date createdAt, String address, String city, String state,
-                    String contactName, String contactPhone, String contactEmail) {
+                    String contactName, String contactPhone, String contactEmail) throws PropertyValidationException {
 
         this.setTitle(title);
         this.setDescription(description);
@@ -121,7 +120,7 @@ public class Property {
         return propertyId;
     }
 
-    public void setPropertyId(int propertyId) {
+    public void setPropertyId(int propertyId) throws PropertyValidationException{
         if (propertyId <= 0) {
             logger.warn("Attempt to set invalid property ID: {}", propertyId);
             throw new PropertyValidationException("Property ID must be a positive number");
@@ -133,7 +132,7 @@ public class Property {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(String title) throws PropertyValidationException {
         if (title == null || title.trim().isEmpty()) {
             logger.warn("Attempt to set empty title for property");
             throw new PropertyValidationException("Property title cannot be empty");
@@ -153,7 +152,7 @@ public class Property {
         return propertyType;
     }
 
-    public void setPropertyType(String propertyType) {
+    public void setPropertyType(String propertyType) throws PropertyValidationException {
         if (propertyType == null || propertyType.trim().isEmpty()) {
             logger.warn("Attempt to set empty property type");
             throw new PropertyValidationException("Property type cannot be empty");
@@ -165,7 +164,7 @@ public class Property {
         return transactionType;
     }
 
-    public void setTransactionType(String transactionType) {
+    public void setTransactionType(String transactionType) throws PropertyValidationException{
         if (transactionType == null || transactionType.trim().isEmpty()) {
             logger.warn("Attempt to set empty transaction type");
             throw new PropertyValidationException("Transaction type cannot be empty");
@@ -177,7 +176,7 @@ public class Property {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(int price) throws PropertyValidationException{
         if (price < 0) {
             logger.warn("Attempt to set negative price: {}", price);
             throw new PropertyValidationException("Price cannot be negative");
@@ -189,7 +188,7 @@ public class Property {
         return surface;
     }
 
-    public void setSurface(int surface) {
+    public void setSurface(int surface) throws PropertyValidationException{
         if (surface <= 0) {
             logger.warn("Attempt to set invalid surface area: {}", surface);
             throw new PropertyValidationException("Surface area must be positive");
@@ -201,7 +200,7 @@ public class Property {
         return rooms;
     }
 
-    public void setRooms(int rooms) {
+    public void setRooms(int rooms) throws PropertyValidationException{
         if (rooms < 0) {
             logger.warn("Attempt to set negative number of rooms: {}", rooms);
             throw new PropertyValidationException("Number of rooms cannot be negative");
@@ -213,7 +212,7 @@ public class Property {
         return bathrooms;
     }
 
-    public void setBathrooms(int bathrooms) {
+    public void setBathrooms(int bathrooms) throws PropertyValidationException{
         if (bathrooms < 0) {
             logger.warn("Attempt to set negative number of bathrooms: {}", bathrooms);
             throw new PropertyValidationException("Number of bathrooms cannot be negative");
@@ -233,7 +232,7 @@ public class Property {
         return totalFloors;
     }
 
-    public void setTotalFloors(int totalFloors) {
+    public void setTotalFloors(int totalFloors) throws PropertyValidationException {
         if (totalFloors < 0) {
             logger.warn("Attempt to set negative total floors: {}", totalFloors);
             throw new PropertyValidationException("Total floors cannot be negative");
@@ -245,7 +244,7 @@ public class Property {
         return yearBuilt;
     }
 
-    public void setYearBuilt(int yearBuilt) {
+    public void setYearBuilt(int yearBuilt) throws PropertyValidationException {
         int currentYear = java.time.Year.now().getValue();
         if (yearBuilt < 1800 || yearBuilt > currentYear) {
             logger.warn("Attempt to set invalid year built: {}", yearBuilt);
@@ -258,7 +257,7 @@ public class Property {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Date createdAt) throws PropertyValidationException{
         if (createdAt == null) {
             logger.warn("Attempt to set null creation date");
             throw new PropertyValidationException("Creation date cannot be null");
@@ -270,7 +269,7 @@ public class Property {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(String address) throws PropertyValidationException{
         if (address == null || address.trim().isEmpty()) {
             logger.warn("Attempt to set empty address");
             throw new PropertyValidationException("Address cannot be empty");
@@ -282,7 +281,7 @@ public class Property {
         return city;
     }
 
-    public void setCity(String city) {
+    public void setCity(String city) throws PropertyValidationException{
         if (city == null || city.trim().isEmpty()) {
             logger.warn("Attempt to set empty city");
             throw new PropertyValidationException("City cannot be empty");
@@ -318,7 +317,7 @@ public class Property {
         return contactEmail;
     }
 
-    public void setContactEmail(String contactEmail) {
+    public void setContactEmail(String contactEmail) throws PropertyValidationException {
         if (contactEmail != null && !contactEmail.isEmpty() && !isValidEmail(contactEmail)) {
             logger.warn("Invalid email format: {}", contactEmail);
             throw new PropertyValidationException("Invalid email format");

@@ -7,15 +7,10 @@ import exceptions.DatabaseException;
 import exceptions.NoListingsForThisCategoryException;
 import exceptions.PropertyNotFoundException;
 import exceptions.PropertyValidationException;
-import oracle.sql.STRUCT;
-import oracle.sql.StructDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +24,7 @@ public class PropertyRepository {
         logger.info("PropertyRepository initialized with datasource");
     }
 
-    public Property findById(int id) throws PropertyNotFoundException, DatabaseException {
+    public Property findById(int id) throws PropertyNotFoundException, DatabaseException, PropertyValidationException {
         logger.debug("Attempting to find property with ID: {}", id);
         Property property = null;
 
@@ -67,14 +62,13 @@ public class PropertyRepository {
                 throw new PropertyNotFoundException("Property with ID " + id + " not found");
             }
         } catch (SQLException e) {
-            logger.error("Database error when finding property by ID: {}", id, e);
-            throw new DatabaseException("Error retrieving property: " + e.getMessage(), e);
+            throw new DatabaseException("Error retrieving property: " + e.getMessage());
         }
 
         return property;
     }
 
-    public List<Property> findPropertiesByUserId(int userId) throws DatabaseException {
+    public List<Property> findPropertiesByUserId(int userId) throws DatabaseException, PropertyValidationException {
         logger.debug("Retrieving properties for user with ID: {}", userId);
         List<Property> properties = new ArrayList<>();
 
@@ -166,8 +160,7 @@ public class PropertyRepository {
                 }
             }
         } catch (SQLException e) {
-            logger.error("Database error when adding property: {}", e.getMessage(), e);
-            throw new DatabaseException("Error adding property: " + e.getMessage(), e);
+            throw new DatabaseException("Error adding property: " + e.getMessage());
         }
     }
 
@@ -226,8 +219,7 @@ public class PropertyRepository {
                 logger.info("Successfully updated property with ID: {}", propertyId);
             }
         } catch (SQLException e) {
-            logger.error("Database error when updating property ID: {}", propertyId, e);
-            throw new DatabaseException("Error updating property: " + e.getMessage(), e);
+            throw new DatabaseException("Error updating property: " + e.getMessage());
         }
     }
 
@@ -259,8 +251,7 @@ public class PropertyRepository {
 
             logger.info("Successfully deleted property with ID: {}", propertyId);
         } catch (SQLException e) {
-            logger.error("Database error when deleting property ID: {}", propertyId, e);
-            throw new DatabaseException("Error deleting property: " + e.getMessage(), e);
+            throw new DatabaseException("Error deleting property: " + e.getMessage());
         }
     }
 
@@ -292,17 +283,16 @@ public class PropertyRepository {
             }
 
         } catch (SQLException e) {
-            logger.error("Database error when retrieving top properties", e);
-            throw new DatabaseException("Error retrieving top properties: " + e.getMessage(), e);
+            throw new DatabaseException("Error retrieving top properties: " + e.getMessage());
         }
 
         return topProperties;
     }
 
-    public int test_add_property_as_object(Property property) throws DatabaseException, PropertyValidationException {
-        String test_add_property_as_object = "{call test_add(?)}";
+    public int testAddPropertyAsObject(Property property) throws DatabaseException, PropertyValidationException {
+        String testAddPropertyAsObject = "{call test_add(?)}";
         try(Connection connection = this.dataSource.getConnection();
-        CallableStatement stmt = connection.prepareCall(test_add_property_as_object)){
+        CallableStatement stmt = connection.prepareCall(testAddPropertyAsObject)){
             Object[] obj = property.mapPropertyClassToDbPropertyType();
             Struct propertyStruct = connection.createStruct("PROPERTY", obj);
 

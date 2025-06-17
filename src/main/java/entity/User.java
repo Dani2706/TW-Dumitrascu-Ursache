@@ -1,9 +1,5 @@
 package entity;
 
-import enums.Role;
-
-import java.sql.SQLData;
-
 public class User {
     private Long id;
     private String name;

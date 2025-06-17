@@ -9,13 +9,13 @@ import com.zaxxer.hikari.HikariDataSource;
 
 @WebListener
 public class ConnectionPoolInitializer implements ServletContextListener {
-    private static HikariDataSource dataSource;
+    private final HikariDataSource dataSource;
 
     public ConnectionPoolInitializer() {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:oracle:thin:@localhost:1521:xe");
-        config.setUsername("remdb");
-        config.setPassword("parola");
+        config.setUsername("TW");
+        config.setPassword("TW123");
         config.setDriverClassName("oracle.jdbc.OracleDriver");
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);

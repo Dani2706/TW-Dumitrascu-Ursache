@@ -28,7 +28,6 @@ public class UserRepository {
             stmt.execute();
 
         } catch (SQLException e) {
-            System.err.println("SQLException: " + e.getErrorCode());
             if (e.getErrorCode() == 20001) {
                 throw new EmailAlreadyInUse(e.getMessage());
             }
@@ -41,7 +40,7 @@ public class UserRepository {
         }
     }
 
-    public String getPasswordForUser(String username) throws SQLException, InvalidUsernameException, SQLIntegrityConstraintViolationException {
+    public String getPasswordForUser(String username) throws SQLException, InvalidUsernameException {
         String stmtAsString = "SELECT password_hash FROM users WHERE username = ?";
         try(Connection connection = this.dataSource.getConnection();
             PreparedStatement stmt = connection.prepareStatement(stmtAsString)){

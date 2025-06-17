@@ -2,7 +2,10 @@ package controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import exceptions.DatabaseException;
 import exceptions.PropertyDataException;
+import exceptions.PropertyNotFoundException;
+import exceptions.PropertyValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.PropertyService;
@@ -14,14 +17,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.IOException;
 
 @WebServlet("/update-property")
 public class UpdatePropertyServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UpdatePropertyServlet.class);
     private PropertyService propertyService;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
+    private static final String SUCCESS = "success";
+    private static final String MESSAGE = "message";
 
     @Override
     public void init() throws ServletException {
@@ -31,8 +36,7 @@ public class UpdatePropertyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("Received request to update property");
         response.setContentType("application/json");
 
@@ -75,8 +79,8 @@ public class UpdatePropertyServlet extends HttpServlet {
 
             response.setStatus(HttpServletResponse.SC_OK);
             JsonObject successJson = new JsonObject();
-            successJson.addProperty("success", true);
-            successJson.addProperty("message", "Property updated successfully");
+            successJson.addProperty(SUCCESS, true);
+            successJson.addProperty(MESSAGE, "Property updated successfully");
             response.getWriter().write(successJson.toString());
             logger.info("Successfully updated property with ID: {}", propertyId);
 
@@ -85,18 +89,18 @@ public class UpdatePropertyServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
             JsonObject errorJson = new JsonObject();
-            errorJson.addProperty("success", false);
-            errorJson.addProperty("message", e.getMessage());
-            response.getWriter().write(errorJson.toString());
+            errorJson.addProperty(SUCCESS, false);
+            errorJson.addProperty(MESSAGE, e.getMessage());
+            HandleErrorUtil.handleGetWriterError(response, errorJson.toString(), logger);
 
-        } catch (Exception e) {
+        } catch (PropertyNotFoundException | DatabaseException | PropertyValidationException | IOException e) {
             logger.error("Unexpected error updating property", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
             JsonObject errorJson = new JsonObject();
-            errorJson.addProperty("success", false);
-            errorJson.addProperty("message", "Internal server error");
-            response.getWriter().write(errorJson.toString());
+            errorJson.addProperty(SUCCESS, false);
+            errorJson.addProperty(MESSAGE, "Internal server error");
+            HandleErrorUtil.handleGetWriterError(response, errorJson.toString(), logger);
         }
     }
 }

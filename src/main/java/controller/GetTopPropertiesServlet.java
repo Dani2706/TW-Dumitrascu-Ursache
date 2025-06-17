@@ -1,6 +1,7 @@
 package controller;
 
 import entity.TopProperty;
+import exceptions.DatabaseException;
 import exceptions.PropertyDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ public class GetTopPropertiesServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("Received request for top properties");
 
         try {
@@ -73,11 +74,11 @@ public class GetTopPropertiesServlet extends HttpServlet {
         } catch (PropertyDataException e) {
             logger.error("Property data exception: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            HandleErrorUtil.handleError(response, e.getMessage(), logger);
-        } catch (Exception e) {
-            logger.error("Error fetching top properties", e);
+            HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);
+        } catch (DatabaseException | IOException e) {
+            logger.error("Error fetching top properties: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            HandleErrorUtil.handleError(response, "Error fetching top properties", logger);
+            HandleErrorUtil.handleGetWriterError(response, "Error fetching top properties", logger);
         }
     }
 

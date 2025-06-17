@@ -1,20 +1,17 @@
 package controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import exceptions.DatabaseException;
+import exceptions.NoListingsForThisCategoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.PropertyService;
-import service.UserService;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Map;
 
 
 @WebServlet("/api/all-properties")
@@ -38,7 +35,10 @@ public class GetAllPropertiesController extends HttpServlet {
             resp.setCharacterEncoding("UTF-8");
             resp.getWriter().write(jsonString);
             resp.setStatus(HttpServletResponse.SC_OK);
-        } catch (Exception e) {
+        } catch (NoListingsForThisCategoryException e) {
+            logger.warn("", e);
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        } catch (IOException | DatabaseException e) {
             logger.error("Error processing request", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

@@ -1,6 +1,6 @@
 package exceptions;
 
-public class PropertyDataException extends RuntimeException {
+public class PropertyDataException extends Exception {
   public PropertyDataException(String message) {
     super(message);
   }

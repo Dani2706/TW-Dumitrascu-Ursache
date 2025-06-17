@@ -1,7 +1,7 @@
 package controller;
 
-import entity.Property;
-import exceptions.PropertyDataException;
+import exceptions.DatabaseException;
+import exceptions.PropertyValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.PropertyService;
@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.Clob;
 import java.sql.Date;
 import java.time.LocalDate;
 
@@ -36,7 +35,7 @@ public class AddPropertyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("Received request to add new property");
 
         try {
@@ -79,14 +78,14 @@ public class AddPropertyServlet extends HttpServlet {
             response.getWriter().write("{\"success\":true,\"propertyId\":" + propertyId + "}");
             logger.info("Successfully added new property with ID: {}", propertyId);
 
-        } catch (PropertyDataException e) {
+        } catch (PropertyValidationException e) {
             logger.error("Error adding property: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            HandleErrorUtil.handleError(response, e.getMessage(), logger);
-        } catch (Exception e) {
+            HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);
+        } catch (DatabaseException | IOException e) {
             logger.error("Internal server error when adding property", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            HandleErrorUtil.handleError(response, "Internal server error", logger);
+            HandleErrorUtil.handleGetWriterError(response, "Internal server error", logger);
         }
     }
 }

@@ -41,7 +41,7 @@ public class DeletePropertyServlet extends HttpServlet {
             if (propertyIdParam == null || propertyIdParam.isEmpty()) {
                 logger.warn("Missing propertyId parameter");
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                HandleErrorUtil.handleError(response, "Missing propertyId parameter", logger);
+                HandleErrorUtil.handleGetWriterError(response, "Missing propertyId parameter", logger);
                 return;
             }
 
@@ -54,13 +54,13 @@ public class DeletePropertyServlet extends HttpServlet {
             logger.debug("Property with ID {} deleted successfully", propertyId);
 
         } catch (NumberFormatException e) {
-            logger.warn("Invalid propertyId parameter: {}", propertyIdParam);
+            logger.warn("Invalid propertyId parameter: ", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            HandleErrorUtil.handleError(response, "Invalid propertyId parameter", logger);
-        } catch (PropertyDataException e) {
+            HandleErrorUtil.handleGetWriterError(response, "Invalid propertyId parameter", logger);
+        } catch (PropertyDataException | IOException e) {
             logger.error("Error deleting property: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            HandleErrorUtil.handleError(response, e.getMessage(), logger);
+            HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);
         }
     }
 }

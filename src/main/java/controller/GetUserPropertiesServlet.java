@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+
+import exceptions.DatabaseException;
+import exceptions.PropertyValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +33,7 @@ public class GetUserPropertiesServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("Received request for user properties");
 
         // hardcoded for demo
@@ -41,7 +43,7 @@ public class GetUserPropertiesServlet extends HttpServlet {
             if(userIdParam == null) {
                 logger.warn("Missing 'userId' parameter in request");
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                HandleErrorUtil.handleError(response, "Missing userId parameter", logger);
+                HandleErrorUtil.handleGetWriterError(response, "Missing userId parameter", logger);
                 return;
             }
 
@@ -70,14 +72,14 @@ public class GetUserPropertiesServlet extends HttpServlet {
             logger.debug("Successfully returned {} properties for user ID: {}",
                     properties.size(), userId);
 
-        } catch (NumberFormatException e) {
-            logger.warn("Invalid userId parameter: {}", userIdParam);
+        } catch (NumberFormatException | PropertyValidationException e) {
+            logger.warn("Invalid userId parameter: ", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            HandleErrorUtil.handleError(response, "Invalid userId parameter", logger);
-        } catch (PropertyDataException e) {
+            HandleErrorUtil.handleGetWriterError(response, "Invalid userId parameter", logger);
+        } catch (PropertyDataException | DatabaseException | IOException e) {
             logger.error("Error retrieving user properties: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            HandleErrorUtil.handleError(response, e.getMessage(), logger);
+            HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);
         }
     }
 }
