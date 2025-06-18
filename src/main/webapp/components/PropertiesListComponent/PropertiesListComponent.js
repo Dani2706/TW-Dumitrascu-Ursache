@@ -1,8 +1,10 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
+import { router } from "../../js/app.js";
 
 export class PropertiesListComponent extends AbstractComponent {
     constructor() {
         super();
+        this.router = router;
         this.setClassName(this.constructor.name);
         this.container = "";
         this.properties = [];
@@ -54,7 +56,8 @@ export class PropertiesListComponent extends AbstractComponent {
                     event.stopPropagation();
                     const propertyId = card.dataset.propertyId;
                     sessionStorage.setItem('selectedPropertyId', propertyId);
-                    window.location.href = `property?id=$propertyId`;
+                    //window.location.href = `property?id=$propertyId`;
+                    this.router.safeNavigate("/property");
                 });
             }
 
@@ -137,6 +140,8 @@ export class PropertiesListComponent extends AbstractComponent {
 
         const propertyType = sessionStorage.getItem('propertyType') || 'flat';
         const transactionType = sessionStorage.getItem('transactionType');
+        console.log("PropertyType: " + propertyType);
+        console.log("TransactionType: " + transactionType);
 
         try {
             const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-properties?filterCriteria=${propertyType}`);

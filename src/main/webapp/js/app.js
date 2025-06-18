@@ -29,7 +29,7 @@ document.addEventListener('click', (e) => {
     if (link) {
         e.preventDefault();
         const path = link.getAttribute('data-route');
-        router.navigate(path);
+        router.safeNavigate(path);
         updateActiveNavLink();
     }
 });

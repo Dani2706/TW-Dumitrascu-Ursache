@@ -1,8 +1,10 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
+import { router } from "../../js/app.js";
 
 export class HomeComponent extends AbstractComponent {
     constructor() {
         super();
+        this.router = router;
         this.setClassName(this.constructor.name);
         this.container = "";
     }
@@ -30,7 +32,8 @@ export class HomeComponent extends AbstractComponent {
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'sell');
 
-                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    //window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    this.router.navigate("/properties-list");
                 });
             }
 

@@ -98,6 +98,7 @@ export class PropertyComponent extends AbstractComponent {
 
     getPropertyIdFromContext() {
         const storedId = sessionStorage.getItem('selectedPropertyId');
+        console.log("StoredId: " + storedId);
         if (storedId) {
             return parseInt(storedId);
         }

@@ -12,7 +12,7 @@ export class Router {
 
     //This sets the eventlisteners that are ment to happen 
     //for things outside the #main-window
-    eventListenerLoader(){
+    eventListenerLoader() {
         window.addEventListener('popstate', () => {
             const fullPath = location.pathname;
             console.log(`Navigating to: ${fullPath}`);
@@ -24,12 +24,13 @@ export class Router {
                 console.error(`No route found for path: ${path}`);
             }
         });
-        document.addEventListener('DOMContentLoaded', () => {
-            this.manageNavBarElementsInHeader();
+        document.addEventListener('DOMContentLoaded', async () => {
+            //this.manageNavBarElementsInHeader();
             const fullPath = window.location.pathname;
             const path = fullPath.replace(this.basePath, '');
             console.log(`Current path on load: ${path}`);
-            this.navigate(path); // Load the correct view on page load
+            await this.navigate(path); // Load the correct view on page load
+            document.body.style.visibility = 'visible';
         });
         document.querySelector(".logout-button")
             .addEventListener('click', () => {
@@ -38,12 +39,12 @@ export class Router {
             })
     }
 
-    manageNavBarElementsInHeader(){
+    async manageNavBarElementsInHeader() {
         let loginTrueDisplayStatus = "";
         let loginFalseDisplayStatus = "";
         const loginTrue = document.querySelectorAll(".login-true");
         const loginFalse = document.querySelectorAll(".login-false");
-        if (window.sessionStorage.getItem("isLoggedIn") === "true"){
+        if (window.sessionStorage.getItem("isLoggedIn") === "true") {
             loginTrueDisplayStatus = "block";
             loginFalseDisplayStatus = "none";
         }
@@ -59,14 +60,14 @@ export class Router {
         })
     }
 
-    navigate(path) {
+    async navigate(path) {
         if (!this.routes[path]) {
             path = '/';
         }
         const fullPath = `${this.basePath}${path}`;
         history.pushState({}, '', fullPath);
-        this.render(path);
-        //this.manageNavBarElementsInHeader();
+        await this.render(path);
+        await this.manageNavBarElementsInHeader();
         console.log('Navigating to:', path);
     }
 
@@ -95,7 +96,7 @@ export class Router {
 
     }
 
-    cleanRenderedComponent(){
+    cleanRenderedComponent() {
         if (this.currentRenderedComponentInstance) {
             this.currentRenderedComponentDOM.remove();
             this.currentRenderedComponentInstance.destroy();
@@ -103,5 +104,20 @@ export class Router {
             this.currentRenderedComponentDOM = null;
             console.log('Cleaned up rendered component');
         }
+    }
+
+    async safeNavigate(path){
+        const mainWindow = document.getElementById('main-window');
+        const footer = document.querySelector(".footer");
+        const nav_bar = document.querySelector(".nav-bar");
+        mainWindow.style.visibility = 'hidden';
+        footer.style.visibility = 'hidden';
+        nav_bar.style.visibility = 'hidden';
+        console.log("Before");
+        console.log("After");
+        await this.navigate(path);
+        mainWindow.style.visibility = 'visible';
+        footer.style.visibility = 'visible';
+        nav_bar.style.visibility = 'visible';
     }
 }
