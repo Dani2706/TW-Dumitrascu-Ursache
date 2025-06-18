@@ -46,7 +46,7 @@ export class ProfileComponent extends AbstractComponent {
         container.className = this.className;
         container.innerHTML = this.template;
         this.eventListenerLoader(container);
-        console.log(`Template render loaded for ${this.className}:`, this.template);
+        console.log(`Template render loaded for ${this.className}:`, this.container);
         console.log(window.sessionStorage.getItem("jwt"));
         return container;
     }

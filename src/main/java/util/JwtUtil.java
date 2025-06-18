@@ -2,12 +2,14 @@ package util;
 
 import entity.User;
 import exceptions.JwtSecretNotSet;
+import exceptions.NotAuthorizedException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.http.HttpHeaders;
 import java.security.Key;
 import java.util.Date;
 
@@ -62,6 +64,19 @@ public class JwtUtil {
             logger.error("JWT claims string is empty: {}", e.getMessage());
         }
         return false;
+    }
+
+    public String verifyAuthorizationHeader(String authorizationHeader) throws NotAuthorizedException {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            if (!this.validateToken(token)){
+                throw new NotAuthorizedException("Invalid JWT token");
+            }
+            return token;
+        }
+        else {
+            throw new NotAuthorizedException("Authorization header is not set");
+        }
     }
 
 }

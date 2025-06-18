@@ -9,8 +9,9 @@ import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import exceptions.EmailAlreadyInUse;
-import exceptions.UsernameAlreadyInUse;
+import exceptions.EmailAlreadyInUseException;
+import exceptions.PhoneNumberAlreadyInUseException;
+import exceptions.UsernameAlreadyInUseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UserService;
@@ -48,7 +49,7 @@ public class RegisterController extends HttpServlet {
             this.userService.addUser(username, email, password, phoneNumber);
 
             resp.setStatus(HttpServletResponse.SC_CREATED);
-        } catch (UsernameAlreadyInUse | EmailAlreadyInUse e) {
+        } catch (UsernameAlreadyInUseException | EmailAlreadyInUseException | PhoneNumberAlreadyInUseException e) {
             logger.warn("", e);
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
             HandleErrorUtil.handleGetWriterError(resp, e.getClass().getSimpleName(), logger);

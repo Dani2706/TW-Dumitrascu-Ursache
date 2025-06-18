@@ -1,5 +1,7 @@
 package service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dto.UserDTO;
 import exceptions.*;
 import repository.UserRepository;
 import org.mindrot.jbcrypt.BCrypt;
@@ -17,7 +19,7 @@ public class UserService {
         this.userRepository = new UserRepository(dataSource);
     }
 
-    public void addUser(String username, String email, String password, String phoneNumber) throws UsernameAlreadyInUse, EmailAlreadyInUse, DatabaseException {
+    public void addUser(String username, String email, String password, String phoneNumber) throws UsernameAlreadyInUseException, EmailAlreadyInUseException, PhoneNumberAlreadyInUseException, DatabaseException {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         userRepository.addUser(username, email, hashedPassword, phoneNumber);
     }
@@ -31,5 +33,10 @@ public class UserService {
 
     public String generateJWT(String username) {
         return jwtUtil.generateToken(username);
+    }
+
+    public UserDTO getUserData(String token) throws DatabaseException, InvalidUsernameException, JsonProcessingException {
+        String username = this.jwtUtil.getUsername(token);
+        return this.userRepository.getUserDataByUsername(username);
     }
 }
