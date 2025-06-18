@@ -1,9 +1,11 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
+import { router } from "../../js/app.js";
 
 export class LoginComponent extends AbstractComponent {
     constructor() {
         super();
+        this.router = router;
         this.setClassName(this.constructor.name);
         this.container = "";
         this.errorSelectorName = "";
@@ -51,7 +53,7 @@ export class LoginComponent extends AbstractComponent {
         container.innerHTML = this.template;
         this.container = container;
         this.eventListenerLoader(container);
-        console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
+        console.log(`Template render loaded for ${this.constructor.name}:`, this.container);
 
         return container;
     }
@@ -88,8 +90,7 @@ export class LoginComponent extends AbstractComponent {
             const result = await response.json();
             window.sessionStorage.setItem("jwt", result.token)
             window.sessionStorage.setItem("isLoggedIn", "true");
-            window.location.href = environment.navigationUrl + "/home";
-            return;
+            this.router.navigate("/profile");
         }
         else if (response.status === 401) {
             this.errorSelectorName = ".login-failed-error-message";

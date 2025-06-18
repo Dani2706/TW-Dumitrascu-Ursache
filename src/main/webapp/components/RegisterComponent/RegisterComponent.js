@@ -1,9 +1,11 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
+import { router } from "../../js/app.js";
 
 export class RegisterComponent extends AbstractComponent {
     constructor() {
         super();
+        this.router = router;
         this.setClassName(this.constructor.name);
         this.errorMessage = "";
         this.isSignUpFailed = true;
@@ -52,7 +54,7 @@ export class RegisterComponent extends AbstractComponent {
         container.innerHTML = this.template;
         this.container = container;
         this.eventListenerLoader();
-        console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
+        console.log(`Template render loaded for ${this.constructor.name}:`, this.container);
 
         return container;
     }
@@ -93,16 +95,19 @@ export class RegisterComponent extends AbstractComponent {
 
             if (response.status === 201) {
                 alert("User registered!");
-                window.location.href = environment.navigationUrl + "/login";
+                this.router.navigate("/home");
                 return;
             }
             else if (response.status === 409) {
                 const result = await response.text();
-                if (result === "UsernameAlreadyInUse") {
+                if (result === "UsernameAlreadyInUseException") {
                     this.errorSelectorName = ".backend-username-error-message";
                 }
-                else if (result === "EmailAlreadyInUse") {
+                else if (result === "EmailAlreadyInUseException") {
                     this.errorSelectorName = ".backend-email-error-message";
+                }
+                else if (result === "PhoneNumberAlreadyInUseException") {
+                    this.errorSelectorName = ".backend-phone-number-error-message";
                 }
                 this.showErrorMessage();
             } else {

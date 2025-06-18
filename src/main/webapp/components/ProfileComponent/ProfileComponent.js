@@ -1,65 +1,84 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
+import { UserService } from "../../services/UserService.js";
 
 export class ProfileComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
+        this.container = "";
+        this.userService = new UserService();
     }
 
     //@Override
     async init() {
         await super.init();
-        this.dynamicallyLoadData();
+        // Depending on the page, you can comment the next line
+        await this.dynamicallyLoadData();
     }
 
     //@Override
-    eventListenerLoader(container) {
+    eventListenerLoader() {
         if (!this.templateLoaded) {
             throw new Error('Template not loaded. Call super.init() first.');
         }
-        // const buton = container.querySelector('.home-button');
-        // buton.addEventListener('click', this.handleClick);
+        // Add event listeners to the container
+        //Acces the container with this.container
     }
 
     //@Override
-    eventListenerRemover(container) {
+    eventListenerRemover() {
         if (this.templateLoaded) {
-            const buton = container.querySelector('.home-button');
-            if (buton) {
-                buton.removeEventListener('click', this.handleClick);
-            }
+            // Remove event listeners from the container
+            //Acces the container with this.container
         }
     }
 
     //@Override
-    destroy(){
-        const container = document.createElement('div');
-        container.className = this.className;
-        container.innerHTML = this.template;
-        this.eventListenerRemover(container);
+    destroy() {
+        this.eventListenerRemover();
         super.destroy();
     }
 
     //@Override
-    render(){
+    render() {
         const container = document.createElement('div');
         container.className = this.className;
-        container.innerHTML = this.template;
+        container.innerHTML = this.getTemplate();
+        this.container = container;
         this.eventListenerLoader(container);
-        console.log(`Template render loaded for ${this.className}:`, this.container);
-        console.log(window.sessionStorage.getItem("jwt"));
+        console.log(`Template render loaded for ${this.constructor.name}:`, this.container);
+
         return container;
     }
 
-    handleClick(event) {
-        event.preventDefault();
-        alert('Button clicked in ProfileComponent!');
-    }
-
-    dynamicallyLoadData() {
+    async dynamicallyLoadData() {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = this.getTemplate();
+
+        const profileContainer = tempDiv.querySelector(".profile-container");
+
+        const newDiv = document.createElement('div');
+        newDiv.innerHTML = await this.getUserProfile();
+
+        profileContainer.appendChild(newDiv);
+
         // Add logic to dynamically load data into the component
-        console.log(`Dynamically loading data for ${this.className}`);
+
+        this.setTemplate(tempDiv.innerHTML);
+    }
+
+    async getUserProfile() {
+        try {
+            const userData = await this.userService.getUserProfile();
+            return `
+                <div class="user-profile">
+                    <p><strong>Phone Number:</strong> ${userData.phoneNumber}</p>
+                    <p><strong>Email:</strong> ${userData.email}</p>
+                    <p><strong>Username:</strong> ${userData.username}</p>
+                </div>
+            `;
+        } catch (error) {
+            return "Error encountered when fetching the user profile: " + error;
+        }
     }
 }

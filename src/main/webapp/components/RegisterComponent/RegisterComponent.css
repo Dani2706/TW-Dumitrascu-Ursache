@@ -87,6 +87,7 @@
 .backend-username-error-message,
 .frontend-email-error-message,
 .backend-email-error-message,
+.backend-phone-number-error-message,
 .password-error-message,
 .confirm-password-error-message {
   display: none;

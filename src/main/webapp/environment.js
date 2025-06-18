@@ -1,8 +1,8 @@
 export const environment = {
-    //backendUrl : "http://localhost:8081",
-    //navigationUrl : ""
-    backendUrl : "",
-    navigationUrl : "/TW_Dumitrascu_Ursache_war_exploded"
+    backendUrl : "http://localhost:8081",
+    navigationUrl : ""
+    // backendUrl : "",
+    // navigationUrl : "/TW_Dumitrascu_Ursache_war_exploded"
 }
 
 //Config for using tomcat with .war 

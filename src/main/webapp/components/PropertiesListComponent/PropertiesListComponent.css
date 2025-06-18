@@ -23,7 +23,7 @@
 body {
     background-color: var(--light-color);
     color: var(--text-color);
-    line-height: 1.6;
+    /* line-height: 1.6; */
 }
 
 .properties-list-container {

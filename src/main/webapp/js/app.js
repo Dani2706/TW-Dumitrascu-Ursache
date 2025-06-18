@@ -21,7 +21,7 @@ const routes = {
             "/login" : LoginComponent,
             "/register" : RegisterComponent
         }
-const router = new Router('#main-window', basePath, routes);
+export const router = new Router('#main-window', basePath, routes);
 console.log("Router initialized with base path:", basePath);
 
 document.addEventListener('click', (e) => {

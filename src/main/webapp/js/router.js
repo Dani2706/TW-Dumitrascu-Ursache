@@ -66,6 +66,7 @@ export class Router {
         const fullPath = `${this.basePath}${path}`;
         history.pushState({}, '', fullPath);
         this.render(path);
+        //this.manageNavBarElementsInHeader();
         console.log('Navigating to:', path);
     }
 

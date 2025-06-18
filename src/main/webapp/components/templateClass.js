@@ -44,7 +44,7 @@ export class TemplateComponent extends AbstractComponent {
         container.innerHTML = this.template;
         this.container = container;
         this.eventListenerLoader(container);
-        console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
+        console.log(`Template render loaded for ${this.constructor.name}:`, this.container);
 
         return container;
     }
