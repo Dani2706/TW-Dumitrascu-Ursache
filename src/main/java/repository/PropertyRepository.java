@@ -188,7 +188,7 @@ public class PropertyRepository {
                     "title = ?, description = ?, property_type = ?, transaction_type = ?, " +
                     "price = ?, surface_area = ?, rooms = ?, bathrooms = ?, " +
                     "floor = ?, total_floors = ?, year_built = ?, " +
-                    "address = ?, city = ?, state = ?, " +
+                    "address = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
                     "contact_name = ?, contact_phone = ?, contact_email = ? " +
                     "WHERE property_id = ? AND user_id = ?";
 
@@ -207,11 +207,13 @@ public class PropertyRepository {
                 stmt.setString(12, property.getAddress());
                 stmt.setString(13, property.getCity());
                 stmt.setString(14, property.getState());
-                stmt.setString(15, property.getContactName());
-                stmt.setString(16, property.getContactPhone());
-                stmt.setString(17, property.getContactEmail());
-                stmt.setInt(18, propertyId);
-                stmt.setInt(19, userId);
+                stmt.setDouble(15, property.getLatitude());
+                stmt.setDouble(16, property.getLongitude());
+                stmt.setString(17, property.getContactName());
+                stmt.setString(18, property.getContactPhone());
+                stmt.setString(19, property.getContactEmail());
+                stmt.setInt(20, propertyId);
+                stmt.setInt(21, userId);
 
                 int rowsAffected = stmt.executeUpdate();
 
