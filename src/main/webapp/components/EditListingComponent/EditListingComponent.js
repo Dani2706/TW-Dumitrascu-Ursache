@@ -497,37 +497,6 @@ export class EditListingComponent extends AbstractComponent {
         }
     }
 
-    replaceFormWithSuccess(propertyId) {
-        const container = document.querySelector('.edit-property-container');
-        const form = document.querySelector('#editPropertyForm');
-
-        if (container && form) {
-            const successContent = document.createElement('div');
-            successContent.className = 'success-content';
-
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message success-message';
-            messageElement.innerHTML = `<h3>Property updated successfully!</h3>
-                               <p>Your property with ID: ${propertyId} has been updated</p>`;
-            successContent.appendChild(messageElement);
-
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'success-buttons';
-
-            const viewListingsButton = document.createElement('a');
-            viewListingsButton.className = 'btn btn-primary';
-            viewListingsButton.innerHTML = 'Return to My Listings';
-            viewListingsButton.href = '#';
-            viewListingsButton.setAttribute('data-route', '/manage-listings');
-
-            buttonContainer.appendChild(viewListingsButton);
-            successContent.appendChild(buttonContainer);
-
-            form.style.display = 'none';
-            container.appendChild(successContent);
-        }
-    }
-
     showMessage(message, type, container = null) {
         if (!container) {
             container = document.querySelector('.edit-property-container');
