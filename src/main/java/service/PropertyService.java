@@ -9,6 +9,7 @@ import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import repository.PropertyRepository;
+import util.JwtUtil;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -17,9 +18,11 @@ import java.sql.Date;
 public class PropertyService {
     private static final Logger logger = LoggerFactory.getLogger(PropertyService.class);
     private PropertyRepository propertyRepository;
+    private JwtUtil jwtUtil;
 
     public PropertyService(DataSource dataSource) {
         this.propertyRepository = new PropertyRepository(dataSource);
+        this.jwtUtil = new JwtUtil();
         logger.info("PropertyService initialized with PropertyRepository");
     }
 
@@ -36,7 +39,8 @@ public class PropertyService {
         return property;
     }
 
-    public List<Property> getUserProperties(int userId) throws PropertyDataException, DatabaseException, PropertyValidationException {
+    public List<Property> getUserProperties(String token) throws PropertyDataException, DatabaseException, PropertyValidationException {
+        int userId = jwtUtil.getUserId(token);
         if (userId <= 0) {
             logger.warn("Attempt to get properties with invalid user ID: {}", userId);
             throw new PropertyDataException("User ID must be positive");
@@ -51,29 +55,33 @@ public class PropertyService {
     public int addProperty(String title, String description, String propertyType,
                            String transactionType, int price, int surface, int rooms,
                            int bathrooms, int floor, int totalFloors, int yearBuilt,
-                           Date createdAt, String address, String city, String state,
-                           String contactName, String contactPhone, String contactEmail) throws PropertyValidationException, DatabaseException {
+                           Date createdAt, String address, String country, String city, String state,
+                           String contactName, String contactPhone, String contactEmail, String token) throws PropertyValidationException, DatabaseException {
+
+        int userId = jwtUtil.getUserId(token);
 
         logger.debug("Adding new property: {}", title);
 
         Property property = new Property(
-                title, description, propertyType, transactionType,
+                1, title, description, propertyType, transactionType,
                 price, surface, rooms, bathrooms, floor, totalFloors,
-                yearBuilt, createdAt, address, city, state,
-                contactName, contactPhone, contactEmail
+                yearBuilt, createdAt, address, country, city, state,
+                contactName, contactPhone, contactEmail, userId
         );
-        //int propertyId = propertyRepository.addProperty(property);
-        int propertyId = propertyRepository.testAddPropertyAsObject(property);
+        int propertyId = propertyRepository.addProperty(property);
+        //int propertyId = propertyRepository.testAddPropertyAsObject(property);
         logger.debug("Successfully added property with ID: {}", propertyId);
         return propertyId;
     }
 
-    public void updateProperty(int propertyId, int userId, String title, String description,
+    public void updateProperty(int propertyId, String title, String description,
                                String propertyType, String transactionType, int price,
                                int surface, int rooms, int bathrooms, int floor,
-                               int totalFloors, int yearBuilt, String address,
+                               int totalFloors, int yearBuilt, String address, String country,
                                String city, String state, String contactName,
-                               String contactPhone, String contactEmail) throws PropertyNotFoundException, DatabaseException, PropertyValidationException, PropertyDataException {
+                               String contactPhone, String contactEmail, String token) throws PropertyNotFoundException, DatabaseException, PropertyValidationException, PropertyDataException {
+
+        int userId = jwtUtil.getUserId(token);
 
         if (propertyId <= 0) {
             logger.warn("Attempt to update property with invalid ID: {}", propertyId);
@@ -87,16 +95,17 @@ public class PropertyService {
 
         logger.debug("Updating property with ID: {}", propertyId);
         Property property = new Property(
-                title, description, propertyType, transactionType,
+                propertyId, title, description, propertyType, transactionType,
                 price, surface, rooms, bathrooms, floor, totalFloors,
-                yearBuilt, new Date(System.currentTimeMillis()), address, city, state,
-                contactName, contactPhone, contactEmail
+                yearBuilt, new Date(System.currentTimeMillis()), address, country, city, state,
+                contactName, contactPhone, contactEmail, userId
         );
         propertyRepository.updateProperty(propertyId, userId, property);
         logger.info("Successfully updated property with ID: {}", propertyId);
     }
 
-    public void deleteProperty(int propertyId, int userId) throws PropertyDataException {
+    public void deleteProperty(int propertyId, String token) throws PropertyDataException {
+        int userId = jwtUtil.getUserId(token);
         if (propertyId <= 0) {
             logger.warn("Attempt to delete property with invalid ID: {}", propertyId);
             throw new PropertyDataException("Property ID must be positive");

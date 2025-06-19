@@ -1,4 +1,5 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
+import {environment} from "../../environment.js";
 
 export class AddPropertyComponent extends AbstractComponent {
     constructor() {
@@ -8,6 +9,10 @@ export class AddPropertyComponent extends AbstractComponent {
 
     //@Override
     async init() {
+        if (window.sessionStorage.getItem("isLoggedIn") === "false"){
+            window.location.href = environment.navigationUrl + "/home";
+            return;
+        }
         await super.init();
     }
 
@@ -80,6 +85,7 @@ export class AddPropertyComponent extends AbstractComponent {
                 totalFloors: formData.get('totalFloors') ? parseInt(formData.get('totalFloors')) : 0,
                 yearBuilt: formData.get('yearBuilt') ? parseInt(formData.get('yearBuilt')) : 0,
                 address: formData.get('address'),
+                country: formData.get('country'),
                 city: formData.get('city'),
                 state: formData.get('state'),
                 contactName: formData.get('contactName'),
@@ -92,7 +98,8 @@ export class AddPropertyComponent extends AbstractComponent {
             const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/add-property', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
                 },
                 body: JSON.stringify(propertyData)
             });

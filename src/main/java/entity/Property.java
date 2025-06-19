@@ -36,8 +36,8 @@ public class Property {
 
     public Property(int propertyId, String title, String description, String propertyType, String transactionType,
                     int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
-                    int yearBuilt, Date createdAt, String address, String city, String state,
-                    String contactName, String contactPhone, String contactEmail) throws PropertyValidationException {
+                    int yearBuilt, Date createdAt, String address, String country, String city, String state,
+                    String contactName, String contactPhone, String contactEmail, int userId) throws PropertyValidationException {
 
         this.setPropertyId(propertyId);
         this.setTitle(title);
@@ -53,67 +53,15 @@ public class Property {
         this.setYearBuilt(yearBuilt);
         this.setCreatedAt(createdAt);
         this.setAddress(address);
+        this.setCountry(country);
         this.setCity(city);
         this.setState(state);
         this.setContactName(contactName);
         this.setContactPhone(contactPhone);
         this.setContactEmail(contactEmail);
-
-        logger.debug("Created Property with ID: {}, Title: {}", propertyId, title);
-    }
-
-    public Property(String title, String description, String propertyType, String transactionType,
-                    int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
-                    int yearBuilt, Date createdAt, String address, String city, String state,
-                    String contactName, String contactPhone, String contactEmail) throws PropertyValidationException {
-
-        this.setTitle(title);
-        this.setDescription(description);
-        this.setPropertyType(propertyType);
-        this.setTransactionType(transactionType);
-        this.setPrice(price);
-        this.setSurface(surface);
-        this.setRooms(rooms);
-        this.setBathrooms(bathrooms);
-        this.setFloor(floor);
-        this.setTotalFloors(totalFloors);
-        this.setYearBuilt(yearBuilt);
-        this.setCreatedAt(createdAt);
-        this.setAddress(address);
-        this.setCity(city);
-        this.setState(state);
-        this.setContactName(contactName);
-        this.setContactPhone(contactPhone);
-        this.setContactEmail(contactEmail);
+        this.setUserId(userId);
 
         logger.debug("Created new Property for insertion, Title: {}", title);
-    }
-
-    public Property(int propertyId, int userId, String title, String description, String propertyType, String transactionType, int price, int surfaceArea, int rooms, int bathrooms, int floor, int totalFloors, int yearBuilt, Date createdAt, Date updatedAt, String country, String city, String state, String address, int latitude, int longitude, String contactName, String contactPhone, String contactEmail) {
-        this.propertyId = propertyId;
-        this.userId = userId;
-        this.title = title;
-        this.description = description;
-        this.propertyType = propertyType;
-        this.transactionType = transactionType;
-        this.price = price;
-        this.surface = surfaceArea;
-        this.rooms = rooms;
-        this.bathrooms = bathrooms;
-        this.floor = floor;
-        this.totalFloors = totalFloors;
-        this.yearBuilt = yearBuilt;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.address = address;
-        this.country = country;
-        this.city = city;
-        this.state = state;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.contactName = contactName;
-        this.contactPhone = contactPhone;
-        this.contactEmail = contactEmail;
     }
 
     public int getPropertyId() {
@@ -126,6 +74,18 @@ public class Property {
             throw new PropertyValidationException("Property ID must be a positive number");
         }
         this.propertyId = propertyId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) throws PropertyValidationException{
+        if (userId <= 0) {
+            logger.warn("Attempt to set invalid user ID: {}", userId);
+            throw new PropertyValidationException("User ID must be a positive number");
+        }
+        this.userId = userId;
     }
 
     public String getTitle() {
@@ -293,8 +253,24 @@ public class Property {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(String state) throws PropertyValidationException{
+        if (state == null || state.trim().isEmpty()) {
+            logger.warn("Attempt to set empty state");
+            throw new PropertyValidationException("State cannot be empty");
+        }
         this.state = state;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) throws PropertyValidationException {
+        if (country == null || country.trim().isEmpty()) {
+            logger.warn("Attempt to set empty country");
+            throw new PropertyValidationException("Country cannot be empty");
+        }
+        this.country = country;
     }
 
     public String getContactName() {

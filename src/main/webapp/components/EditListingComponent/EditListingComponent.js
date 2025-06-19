@@ -1,4 +1,5 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
+import {environment} from "../../environment.js";
 
 export class EditListingComponent extends AbstractComponent {
     constructor() {
@@ -9,6 +10,10 @@ export class EditListingComponent extends AbstractComponent {
 
     //@Override
     async init() {
+        if (window.sessionStorage.getItem("isLoggedIn") === "false"){
+            window.location.href = environment.navigationUrl + "/home";
+            return;
+        }
         await super.init();
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -156,7 +161,7 @@ export class EditListingComponent extends AbstractComponent {
             if (propertyData && form) {
                 console.log("All property data keys:", Object.keys(propertyData));
 
-                const textFields = ['title', 'description', 'address', 'city', 'state',
+                const textFields = ['title', 'description', 'address', 'country', 'city', 'state',
                     'contactName', 'contactPhone', 'contactEmail'];
 
                 textFields.forEach(field => {
@@ -255,6 +260,7 @@ export class EditListingComponent extends AbstractComponent {
                 totalFloors: parseInt(formData.get('totalFloors')) || 0,
                 yearBuilt: parseInt(formData.get('yearBuilt')) || 0,
                 address: formData.get('address'),
+                country: formData.get('country'),
                 city: formData.get('city'),
                 state: formData.get('state'),
                 contactName: formData.get('contactName'),
@@ -267,7 +273,8 @@ export class EditListingComponent extends AbstractComponent {
             const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/update-property', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
                 },
                 body: JSON.stringify(propertyData)
             });

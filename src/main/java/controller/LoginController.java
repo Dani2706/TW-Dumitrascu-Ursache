@@ -45,8 +45,9 @@ public class LoginController extends HttpServlet {
             String password = (String) bodyParams.get("password");
 
             this.userService.validateCredentials(username, password);
+            int userId = this.userService.getUserIdByUsername(username);
 
-            String generatedToken = this.userService.generateJWT(username);
+            String generatedToken = this.userService.generateJWT(username, userId);
             String responseBody = "{\"token\":\"" + generatedToken + "\"}";
             resp.setStatus(HttpServletResponse.SC_OK);
             resp.setCharacterEncoding("UTF-8");

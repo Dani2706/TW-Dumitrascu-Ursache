@@ -1,4 +1,5 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
+import {environment} from "../../environment.js";
 
 export class ListingManagerComponent extends AbstractComponent {
     constructor() {
@@ -8,6 +9,10 @@ export class ListingManagerComponent extends AbstractComponent {
 
     //@Override
     async init() {
+        if (window.sessionStorage.getItem("isLoggedIn") === "false"){
+            window.location.href = environment.navigationUrl + "/home";
+            return;
+        }
         await super.init();
         // Depending on the page, you can comment the next line
         this.dynamicallyLoadData();
@@ -167,11 +172,12 @@ export class ListingManagerComponent extends AbstractComponent {
         if (confirmed) {
             try {
                 const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/delete-property', {
-                    method: 'POST',
+                    method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
                     },
-                    body: `propertyId=${propertyId}`
+                    body: JSON.stringify({propertyId: propertyId})
                 });
 
                 if (response.ok) {
@@ -338,8 +344,14 @@ export class ListingManagerComponent extends AbstractComponent {
     async dynamicallyLoadData() {
         try {
             console.log("Fetching user properties data...");
-            const userId = 1; // hardcoded for demo
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/user-properties?userId=${userId}`);
+            const userId = sessionStorage.getItem("jwt");
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/user-properties`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+                }
+            });
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

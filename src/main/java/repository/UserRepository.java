@@ -1,6 +1,7 @@
 package repository;
 
 import dto.UserDTO;
+import entity.User;
 import exceptions.*;
 
 import javax.sql.DataSource;
@@ -72,6 +73,53 @@ public class UserRepository {
             }
         } catch (SQLException e) {
             throw new DatabaseException(e);
+        }
+    }
+
+    public int getUserIdByUsername(String username) throws InvalidUsernameException, DatabaseException {
+        String stmtAsString = "SELECT user_id FROM users WHERE username = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setString(1, username);
+            ResultSet result = stmt.executeQuery();
+
+            if (!result.next()) {
+                throw new InvalidUsernameException("The user with the given username (" + username + ") does not exist");
+            }
+            else {
+                return result.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    public void updateUser(User user) throws EmailAlreadyInUseException, UsernameAlreadyInUseException, PhoneNumberAlreadyInUseException, DatabaseException {
+        String updateUser = "{call update_user(?,?,?,?)}";
+        try(Connection connection = this.dataSource.getConnection();
+            CallableStatement stmt = connection.prepareCall(updateUser)){
+
+            stmt.setInt(1, user.getId());
+            stmt.setString(2, user.getName());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getPhoneNumber());
+
+            stmt.execute();
+
+        } catch (SQLException e) {
+            if (e.getErrorCode() == 20001) {
+                throw new EmailAlreadyInUseException(e.getMessage());
+            }
+            else if (e.getErrorCode() == 20002) {
+                throw new UsernameAlreadyInUseException(e.getMessage());
+            }
+            else if (e.getErrorCode() == 20004) {
+                throw new PhoneNumberAlreadyInUseException(e.getMessage());
+            }
+            else {
+                throw new DatabaseException(e.getMessage());
+            }
         }
     }
 }

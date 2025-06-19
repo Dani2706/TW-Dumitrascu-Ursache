@@ -65,6 +65,7 @@ public class GetPropertyServlet extends HttpServlet {
                     "\"yearBuilt\":" + property.getYearBuilt() + "," +
                     "\"createdAt\":\"" + property.getCreatedAt() + "\"," +
                     "\"address\":\"" + property.getAddress() + "\"," +
+                    "\"country\":\"" + property.getCountry() + "\"," +
                     "\"city\":\"" + property.getCity() + "\"," +
                     "\"state\":\"" + property.getState() + "\"," +
                     "\"contactName\":\"" + property.getContactName() + "\"," +

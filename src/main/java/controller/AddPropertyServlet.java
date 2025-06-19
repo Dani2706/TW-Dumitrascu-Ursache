@@ -1,6 +1,9 @@
 package controller;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import exceptions.DatabaseException;
+import exceptions.NotAuthorizedException;
 import exceptions.PropertyValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,20 +20,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import util.JwtUtil;
 
 @WebServlet("/api/add-property")
 public class AddPropertyServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AddPropertyServlet.class);
     private PropertyService propertyService;
+    private JwtUtil jwtUtil;
 
     @Override
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         this.propertyService = new PropertyService(dataSource);
+        this.jwtUtil = new JwtUtil();
         logger.info("AddPropertyServlet initialized with PropertyService");
     }
 
@@ -39,6 +48,10 @@ public class AddPropertyServlet extends HttpServlet {
         logger.debug("Received request to add new property");
 
         try {
+            String authHeader = request.getHeader("Authorization");
+
+            String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
+
             BufferedReader reader = request.getReader();
             StringBuilder sb = new StringBuilder();
             String line;
@@ -62,15 +75,22 @@ public class AddPropertyServlet extends HttpServlet {
             int yearBuilt = propertyData.has("yearBuilt") ? propertyData.get("yearBuilt").getAsInt() : 0;
             Date createdAt = Date.valueOf(LocalDate.now());
             String address = propertyData.get("address").getAsString();
+            String country = propertyData.get("country").getAsString();
             String city = propertyData.get("city").getAsString();
             String state = propertyData.get("state").getAsString();
             String contactName = propertyData.get("contactName").getAsString();
             String contactPhone = propertyData.get("contactPhone").getAsString();
             String contactEmail = propertyData.get("contactEmail").getAsString();
+//            JsonArray imagesArray = propertyData.get("images").getAsJsonArray();
+//            List<String> images = new ArrayList<>();
+//
+//            for (JsonElement image : imagesArray) {
+//                images.add(image.getAsString());
+//            }
 
             int propertyId = propertyService.addProperty(title, description, propertyType,
                     transactionType, price, surface, rooms, bathrooms, floor, totalFloors,
-                    yearBuilt, createdAt, address, city, state, contactName, contactPhone, contactEmail);
+                    yearBuilt, createdAt, address, country, city, state, contactName, contactPhone, contactEmail, token);
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
@@ -82,6 +102,9 @@ public class AddPropertyServlet extends HttpServlet {
             logger.error("Error adding property: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);
+        } catch (NotAuthorizedException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            logger.warn("", e);
         } catch (DatabaseException | IOException e) {
             logger.error("Internal server error when adding property", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

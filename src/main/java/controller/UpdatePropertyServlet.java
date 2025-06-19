@@ -2,14 +2,12 @@ package controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import exceptions.DatabaseException;
-import exceptions.PropertyDataException;
-import exceptions.PropertyNotFoundException;
-import exceptions.PropertyValidationException;
+import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.PropertyService;
 import util.HandleErrorUtil;
+import util.JwtUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,6 +22,7 @@ import java.io.IOException;
 public class UpdatePropertyServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UpdatePropertyServlet.class);
     private PropertyService propertyService;
+    private JwtUtil jwtUtil;
     private final Gson gson = new Gson();
     private static final String SUCCESS = "success";
     private static final String MESSAGE = "message";
@@ -32,6 +31,7 @@ public class UpdatePropertyServlet extends HttpServlet {
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         this.propertyService = new PropertyService(dataSource);
+        this.jwtUtil = new JwtUtil();
         logger.info("UpdatePropertyServlet initialized with PropertyService");
     }
 
@@ -39,8 +39,10 @@ public class UpdatePropertyServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("Received request to update property");
         response.setContentType("application/json");
+        String authHeader = request.getHeader("Authorization");
 
         try {
+            String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
             BufferedReader reader = request.getReader();
             StringBuilder jsonBuilder = new StringBuilder();
             String line;
@@ -63,18 +65,17 @@ public class UpdatePropertyServlet extends HttpServlet {
             int totalFloors = propertyJson.get("totalFloors").getAsInt();
             int yearBuilt = propertyJson.get("yearBuilt").getAsInt();
             String address = propertyJson.get("address").getAsString();
+            String country = propertyJson.get("country").getAsString();
             String city = propertyJson.get("city").getAsString();
             String state = propertyJson.get("state").getAsString();
             String contactName = propertyJson.get("contactName").getAsString();
             String contactPhone = propertyJson.get("contactPhone").getAsString();
             String contactEmail = propertyJson.get("contactEmail").getAsString();
 
-            int userId = 1;
-
             propertyService.updateProperty(
-                    propertyId, userId, title, description, propertyType, transactionType,
+                    propertyId, title, description, propertyType, transactionType,
                     price, surface, rooms, bathrooms, floor, totalFloors, yearBuilt,
-                    address, city, state, contactName, contactPhone, contactEmail
+                    address, country, city, state, contactName, contactPhone, contactEmail, token
             );
 
             response.setStatus(HttpServletResponse.SC_OK);
@@ -92,7 +93,9 @@ public class UpdatePropertyServlet extends HttpServlet {
             errorJson.addProperty(SUCCESS, false);
             errorJson.addProperty(MESSAGE, e.getMessage());
             HandleErrorUtil.handleGetWriterError(response, errorJson.toString(), logger);
-
+        } catch (NotAuthorizedException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            logger.warn("", e);
         } catch (PropertyNotFoundException | DatabaseException | PropertyValidationException | IOException e) {
             logger.error("Unexpected error updating property", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import exceptions.DatabaseException;
+import exceptions.NotAuthorizedException;
 import exceptions.PropertyValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,36 +20,29 @@ import entity.Property;
 import service.PropertyService;
 import exceptions.PropertyDataException;
 import util.HandleErrorUtil;
+import util.JwtUtil;
 
 @WebServlet("/user-properties")
 public class GetUserPropertiesServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(GetUserPropertiesServlet.class);
     private PropertyService propertyService;
+    private JwtUtil jwtUtil;
 
     @Override
     public void init() throws ServletException {
         DataSource dataSource = (DataSource) getServletContext().getAttribute("dataSource");
         this.propertyService = new PropertyService(dataSource);
+        this.jwtUtil = new JwtUtil();
         logger.info("GetUserPropertiesServlet initialized with PropertyService");
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("Received request for user properties");
-
-        // hardcoded for demo
-        String userIdParam = request.getParameter("userId");
-
+        String authHeader = request.getHeader("Authorization");
         try {
-            if(userIdParam == null) {
-                logger.warn("Missing 'userId' parameter in request");
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                HandleErrorUtil.handleGetWriterError(response, "Missing userId parameter", logger);
-                return;
-            }
-
-            int userId = Integer.parseInt(userIdParam);
-            List<Property> properties = propertyService.getUserProperties(userId);
+            String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
+            List<Property> properties = propertyService.getUserProperties(token);
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
@@ -69,13 +63,13 @@ public class GetUserPropertiesServlet extends HttpServlet {
             json.append("]");
 
             out.write(json.toString());
-            logger.debug("Successfully returned {} properties for user ID: {}",
-                    properties.size(), userId);
-
         } catch (NumberFormatException | PropertyValidationException e) {
             logger.warn("Invalid userId parameter: ", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             HandleErrorUtil.handleGetWriterError(response, "Invalid userId parameter", logger);
+        } catch (NotAuthorizedException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            logger.warn("", e);
         } catch (PropertyDataException | DatabaseException | IOException e) {
             logger.error("Error retrieving user properties: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

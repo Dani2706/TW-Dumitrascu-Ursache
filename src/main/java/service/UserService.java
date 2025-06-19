@@ -2,6 +2,7 @@ package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dto.UserDTO;
+import entity.User;
 import exceptions.*;
 import repository.UserRepository;
 import org.mindrot.jbcrypt.BCrypt;
@@ -31,12 +32,22 @@ public class UserService {
         }
     }
 
-    public String generateJWT(String username) {
-        return jwtUtil.generateToken(username);
+    public String generateJWT(String username, int userId){
+        return jwtUtil.generateToken(username, userId);
     }
 
     public UserDTO getUserData(String token) throws DatabaseException, InvalidUsernameException, JsonProcessingException {
         String username = this.jwtUtil.getUsername(token);
         return this.userRepository.getUserDataByUsername(username);
+    }
+
+    public int getUserIdByUsername(String username) throws InvalidUsernameException, DatabaseException {
+        return this.userRepository.getUserIdByUsername(username);
+    }
+
+    public void updateUserById(User user, String token) throws DatabaseException, EmailAlreadyInUseException, UsernameAlreadyInUseException, PhoneNumberAlreadyInUseException {
+        int userId = this.jwtUtil.getUserId(token);
+        user.setId(userId);
+        this.userRepository.updateUser(user);
     }
 }

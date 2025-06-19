@@ -50,11 +50,13 @@ public class PropertyRepository {
                         rs.getInt("year_built"),
                         rs.getDate("created_at"),
                         rs.getString("address"),
+                        rs.getString("country"),
                         rs.getString("city"),
                         rs.getString("state"),
                         rs.getString("contact_name"),
                         rs.getString("contact_phone"),
-                        rs.getString("contact_email")
+                        rs.getString("contact_email"),
+                        rs.getInt("user_id")
                 );
                 logger.debug("Property found: ID={}, Title={}", property.getPropertyId(), property.getTitle());
             } else {
@@ -94,11 +96,13 @@ public class PropertyRepository {
                         rs.getInt("year_built"),
                         rs.getDate("created_at"),
                         rs.getString("address"),
+                        rs.getString("country"),
                         rs.getString("city"),
                         rs.getString("state"),
                         rs.getString("contact_name"),
                         rs.getString("contact_phone"),
-                        rs.getString("contact_email")
+                        rs.getString("contact_email"),
+                        rs.getInt("user_id")
                 );
                 properties.add(property);
             }
@@ -118,8 +122,8 @@ public class PropertyRepository {
         try (Connection conn = dataSource.getConnection()) {
             String sql = "INSERT INTO properties (title, description, property_type, transaction_type, "
                     + "price, surface_area, rooms, bathrooms, floor, total_floors, year_built, "
-                    + "created_at, address, city, state, contact_name, contact_phone, contact_email, user_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    + "created_at, address, country, city, state, contact_name, contact_phone, contact_email, user_id) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"property_id"});
             stmt.setString(1, property.getTitle());
@@ -135,12 +139,13 @@ public class PropertyRepository {
             stmt.setInt(11, property.getYearBuilt());
             stmt.setDate(12, property.getCreatedAt());
             stmt.setString(13, property.getAddress());
-            stmt.setString(14, property.getCity());
-            stmt.setString(15, property.getState());
-            stmt.setString(16, property.getContactName());
-            stmt.setString(17, property.getContactPhone());
-            stmt.setString(18, property.getContactEmail());
-            stmt.setInt(19, 1); // hardcoded for demo
+            stmt.setString(14, property.getCountry());
+            stmt.setString(15, property.getCity());
+            stmt.setString(16, property.getState());
+            stmt.setString(17, property.getContactName());
+            stmt.setString(18, property.getContactPhone());
+            stmt.setString(19, property.getContactEmail());
+            stmt.setInt(20, property.getUserId()); // hardcoded for demo
 
             int affectedRows = stmt.executeUpdate();
 

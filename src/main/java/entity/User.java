@@ -1,23 +1,29 @@
 package entity;
 
 public class User {
-    private Long id;
+    private int id;
     private String name;
     private String email;
     private String phoneNumber;
 
-    public User(Long id, String name, String email, String phoneNumber) {
+    public User(int id, String name, String email, String phoneNumber) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
     }
 
-    public Long getId() {
+    public User(String name, String email, String phoneNumber) {
+        this.name = name;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
