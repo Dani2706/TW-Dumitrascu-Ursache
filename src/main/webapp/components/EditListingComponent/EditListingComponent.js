@@ -5,6 +5,10 @@ export class EditListingComponent extends AbstractComponent {
         super();
         this.setClassName(this.constructor.name);
         this.propertyId = null;
+
+        this.map = null;
+        this.marker = null;
+        this.debounceTimer = null;
     }
 
     //@Override
@@ -76,6 +80,40 @@ export class EditListingComponent extends AbstractComponent {
                 cancelBtn.removeEventListener('click', this.handleCancel.bind(this));
             }
         }
+    }
+
+    initializeMap(lat, lng) {
+        const mapElement = document.getElementById('propertyMap');
+        if(!mapElement) {
+            return;
+        }
+
+        this.map = L.map('propertyMap').setView([lat || 37.0902, lng || -95.7129], lat && lng ? 13 : 4);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
+
+        this.map.on('click', (e) => {
+            this.updateMarkerPosition(e.latlng.lat, e.latlng.lng);
+        });
+
+        if (lat && lng) {
+            this.updateMarkerPosition(lat, lng);
+        }
+
+        const geocodeStatus = document.getElementById('geocodeStatus');
+        if(geocodeStatus) {
+            geocodeStatus.textContent = 'Adjust the pin position if needed';
+        }
+    }
+
+    handleLocationChange() {
+        if(this.debounceTimer) clearTimeout(this.debounceTimer);
+
+        this.debounceTimer = setTimeout(() => {
+            this.geocodeLocation();
+        }, 1000);
     }
 
     //@Override

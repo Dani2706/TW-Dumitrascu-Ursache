@@ -65,6 +65,8 @@ public class UpdatePropertyServlet extends HttpServlet {
             String address = propertyJson.get("address").getAsString();
             String city = propertyJson.get("city").getAsString();
             String state = propertyJson.get("state").getAsString();
+            double latitude = propertyJson.get("latitude").getAsDouble();
+            double longitude = propertyJson.get("longitude").getAsDouble();
             String contactName = propertyJson.get("contactName").getAsString();
             String contactPhone = propertyJson.get("contactPhone").getAsString();
             String contactEmail = propertyJson.get("contactEmail").getAsString();
@@ -74,7 +76,7 @@ public class UpdatePropertyServlet extends HttpServlet {
             propertyService.updateProperty(
                     propertyId, userId, title, description, propertyType, transactionType,
                     price, surface, rooms, bathrooms, floor, totalFloors, yearBuilt,
-                    address, city, state, contactName, contactPhone, contactEmail
+                    address, city, state, latitude, longitude, contactName, contactPhone, contactEmail
             );
 
             response.setStatus(HttpServletResponse.SC_OK);

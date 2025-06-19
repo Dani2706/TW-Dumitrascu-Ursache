@@ -229,3 +229,47 @@ label[for^="contactEmail"]:after {
     margin: 0;
     font-style: italic;
 }
+
+.map-container {
+    width: 100%;
+    height: 300px;
+    margin: 15px 0;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+#propertyMap {
+    width: 100%;
+    height: 100%;
+}
+
+.map-status {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.map-status .success {
+    color: #28a745;
+}
+
+.map-status .error {
+    color: #dc3545;
+}
+
+.map-status .loading {
+    color: #17a2b8;
+    font-style: italic;
+}
+
+.coordinates-display {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #34495e;
+}
+
+@media (max-width: 768px) {
+    .map-container {
+        height: 250px;
+    }
+}

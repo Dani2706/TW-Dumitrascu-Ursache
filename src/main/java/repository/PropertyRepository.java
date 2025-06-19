@@ -52,6 +52,8 @@ public class PropertyRepository {
                         rs.getString("address"),
                         rs.getString("city"),
                         rs.getString("state"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude"),
                         rs.getString("contact_name"),
                         rs.getString("contact_phone"),
                         rs.getString("contact_email")
@@ -96,6 +98,8 @@ public class PropertyRepository {
                         rs.getString("address"),
                         rs.getString("city"),
                         rs.getString("state"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude"),
                         rs.getString("contact_name"),
                         rs.getString("contact_phone"),
                         rs.getString("contact_email")
@@ -112,7 +116,7 @@ public class PropertyRepository {
         return properties;
     }
 
-    public int addProperty(Property property) throws DatabaseException {
+    /*public int addProperty(Property property) throws DatabaseException {
         logger.debug("Adding new property: {}", property.getTitle());
 
         try (Connection conn = dataSource.getConnection()) {
@@ -162,7 +166,7 @@ public class PropertyRepository {
         } catch (SQLException e) {
             throw new DatabaseException("Error adding property: " + e.getMessage());
         }
-    }
+    }*/
 
     public void updateProperty(int propertyId, int userId, Property property) throws DatabaseException, PropertyNotFoundException {
         logger.debug("Attempting to update property with ID: {} for user ID: {}", propertyId, userId);

@@ -4,6 +4,10 @@ export class AddPropertyComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
+
+        this.map = null;
+        this.marker = null;
+        this.debounceTimer = null;
     }
 
     //@Override
@@ -20,7 +24,16 @@ export class AddPropertyComponent extends AbstractComponent {
         const form = container.querySelector('#addPropertyForm');
         if (form) {
             form.addEventListener('submit', this.handleSubmit.bind(this));
-            console.log('Form submit event listener added');
+
+            const cityField = container.querySelector('#city');
+            const stateField = container.querySelector('#state');
+
+            if(cityField && stateField) {
+                cityField.addEventListener('blur', this.handleLocationChange.bind(this));
+                stateField.addEventListener('blur', this.handleLocationChange.bind(this));
+            }
+
+            setTimeout( () => this.initializeMap(), 100);
         } else {
             console.error('Form #addPropertyForm not found in the template');
         }
@@ -32,8 +45,118 @@ export class AddPropertyComponent extends AbstractComponent {
             const form = container.querySelector('#addPropertyForm');
             if (form) {
                 form.removeEventListener('submit', this.handleSubmit.bind(this));
+
+                const cityField = container.querySelector('#city');
+                const stateField = container.querySelector('#state');
+
+                if(cityField && stateField) {
+                    cityField.removeEventListener('blur', this.handleLocationChange.bind(this));
+                    stateField.removeEventListener('blur', this.handleLocationChange.bind(this));
+                }
             }
         }
+    }
+
+    initializeMap() {
+        const mapElement = document.getElementById('propertyMap');
+        if(!mapElement) return;
+
+        this.map = L.map('propertyMap').setView([37.0902, -95.7129], 4); // Default to USA view
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
+
+        this.map.on('click', (e) => {
+            this.updateMarkerPosition(e.latlng.lat, e.latlng.lng);
+        });
+
+        const geocodeStatus = document.getElementById('geocodeStatus');
+        if(geocodeStatus) {
+            geocodeStatus.textContent = 'Enter city and state to see location on map';
+        }
+    }
+
+    handleLocationChange() {
+        if(this.debounceTimer) clearTimeout(this.debounceTimer);
+
+        this.debounceTimer = setTimeout(() => {
+            this.geocodeLocation();
+        }, 1000); // 1 second debounce
+    }
+
+    async geocodeLocation() {
+        const city = document.getElementById('city').value;
+        const state = document.getElementById('state').value;
+
+        if (!city || !state) {
+            console.error('City and state fields are required for geocoding');
+            return;
+        }
+
+        const geocodeStatus = document.getElementById('geocodeStatus');
+        if(!geocodeStatus) {
+            console.error('Geocode status element not found');
+            return;
+        }
+
+        geocodeStatus.textContent = 'Finding location...';
+        geocodeStatus.className = 'loading';
+
+        try {
+            const locationQuery = `${city}, ${state}, USA`;
+
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const location = data[0];
+
+                const lat = parseFloat(location.lat);
+                const lon = parseFloat(location.lon);
+
+                this.updateMarkerPosition(lat, lon);
+
+                geocodeStatus.textContent = 'The map has been centered on the city you entered.';
+                geocodeStatus.className = 'success';
+            }
+            else {
+                geocodeStatus.textContent = 'Oops! We couldn\'t locate that city. You can place the pin yourself.';
+                geocodeStatus.className = 'error';
+            }
+        } catch (error) {
+            console.error('Error during geocoding:', error);
+            geocodeStatus.textContent = 'Error finding location. Please try again.';
+            geocodeStatus.className = 'error';
+        }
+    }
+
+    updateMarkerPosition(lat, lng) {
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
+        const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+
+        if(latitudeInput && longitudeInput) {
+            longitudeInput.value = lng;
+            latitudeInput.value = lat;
+        }
+
+        if(coordinatesDisplay) {
+            coordinatesDisplay.textContent = `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`;
+        }
+
+        if(this.marker) {
+            this.marker.setLatLng([lat, lng]);
+        } else {
+            this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+
+            this.marker.on('dragend', (event) => {
+                const position = event.target.getLatLng();
+                this.updateMarkerPosition(position.lat, position.lng);
+            })
+        }
+
+        this.map.setView([lat, lng], 13);
     }
 
     //@Override
@@ -82,6 +205,8 @@ export class AddPropertyComponent extends AbstractComponent {
                 address: formData.get('address'),
                 city: formData.get('city'),
                 state: formData.get('state'),
+                latitude: formData.get('latitude') || null,
+                longitude: formData.get('longitude') || null,
                 contactName: formData.get('contactName'),
                 contactPhone: formData.get('contactPhone'),
                 contactEmail: formData.get('contactEmail')

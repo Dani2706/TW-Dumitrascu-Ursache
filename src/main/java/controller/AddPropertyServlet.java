@@ -64,13 +64,15 @@ public class AddPropertyServlet extends HttpServlet {
             String address = propertyData.get("address").getAsString();
             String city = propertyData.get("city").getAsString();
             String state = propertyData.get("state").getAsString();
+            Double latitude = propertyData.has("latitude") ? propertyData.get("latitude").getAsDouble() : null;
+            Double longitude = propertyData.has("longitude") ? propertyData.get("longitude").getAsDouble() : null;
             String contactName = propertyData.get("contactName").getAsString();
             String contactPhone = propertyData.get("contactPhone").getAsString();
             String contactEmail = propertyData.get("contactEmail").getAsString();
 
             int propertyId = propertyService.addProperty(title, description, propertyType,
                     transactionType, price, surface, rooms, bathrooms, floor, totalFloors,
-                    yearBuilt, createdAt, address, city, state, contactName, contactPhone, contactEmail);
+                    yearBuilt, createdAt, address, city, state, latitude, longitude, contactName, contactPhone, contactEmail);
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

@@ -51,7 +51,7 @@ public class PropertyService {
     public int addProperty(String title, String description, String propertyType,
                            String transactionType, int price, int surface, int rooms,
                            int bathrooms, int floor, int totalFloors, int yearBuilt,
-                           Date createdAt, String address, String city, String state,
+                           Date createdAt, String address, String city, String state, double latitude, double longitude,
                            String contactName, String contactPhone, String contactEmail) throws PropertyValidationException, DatabaseException {
 
         logger.debug("Adding new property: {}", title);
@@ -59,7 +59,7 @@ public class PropertyService {
         Property property = new Property(
                 title, description, propertyType, transactionType,
                 price, surface, rooms, bathrooms, floor, totalFloors,
-                yearBuilt, createdAt, address, city, state,
+                yearBuilt, createdAt, address, city, state, latitude, longitude,
                 contactName, contactPhone, contactEmail
         );
         //int propertyId = propertyRepository.addProperty(property);
@@ -72,7 +72,7 @@ public class PropertyService {
                                String propertyType, String transactionType, int price,
                                int surface, int rooms, int bathrooms, int floor,
                                int totalFloors, int yearBuilt, String address,
-                               String city, String state, String contactName,
+                               String city, String state, double latitude, double longitude, String contactName,
                                String contactPhone, String contactEmail) throws PropertyNotFoundException, DatabaseException, PropertyValidationException, PropertyDataException {
 
         if (propertyId <= 0) {
@@ -89,7 +89,7 @@ public class PropertyService {
         Property property = new Property(
                 title, description, propertyType, transactionType,
                 price, surface, rooms, bathrooms, floor, totalFloors,
-                yearBuilt, new Date(System.currentTimeMillis()), address, city, state,
+                yearBuilt, new Date(System.currentTimeMillis()), address, city, state, latitude, longitude,
                 contactName, contactPhone, contactEmail
         );
         propertyRepository.updateProperty(propertyId, userId, property);

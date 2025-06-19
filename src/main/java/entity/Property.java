@@ -28,15 +28,15 @@ public class Property {
     private String country;
     private String city;
     private String state;
-    private int latitude;
-    private int longitude;
+    private double latitude;
+    private double longitude;
     private String contactName;
     private String contactPhone;
     private String contactEmail;
 
     public Property(int propertyId, String title, String description, String propertyType, String transactionType,
                     int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
-                    int yearBuilt, Date createdAt, String address, String city, String state,
+                    int yearBuilt, Date createdAt, String address, String city, String state, double latitude, double longitude,
                     String contactName, String contactPhone, String contactEmail) throws PropertyValidationException {
 
         this.setPropertyId(propertyId);
@@ -55,6 +55,8 @@ public class Property {
         this.setAddress(address);
         this.setCity(city);
         this.setState(state);
+        this.setLatitude(latitude);
+        this.setLongitude(longitude);
         this.setContactName(contactName);
         this.setContactPhone(contactPhone);
         this.setContactEmail(contactEmail);
@@ -64,7 +66,7 @@ public class Property {
 
     public Property(String title, String description, String propertyType, String transactionType,
                     int price, int surface, int rooms, int bathrooms, int floor, int totalFloors,
-                    int yearBuilt, Date createdAt, String address, String city, String state,
+                    int yearBuilt, Date createdAt, String address, String city, String state, double latitude, double longitude,
                     String contactName, String contactPhone, String contactEmail) throws PropertyValidationException {
 
         this.setTitle(title);
@@ -82,6 +84,8 @@ public class Property {
         this.setAddress(address);
         this.setCity(city);
         this.setState(state);
+        this.setLatitude(latitude);
+        this.setLongitude(longitude);
         this.setContactName(contactName);
         this.setContactPhone(contactPhone);
         this.setContactEmail(contactEmail);
@@ -325,6 +329,22 @@ public class Property {
         this.contactEmail = contactEmail;
     }
 
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
     private boolean isValidEmail(String email) {
         return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
@@ -350,8 +370,8 @@ public class Property {
                 getCity(),
                 getState(),
                 getAddress(),
-                null, //latitute
-                null, //longitude
+                getLatitude(),
+                getLongitude(),
                 getContactName(),
                 getContactPhone(),
                 getContactEmail(),
