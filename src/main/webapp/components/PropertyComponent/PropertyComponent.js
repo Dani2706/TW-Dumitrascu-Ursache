@@ -169,6 +169,8 @@ export class PropertyComponent extends AbstractComponent {
 
         const formattedPrice = this.formatNumberWithDot(data.price);
         this.setElementText(container, "#property-price", formattedPrice);
+
+        this.initializeMap(data);
     }
 
     formatNumberWithDot(number) {
@@ -185,12 +187,39 @@ export class PropertyComponent extends AbstractComponent {
         }
     }
 
-    setElementAttribute(container, selector, attribute, value) {
+    initializeMap(data) {
+        if (!data.latitude || !data.longitude) {
+            console.log('No coordinates available for this property');
+            return;
+        }
+
+        setTimeout(() => {
+            const mapContainer = document.getElementById('property-map');
+            if (!mapContainer) {
+                console.error('Map container not found');
+                return;
+            }
+
+            const map = L.map('property-map').setView([data.latitude, data.longitude], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.marker([data.latitude, data.longitude]).addTo(map)
+                .bindPopup(data.address || 'Property Location')
+                .openPopup();
+
+            map.invalidateSize();
+        }, 100);
+    }
+
+    /*setElementAttribute(container, selector, attribute, value) {
         const element = container.querySelector(selector);
         if (element && value) {
             element.setAttribute(attribute, value);
         }
-    }
+    }*/
 
     handleError(error) {
         const container = this.currentContainer || document.querySelector(`.${this.className}`);

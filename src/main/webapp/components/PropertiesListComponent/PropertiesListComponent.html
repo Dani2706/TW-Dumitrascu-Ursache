@@ -56,145 +56,135 @@
                 <button class="clear-filters-btn">Clear All</button>
             </div>
 
-            <div class="filter-group">
-                <h3>City</h3>
-                <div class="search-filter">
-                    <input type="text" placeholder="Search cities..." class="search-input" id="city-search">
-                    <div class="checkbox-list" id="city-options">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <h3>City</h3>
+                    <div class = "city-filter-container">
                         <!-- Will be populated dynamically -->
-                        <div class="loading-options">Loading cities...</div>
                     </div>
-                    <button class="show-more-btn" id="show-more-cities">Show More</button>
                 </div>
-            </div>
 
-            <div class="filter-group">
-                <h3>State</h3>
-                <div class="search-filter">
-                    <input type="text" placeholder="Search states..." class="search-input" id="state-search">
-                    <div class="checkbox-list" id="state-options">
+                <div class="filter-group">
+                    <h3>State</h3>
+                    <div class="state-filter-container">
                         <!-- Will be populated dynamically -->
-                        <div class="loading-options">Loading states...</div>
                     </div>
-                    <button class="show-more-btn" id="show-more-states">Show More</button>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Price Range</h3>
+                    <div class="range-inputs">
+                        <div class="range-input">
+                            <label for="price-min">Min ($)</label>
+                            <input type="number" id="price-min" placeholder="0">
+                        </div>
+                        <div class="range-input">
+                            <label for="price-max">Max ($)</label>
+                            <input type="number" id="price-max">
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" id="price-slider-min" class="slider">
+                        <input type="range" id="price-slider-max" class="slider">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Area (sq ft)</h3>
+                    <div class="range-inputs">
+                        <div class="range-input">
+                            <label for="area-min">Min</label>
+                            <input type="number" id="area-min" placeholder="0">
+                        </div>
+                        <div class="range-input">
+                            <label for="area-max">Max</label>
+                            <input type="number" id="area-max">
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" class="slider" id="area-slider-min">
+                        <input type="range" class="slider" id="area-slider-max">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Bedrooms</h3>
+                    <div class="range-inputs">
+                        <div class="range-input">
+                            <label for="bedrooms-min">Min</label>
+                            <input type="number" id="bedrooms-min" placeholder="0">
+                        </div>
+                        <div class="range-input">
+                            <label for="bedrooms-max">Max</label>
+                            <input type="number" id="bedrooms-max">
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" class="slider" id="bedrooms-slider-min">
+                        <input type="range" class="slider" id="bedrooms-slider-max">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Bathrooms</h3>
+                    <div class="range-inputs">
+                        <div class="range-input">
+                            <label for="bathrooms-min">Min</label>
+                            <input type="number" id="bathrooms-min" placeholder="0">
+                        </div>
+                        <div class="range-input">
+                            <label for="bathrooms-max">Max</label>
+                            <input type="number" id="bathrooms-max">
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" class="slider" id="bathrooms-slider-min">
+                        <input type="range" class="slider" id="bathrooms-slider-max">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Floor</h3>
+                    <div class="range-inputs">
+                        <div class="range-input">
+                            <label for="floor-min">Min</label>
+                            <input type="number" id="floor-min" placeholder="0">
+                        </div>
+                        <div class="range-input">
+                            <label for="floor-max">Max</label>
+                            <input type="number" id="floor-max">
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" class="slider" id="floor-slider-min">
+                        <input type="range" class="slider" id="floor-slider-max">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Year Built</h3>
+                    <div class="range-inputs">
+                        <div class="range-input">
+                            <label for="year-min">Min</label>
+                            <input type="number" id="year-min">
+                        </div>
+                        <div class="range-input">
+                            <label for="year-max">Max</label>
+                            <input type="number" id="year-max">
+                        </div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-track"></div>
+                        <input type="range" class="slider" id="year-slider-min">
+                        <input type="range" class="slider" id="year-slider-max">
+                    </div>
                 </div>
             </div>
-
-            <div class="filter-group">
-                <h3>Price Range</h3>
-                <div class="range-inputs">
-                    <div class="range-input">
-                        <label for="price-min">Min ($)</label>
-                        <input type="number" id="price-min" placeholder="0">
-                    </div>
-                    <div class="range-input">
-                        <label for="price-max">Max ($)</label>
-                        <input type="number" id="price-max">
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-track"></div>
-                    <input type="range" id="price-slider-min" class="slider">
-                    <input type="range" id="price-slider-max" class="slider">
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <h3>Area (sq ft)</h3>
-                <div class="range-inputs">
-                    <div class="range-input">
-                        <label for="area-min">Min</label>
-                        <input type="number" id="area-min" placeholder="0">
-                    </div>
-                    <div class="range-input">
-                        <label for="area-max">Max</label>
-                        <input type="number" id="area-max">
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-track"></div>
-                    <input type="range" class="slider" id="area-slider-min">
-                    <input type="range" class="slider" id="area-slider-max">
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <h3>Bedrooms</h3>
-                <div class="range-inputs">
-                    <div class="range-input">
-                        <label for="bedrooms-min">Min</label>
-                        <input type="number" id="bedrooms-min" placeholder="0">
-                    </div>
-                    <div class="range-input">
-                        <label for="bedrooms-max">Max</label>
-                        <input type="number" id="bedrooms-max">
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-track"></div>
-                    <input type="range" class="slider" id="bedrooms-slider-min">
-                    <input type="range" class="slider" id="bedrooms-slider-max">
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <h3>Bathrooms</h3>
-                <div class="range-inputs">
-                    <div class="range-input">
-                        <label for="bathrooms-min">Min</label>
-                        <input type="number" id="bathrooms-min" placeholder="0">
-                    </div>
-                    <div class="range-input">
-                        <label for="bathrooms-max">Max</label>
-                        <input type="number" id="bathrooms-max">
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-track"></div>
-                    <input type="range" class="slider" id="bathrooms-slider-min">
-                    <input type="range" class="slider" id="bathrooms-slider-max">
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <h3>Floor</h3>
-                <div class="range-inputs">
-                    <div class="range-input">
-                        <label for="floor-min">Min</label>
-                        <input type="number" id="floor-min" placeholder="0">
-                    </div>
-                    <div class="range-input">
-                        <label for="floor-max">Max</label>
-                        <input type="number" id="floor-max">
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-track"></div>
-                    <input type="range" class="slider" id="floor-slider-min">
-                    <input type="range" class="slider" id="floor-slider-max">
-                </div>
-            </div>
-
-            <div class="filter-group">
-                <h3>Year Built</h3>
-                <div class="range-inputs">
-                    <div class="range-input">
-                        <label for="year-min">Min</label>
-                        <input type="number" id="year-min">
-                    </div>
-                    <div class="range-input">
-                        <label for="year-max">Max</label>
-                        <input type="number" id="year-max">
-                    </div>
-                </div>
-                <div class="slider-container">
-                    <div class="slider-track"></div>
-                    <input type="range" class="slider" id="year-slider-min">
-                    <input type="range" class="slider" id="year-slider-max">
-                </div>
-            </div>
-
-            <button class="apply-filters-btn">Apply Filters</button>
         </aside>
 
         <section class="properties-list">
@@ -212,14 +202,8 @@
                 </div>
             </div>
 
-            <!-- Properties Grid - This will be populated dynamically -->
             <div class="properties-grid">
-                <!-- More property cards will be loaded dynamically -->
-                <!-- Loading State -->
-                <div class="loader-container">
-                    <div class="loader"></div>
-                    <p>Loading properties...</p>
-                </div>
+                <!-- Will be populated dynamically -->
             </div>
 
             <!-- <div class="pagination">

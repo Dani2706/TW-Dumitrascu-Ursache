@@ -250,3 +250,33 @@
     border-radius: 8px;
     text-align: center;
 }
+
+.property-map-container {
+    width: 95%;
+    margin: 30px auto 0 auto;
+    padding: 25px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid #eaeaea;
+}
+
+.property-map-container h3 {
+    color: #003366;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eaeaea;
+}
+
+#property-map {
+    height: 400px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+@media (max-width: 768px) {
+    #property-map {
+        height: 300px;
+    }
+}

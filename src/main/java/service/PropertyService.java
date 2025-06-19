@@ -55,17 +55,16 @@ public class PropertyService {
     public int addProperty(String title, String description, String propertyType,
                            String transactionType, int price, int surface, int rooms,
                            int bathrooms, int floor, int totalFloors, int yearBuilt,
-                           Date createdAt, String address, String country, String city, String state,
+                           Date createdAt, String address, String country, String city, String state, double latitude, double longitude,
                            String contactName, String contactPhone, String contactEmail, String token) throws PropertyValidationException, DatabaseException {
 
         int userId = jwtUtil.getUserId(token);
-
         logger.debug("Adding new property: {}", title);
 
         Property property = new Property(
                 1, title, description, propertyType, transactionType,
                 price, surface, rooms, bathrooms, floor, totalFloors,
-                yearBuilt, createdAt, address, country, city, state,
+                yearBuilt, createdAt, address, country, city, state, latitude, longitude,
                 contactName, contactPhone, contactEmail, userId
         );
         int propertyId = propertyRepository.addProperty(property);
@@ -78,9 +77,8 @@ public class PropertyService {
                                String propertyType, String transactionType, int price,
                                int surface, int rooms, int bathrooms, int floor,
                                int totalFloors, int yearBuilt, String address, String country,
-                               String city, String state, String contactName,
+                               String city, String state, double latitude, double longitude, String contactName,
                                String contactPhone, String contactEmail, String token) throws PropertyNotFoundException, DatabaseException, PropertyValidationException, PropertyDataException {
-
         int userId = jwtUtil.getUserId(token);
 
         if (propertyId <= 0) {
@@ -97,7 +95,7 @@ public class PropertyService {
         Property property = new Property(
                 propertyId, title, description, propertyType, transactionType,
                 price, surface, rooms, bathrooms, floor, totalFloors,
-                yearBuilt, new Date(System.currentTimeMillis()), address, country, city, state,
+                yearBuilt, new Date(System.currentTimeMillis()), address, country, city, state, latitude, longitude,
                 contactName, contactPhone, contactEmail, userId
         );
         propertyRepository.updateProperty(propertyId, userId, property);
@@ -141,5 +139,41 @@ public class PropertyService {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(properties);
 
+    }
+
+    public List<String> getFilteredCities(int minPrice, int maxPrice, int minArea, int maxArea,
+                                          int minBedrooms, int maxBedrooms, float minBathrooms, float maxBathrooms,
+                                          int minFloor, int maxFloor, int minYearBuilt, int maxYearBuilt)
+            throws DatabaseException {
+
+        logger.debug("Fetching filtered cities with criteria: price({}-{}), area({}-{}), bedrooms({}-{}), " +
+                        "bathrooms({}-{}), floor({}-{}), yearBuilt({}-{})",
+                minPrice, maxPrice, minArea, maxArea, minBedrooms, maxBedrooms,
+                minBathrooms, maxBathrooms, minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        List<String> cities = propertyRepository.findFilteredCities(minPrice, maxPrice, minArea, maxArea,
+                minBedrooms, maxBedrooms, minBathrooms, maxBathrooms,
+                minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        logger.debug("Retrieved {} filtered cities", cities.size());
+        return cities;
+    }
+
+    public List<String> getFilteredStates(int minPrice, int maxPrice, int minArea, int maxArea,
+                                          int minBedrooms, int maxBedrooms, float minBathrooms, float maxBathrooms,
+                                          int minFloor, int maxFloor, int minYearBuilt, int maxYearBuilt)
+            throws DatabaseException {
+
+        logger.debug("Fetching filtered states with criteria: price({}-{}), area({}-{}), bedrooms({}-{}), " +
+                        "bathrooms({}-{}), floor({}-{}), yearBuilt({}-{})",
+                minPrice, maxPrice, minArea, maxArea, minBedrooms, maxBedrooms,
+                minBathrooms, maxBathrooms, minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        List<String> states = propertyRepository.findFilteredStates(minPrice, maxPrice, minArea, maxArea,
+                minBedrooms, maxBedrooms, minBathrooms, maxBathrooms,
+                minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        logger.debug("Retrieved {} filtered states", states.size());
+        return states;
     }
 }

@@ -1,10 +1,12 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import {environment} from "../../environment.js";
+import { router } from "../../js/app.js";
 
 export class ListingManagerComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
+        this.router = router;
     }
 
     //@Override
@@ -41,7 +43,6 @@ export class ListingManagerComponent extends AbstractComponent {
 
             const viewButton = event.target.closest('.view-button');
             if (viewButton) {
-                event.preventDefault();
                 this.handleViewProperty(event, viewButton.dataset.id);
             }
         });
@@ -49,28 +50,29 @@ export class ListingManagerComponent extends AbstractComponent {
 
     handleViewProperty(event, propertyId) {
         event.preventDefault();
+        event.stopPropagation();
+
         console.log("Viewing property with ID:", propertyId);
+        sessionStorage.setItem('selectedPropertyId', propertyId);
 
-        sessionStorage.setItem('viewPropertyId', propertyId);
-
-        if (window.router) {
-            window.router.navigate('/property');
-        } else {
+        if (this.router) {
+            this.router.safeNavigate('/property');
+        } else { // Fallback if router is not working
             console.error('Router not available for navigation');
-            sessionStorage.setItem('selectedPropertyId', propertyId);
             window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/property?id=${propertyId}`;
         }
     }
 
     handleEditProperty(event, propertyId) {
         event.preventDefault();
-        console.log("Navigating with property ID:", propertyId);
+        event.stopPropagation();
 
+        console.log("Navigating with property ID:", propertyId);
         sessionStorage.setItem('editPropertyId', propertyId);
 
-        if (window.router) {
-            window.router.navigate('/edit-listing');
-        } else {
+        if (this.router) {
+            this.router.safeNavigate('/edit-listing');
+        } else { // Fallback if router is not working
             console.error('Router not available for navigation');
             window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/edit-listing`;
         }

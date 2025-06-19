@@ -53,6 +53,8 @@ public class PropertyRepository {
                         rs.getString("country"),
                         rs.getString("city"),
                         rs.getString("state"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude"),
                         rs.getString("contact_name"),
                         rs.getString("contact_phone"),
                         rs.getString("contact_email"),
@@ -99,6 +101,8 @@ public class PropertyRepository {
                         rs.getString("country"),
                         rs.getString("city"),
                         rs.getString("state"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude"),
                         rs.getString("contact_name"),
                         rs.getString("contact_phone"),
                         rs.getString("contact_email"),
@@ -116,7 +120,7 @@ public class PropertyRepository {
         return properties;
     }
 
-    public int addProperty(Property property) throws DatabaseException {
+    /*public int addProperty(Property property) throws DatabaseException {
         logger.debug("Adding new property: {}", property.getTitle());
 
         try (Connection conn = dataSource.getConnection()) {
@@ -167,7 +171,7 @@ public class PropertyRepository {
         } catch (SQLException e) {
             throw new DatabaseException("Error adding property: " + e.getMessage());
         }
-    }
+    }*/
 
     public void updateProperty(int propertyId, int userId, Property property) throws DatabaseException, PropertyNotFoundException {
         logger.debug("Attempting to update property with ID: {} for user ID: {}", propertyId, userId);
@@ -189,7 +193,7 @@ public class PropertyRepository {
                     "title = ?, description = ?, property_type = ?, transaction_type = ?, " +
                     "price = ?, surface_area = ?, rooms = ?, bathrooms = ?, " +
                     "floor = ?, total_floors = ?, year_built = ?, " +
-                    "address = ?, city = ?, state = ?, " +
+                    "address = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
                     "contact_name = ?, contact_phone = ?, contact_email = ? " +
                     "WHERE property_id = ? AND user_id = ?";
 
@@ -208,11 +212,13 @@ public class PropertyRepository {
                 stmt.setString(12, property.getAddress());
                 stmt.setString(13, property.getCity());
                 stmt.setString(14, property.getState());
-                stmt.setString(15, property.getContactName());
-                stmt.setString(16, property.getContactPhone());
-                stmt.setString(17, property.getContactEmail());
-                stmt.setInt(18, propertyId);
-                stmt.setInt(19, userId);
+                stmt.setDouble(15, property.getLatitude());
+                stmt.setDouble(16, property.getLongitude());
+                stmt.setString(17, property.getContactName());
+                stmt.setString(18, property.getContactPhone());
+                stmt.setString(19, property.getContactEmail());
+                stmt.setInt(20, propertyId);
+                stmt.setInt(21, userId);
 
                 int rowsAffected = stmt.executeUpdate();
 
@@ -370,7 +376,7 @@ public class PropertyRepository {
 //    }
 
         public List<PropertyForAllListings> getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException {
-            String stmtAsString = "SELECT property_id, title, rooms, bathrooms, surface_area, city, country, price, transaction_type FROM properties WHERE property_type = ?";
+            String stmtAsString = "SELECT property_id, title, rooms, floor, year_built, bathrooms, surface_area, city, state, country, latitude, longitude, price, transaction_type FROM properties WHERE property_type = ?";
             try(Connection connection = this.dataSource.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(stmtAsString)) {
                 stmt.setString(1, filterCriteria);
@@ -384,10 +390,15 @@ public class PropertyRepository {
                             result.getInt("property_id"),
                             result.getString("title"),
                             result.getInt("rooms"),
+                            result.getInt("floor"),
+                            result.getInt("year_built"),
                             result.getInt("bathrooms"),
                             result.getInt("surface_area"),
                             result.getString("city"),
+                            result.getString("state"),
                             result.getString("country"),
+                            result.getDouble("latitude"),
+                            result.getDouble("longitude"),
                             result.getInt("price"),
                             result.getString("transaction_type")
                         ));
@@ -397,4 +408,106 @@ public class PropertyRepository {
                 throw new DatabaseException(e.getMessage());
             }
         }
+
+    public List<String> findFilteredCities(int minPrice, int maxPrice, int minArea, int maxArea,
+                                           int minBedrooms, int maxBedrooms, float minBathrooms, float maxBathrooms,
+                                           int minFloor, int maxFloor, int minYearBuilt, int maxYearBuilt) throws DatabaseException {
+        logger.debug("Finding cities with filters: price({}-{}), area({}-{}), bedrooms({}-{}), bathrooms({}-{}), floor({}-{}), yearBuilt({}-{})",
+                minPrice, maxPrice, minArea, maxArea, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        List<String> cities = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT city FROM properties WHERE " +
+                "price >= ? AND price <= ? AND " +
+                "surface_area >= ? AND surface_area <= ? AND " +
+                "rooms >= ? AND rooms <= ? AND " +
+                "bathrooms >= ? AND bathrooms <= ? AND " +
+                "floor >= ? AND floor <= ? AND " +
+                "year_built >= ? AND year_built <= ? " +
+                "ORDER BY city";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, minPrice);
+            stmt.setInt(2, maxPrice);
+            stmt.setInt(3, minArea);
+            stmt.setInt(4, maxArea);
+            stmt.setInt(5, minBedrooms);
+            stmt.setInt(6, maxBedrooms);
+            stmt.setFloat(7, minBathrooms);
+            stmt.setFloat(8, maxBathrooms);
+            stmt.setInt(9, minFloor);
+            stmt.setInt(10, maxFloor);
+            stmt.setInt(11, minYearBuilt);
+            stmt.setInt(12, maxYearBuilt);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String city = rs.getString("city");
+                if (city != null && !city.isEmpty()) {
+                    cities.add(city);
+                }
+            }
+
+            logger.debug("Found {} cities matching the filter criteria", cities.size());
+            return cities;
+
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving filtered cities", e);
+            throw new DatabaseException("Error retrieving filtered cities: " + e.getMessage(), e);
+        }
+    }
+
+    public List<String> findFilteredStates(int minPrice, int maxPrice, int minArea, int maxArea,
+                                           int minBedrooms, int maxBedrooms, float minBathrooms, float maxBathrooms,
+                                           int minFloor, int maxFloor, int minYearBuilt, int maxYearBuilt) throws DatabaseException {
+        logger.debug("Finding states with filters: price({}-{}), area({}-{}), bedrooms({}-{}), bathrooms({}-{}), floor({}-{}), yearBuilt({}-{})",
+                minPrice, maxPrice, minArea, maxArea, minBedrooms, maxBedrooms, minBathrooms, maxBathrooms, minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        List<String> states = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT state FROM properties WHERE " +
+                "price >= ? AND price <= ? AND " +
+                "surface_area >= ? AND surface_area <= ? AND " +
+                "rooms >= ? AND rooms <= ? AND " +
+                "bathrooms >= ? AND bathrooms <= ? AND " +
+                "floor >= ? AND floor <= ? AND " +
+                "year_built >= ? AND year_built <= ? " +
+                "ORDER BY state";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, minPrice);
+            stmt.setInt(2, maxPrice);
+            stmt.setInt(3, minArea);
+            stmt.setInt(4, maxArea);
+            stmt.setInt(5, minBedrooms);
+            stmt.setInt(6, maxBedrooms);
+            stmt.setFloat(7, minBathrooms);
+            stmt.setFloat(8, maxBathrooms);
+            stmt.setInt(9, minFloor);
+            stmt.setInt(10, maxFloor);
+            stmt.setInt(11, minYearBuilt);
+            stmt.setInt(12, maxYearBuilt);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String state = rs.getString("state");
+                if (state != null && !state.isEmpty()) {
+                    states.add(state);
+                }
+            }
+
+            logger.debug("Found {} states matching the filter criteria", states.size());
+            return states;
+
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving filtered states", e);
+            throw new DatabaseException("Error retrieving filtered states: " + e.getMessage(), e);
+        }
+    }
 }

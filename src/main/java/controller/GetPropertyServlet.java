@@ -68,6 +68,8 @@ public class GetPropertyServlet extends HttpServlet {
                     "\"country\":\"" + property.getCountry() + "\"," +
                     "\"city\":\"" + property.getCity() + "\"," +
                     "\"state\":\"" + property.getState() + "\"," +
+                    "\"latitude\":" + property.getLatitude() + "," +
+                    "\"longitude\":" + property.getLongitude() + "," +
                     "\"contactName\":\"" + property.getContactName() + "\"," +
                     "\"contactPhone\":\"" + property.getContactPhone() + "\"," +
                     "\"contactEmail\":\"" + property.getContactEmail() + "\"" +

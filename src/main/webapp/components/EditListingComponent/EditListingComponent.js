@@ -1,11 +1,17 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import {environment} from "../../environment.js";
+import { router } from "../../js/app.js";
 
 export class EditListingComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
         this.propertyId = null;
+        this.router = router;
+
+        this.map = null;
+        this.marker = null;
+        this.debounceTimer = null;
     }
 
     //@Override
@@ -63,6 +69,14 @@ export class EditListingComponent extends AbstractComponent {
             if (cancelBtn) {
                 cancelBtn.addEventListener('click', this.handleCancel.bind(this));
             }
+
+            const cityField = container.querySelector('#city');
+            const stateField = container.querySelector('#state');
+
+            if(cityField && stateField) {
+                cityField.addEventListener('blur', this.handleLocationChange.bind(this));
+                stateField.addEventListener('blur', this.handleLocationChange.bind(this));
+            }
         } else {
             console.error('Form #editPropertyForm not found in the template');
         }
@@ -80,7 +94,123 @@ export class EditListingComponent extends AbstractComponent {
             if (cancelBtn) {
                 cancelBtn.removeEventListener('click', this.handleCancel.bind(this));
             }
+
+            const cityField = container.querySelector('#city');
+            const stateField = container.querySelector('#state');
+
+            if(cityField && stateField) {
+                cityField.removeEventListener('blur', this.handleLocationChange.bind(this));
+                stateField.removeEventListener('blur', this.handleLocationChange.bind(this));
+            }
         }
+    }
+
+    initializeMap(lat, lng) {
+        const mapElement = document.getElementById('propertyMap');
+        if(!mapElement) {
+            return;
+        }
+
+        this.map = L.map('propertyMap').setView([lat || 37.0902, lng || -95.7129], lat && lng ? 13 : 4);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
+
+        this.map.on('click', (e) => {
+            this.updateMarkerPosition(e.latlng.lat, e.latlng.lng);
+        });
+
+        if (lat && lng) {
+            this.updateMarkerPosition(lat, lng);
+        }
+
+        const geocodeStatus = document.getElementById('geocodeStatus');
+        if(geocodeStatus) {
+            geocodeStatus.textContent = 'Adjust the pin position if needed';
+        }
+    }
+
+    handleLocationChange() {
+        if(this.debounceTimer) clearTimeout(this.debounceTimer);
+
+        this.debounceTimer = setTimeout(() => {
+            this.geocodeLocation();
+        }, 1000);
+    }
+
+    async geocodeLocation() {
+        const city = document.getElementById('city').value;
+        const state = document.getElementById('state').value;
+
+        if (!city || !state) {
+            console.error('City and state fields are required for geocoding');
+            return;
+        }
+
+        const geocodeStatus = document.getElementById('geocodeStatus');
+        if(!geocodeStatus) {
+            console.error('Geocode status element not found');
+            return;
+        }
+
+        geocodeStatus.textContent = 'Finding location...';
+        geocodeStatus.className = 'loading';
+
+        try {
+            const locationQuery = `${city}, ${state}`;
+
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationQuery)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const location = data[0];
+
+                const lat = parseFloat(location.lat);
+                const lon = parseFloat(location.lon);
+
+                this.updateMarkerPosition(lat, lon);
+
+                geocodeStatus.textContent = 'The map is centered on the city you entered.';
+                geocodeStatus.className = 'success';
+            }
+            else {
+                geocodeStatus.textContent = 'Oops! We couldn\'t locate that city. You can place the pin yourself.';
+                geocodeStatus.className = 'error';
+            }
+        } catch (error) {
+            console.error('Error during geocoding:', error);
+            geocodeStatus.textContent = 'Error finding location. Please try again.';
+            geocodeStatus.className = 'error';
+        }
+    }
+
+    updateMarkerPosition(lat, lng) {
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
+        const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+
+        if(latitudeInput && longitudeInput) {
+            longitudeInput.value = lng;
+            latitudeInput.value = lat;
+        }
+
+        if(coordinatesDisplay) {
+            coordinatesDisplay.textContent = `Latitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}`;
+        }
+
+        if(this.marker) {
+            this.marker.setLatLng([lat, lng]);
+        } else {
+            this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+
+            this.marker.on('dragend', (event) => {
+                const position = event.target.getLatLng();
+                this.updateMarkerPosition(position.lat, position.lng);
+            });
+        }
+
+        this.map.setView([lat, lng], 13);
     }
 
     //@Override
@@ -184,6 +314,24 @@ export class EditListingComponent extends AbstractComponent {
                     }
                 });
 
+                const latitudeInput = form.querySelector('#latitude');
+                const longitudeInput = form.querySelector('#longitude');
+
+                if (latitudeInput && propertyData.latitude !== undefined) {
+                    latitudeInput.value = propertyData.latitude;
+                }
+
+                if (longitudeInput && propertyData.longitude !== undefined) {
+                    longitudeInput.value = propertyData.longitude;
+                }
+
+                setTimeout(() => {
+                    this.initializeMap(
+                        propertyData.latitude !== undefined ? parseFloat(propertyData.latitude) : null,
+                        propertyData.longitude !== undefined ? parseFloat(propertyData.longitude) : null
+                    );
+                }, 100);
+
                 const propertyTypeField = form.querySelector('#propertyType');
                 if (propertyTypeField && propertyData.propertyType) {
                     const typeMap = {
@@ -263,6 +411,8 @@ export class EditListingComponent extends AbstractComponent {
                 country: formData.get('country'),
                 city: formData.get('city'),
                 state: formData.get('state'),
+                latitude: formData.get('latitude') || null,
+                longitude: formData.get('longitude') || null,
                 contactName: formData.get('contactName'),
                 contactPhone: formData.get('contactPhone'),
                 contactEmail: formData.get('contactEmail')
@@ -346,40 +496,11 @@ export class EditListingComponent extends AbstractComponent {
 
     handleCancel(event) {
         event.preventDefault();
-        const router = window.router;
         if (router) {
-            router.navigate('/manage-listings');
-        }
-    }
-
-    replaceFormWithSuccess(propertyId) {
-        const container = document.querySelector('.edit-property-container');
-        const form = document.querySelector('#editPropertyForm');
-
-        if (container && form) {
-            const successContent = document.createElement('div');
-            successContent.className = 'success-content';
-
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message success-message';
-            messageElement.innerHTML = `<h3>Property updated successfully!</h3>
-                               <p>Your property with ID: ${propertyId} has been updated</p>`;
-            successContent.appendChild(messageElement);
-
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'success-buttons';
-
-            const viewListingsButton = document.createElement('a');
-            viewListingsButton.className = 'btn btn-primary';
-            viewListingsButton.innerHTML = 'Return to My Listings';
-            viewListingsButton.href = '#';
-            viewListingsButton.setAttribute('data-route', '/manage-listings');
-
-            buttonContainer.appendChild(viewListingsButton);
-            successContent.appendChild(buttonContainer);
-
-            form.style.display = 'none';
-            container.appendChild(successContent);
+            router.safeNavigate('/manage-listings');
+        } else { // Fallback if router is not working
+            console.error('Router not found');
+            window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
         }
     }
 
