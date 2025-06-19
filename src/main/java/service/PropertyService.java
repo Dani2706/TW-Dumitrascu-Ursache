@@ -133,4 +133,40 @@ public class PropertyService {
         return objectMapper.writeValueAsString(properties);
 
     }
+
+    public List<String> getFilteredCities(int minPrice, int maxPrice, int minArea, int maxArea,
+                                          int minBedrooms, int maxBedrooms, float minBathrooms, float maxBathrooms,
+                                          int minFloor, int maxFloor, int minYearBuilt, int maxYearBuilt)
+            throws DatabaseException {
+
+        logger.debug("Fetching filtered cities with criteria: price({}-{}), area({}-{}), bedrooms({}-{}), " +
+                        "bathrooms({}-{}), floor({}-{}), yearBuilt({}-{})",
+                minPrice, maxPrice, minArea, maxArea, minBedrooms, maxBedrooms,
+                minBathrooms, maxBathrooms, minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        List<String> cities = propertyRepository.findFilteredCities(minPrice, maxPrice, minArea, maxArea,
+                minBedrooms, maxBedrooms, minBathrooms, maxBathrooms,
+                minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        logger.debug("Retrieved {} filtered cities", cities.size());
+        return cities;
+    }
+
+    public List<String> getFilteredStates(int minPrice, int maxPrice, int minArea, int maxArea,
+                                          int minBedrooms, int maxBedrooms, float minBathrooms, float maxBathrooms,
+                                          int minFloor, int maxFloor, int minYearBuilt, int maxYearBuilt)
+            throws DatabaseException {
+
+        logger.debug("Fetching filtered states with criteria: price({}-{}), area({}-{}), bedrooms({}-{}), " +
+                        "bathrooms({}-{}), floor({}-{}), yearBuilt({}-{})",
+                minPrice, maxPrice, minArea, maxArea, minBedrooms, maxBedrooms,
+                minBathrooms, maxBathrooms, minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        List<String> states = propertyRepository.findFilteredStates(minPrice, maxPrice, minArea, maxArea,
+                minBedrooms, maxBedrooms, minBathrooms, maxBathrooms,
+                minFloor, maxFloor, minYearBuilt, maxYearBuilt);
+
+        logger.debug("Retrieved {} filtered states", states.size());
+        return states;
+    }
 }
