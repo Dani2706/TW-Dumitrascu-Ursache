@@ -90,6 +90,11 @@ export class PropertiesListComponent extends AbstractComponent {
     //@Override
     eventListenerRemover() {
         if (this.templateLoaded) {
+            const dropdownToggle = this.container.querySelector('.category-dropdown-toggle');
+            if (dropdownToggle) {
+                dropdownToggle.replaceWith(dropdownToggle.cloneNode(true));
+            }
+
             const categoryButtons = this.container.querySelectorAll('.category-btn');
             categoryButtons.forEach(button => {
                 button.replaceWith(button.cloneNode(true));
@@ -124,12 +129,48 @@ export class PropertiesListComponent extends AbstractComponent {
         container.innerHTML = this.template;
         this.container = container;
 
+        this.setupCategoryDropdown();
+
         this.dynamicallyLoadData();
 
         this.eventListenerLoader();
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
         return container;
+    }
+
+    setupCategoryDropdown() {
+        const categorySection = this.container.querySelector('.category-section');
+        if (!categorySection) {
+            console.error('Category section not found');
+            return;
+        }
+
+        console.log('Setting up category dropdown');
+
+        const dropdownToggle = document.createElement('div');
+        dropdownToggle.className = 'category-dropdown-toggle';
+        dropdownToggle.innerHTML = '<span>Change the category</span><i class="fas fa-chevron-down"></i>';
+
+        categorySection.parentNode.insertBefore(dropdownToggle, categorySection);
+
+        categorySection.classList.add('collapsed');
+
+        dropdownToggle.addEventListener('click', (event) => {
+            console.log('Dropdown clicked');
+            event.preventDefault();
+            categorySection.classList.toggle('collapsed');
+            dropdownToggle.classList.toggle('active');
+
+            const icon = dropdownToggle.querySelector('i');
+            if (icon.classList.contains('fa-chevron-down')) {
+                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            } else {
+                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            }
+        });
+
+        console.log('Category dropdown setup complete');
     }
 
     async dynamicallyLoadData(sortOption = 'newest') {
