@@ -8,6 +8,8 @@ export class PropertiesListComponent extends AbstractComponent {
         this.setClassName(this.constructor.name);
         this.container = "";
         this.properties = [];
+        this.mapDebounceTimer = null;
+        this.map = null;
     }
 
     //@Override
@@ -131,6 +133,8 @@ export class PropertiesListComponent extends AbstractComponent {
 
         this.setupCategoryDropdown();
 
+        this.setupPropertyMap();
+
         this.dynamicallyLoadData();
 
         this.eventListenerLoader();
@@ -173,6 +177,95 @@ export class PropertiesListComponent extends AbstractComponent {
         console.log('Category dropdown setup complete');
     }
 
+    setupPropertyMap() {
+        const mainContent = this.container.querySelector('.main-content');
+        const mapContainer = document.createElement('div');
+        mapContainer.id = 'properties-map';
+        mapContainer.className = 'properties-map-container';
+
+        mainContent.parentNode.insertBefore(mapContainer, mainContent);
+
+        if (window.L) {
+            this.debouncedInitMap();
+        }
+    }
+
+    initMap() {
+        if (!this.properties || this.properties.length === 0) return;
+
+        const mapElement = document.getElementById('properties-map');
+        if (!mapElement || !window.L) return;
+
+        if (this.map) {
+            this.map.remove();
+        }
+
+        this.map = L.map('properties-map').setView([37.0902, -95.7129], 4); // Default to USA
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
+
+        const bounds = L.latLngBounds();
+        let hasValidCoordinates = false;
+
+        this.properties.forEach(property => {
+            if (property.latitude && property.longitude) {
+                hasValidCoordinates = true;
+                const marker = L.marker([property.latitude, property.longitude]).addTo(this.map);
+
+                const popupContent = document.createElement('div');
+                popupContent.className = 'map-info-window';
+
+                const title = document.createElement('h3');
+                title.textContent = property.title;
+                title.className = 'map-title clickable';
+                title.onclick = (e) => {
+                    console.log("Viewing property with ID:", property.propertyId);
+                    sessionStorage.setItem('selectedPropertyID', property.propertyId);
+
+                    if (this.router) {
+                        this.router.safeNavigate('/property');
+                    } else { // Fallback if router is not working
+                        console.error('Router not available for navigation');
+                        window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/property`;
+                    }
+                };
+
+                const details = document.createElement('p');
+                details.textContent = `${property.rooms} rooms · ${property.bathrooms} baths · ${property.surfaceArea} m²`;
+
+                const price = document.createElement('p');
+                price.textContent = `${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}`;
+
+                popupContent.appendChild(title);
+                popupContent.appendChild(details);
+                popupContent.appendChild(price);
+
+                marker.bindPopup(popupContent);
+
+                bounds.extend([property.latitude, property.longitude]);
+            }
+        });
+
+        if (hasValidCoordinates) {
+            this.map.fitBounds(bounds, {
+                padding: [30, 30],
+                maxZoom: 15
+            });
+        }
+    }
+
+    debouncedInitMap() {
+        if (this.mapDebounceTimer) {
+            clearTimeout(this.mapDebounceTimer);
+        }
+
+        this.mapDebounceTimer = setTimeout(() => {
+            this.initMap();
+        }, 1000);
+    }
+
     async dynamicallyLoadData(sortOption = 'newest') {
         const propertiesGrid = this.container.querySelector('.properties-grid');
         if (!propertiesGrid) return;
@@ -201,6 +294,8 @@ export class PropertiesListComponent extends AbstractComponent {
             }
 
             this.properties = properties;
+
+            this.debouncedInitMap();
 
             const propertiesCountSpan = this.container.querySelector('.properties-count');
             if (propertiesCountSpan) {

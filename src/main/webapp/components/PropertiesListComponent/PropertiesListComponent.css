@@ -897,3 +897,40 @@ body {
         border-left-color: var(--primary-color);
     }
 }
+
+.properties-map-container {
+    height: 400px;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    z-index: 1;
+}
+
+.map-info-window {
+    padding: 5px;
+}
+
+.map-info-window h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.map-info-window p {
+    font-size: 14px;
+    margin: 3px 0;
+}
+
+.map-info-window .map-title {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.map-info-window .clickable {
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
+.map-info-window .clickable:hover {
+    text-decoration: underline;
+}
