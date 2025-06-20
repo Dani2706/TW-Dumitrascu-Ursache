@@ -95,7 +95,12 @@ export class RegisterComponent extends AbstractComponent {
 
             if (response.status === 201) {
                 alert("User registered!");
-                this.router.navigate("/home");
+                if (this.router) {
+                    this.router.safeNavigate("/home");
+                } else { // Fallback if router is not working
+                    console.error('Router not found');
+                    window.location.href = '/home';
+                }
                 return;
             }
             else if (response.status === 409) {

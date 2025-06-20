@@ -120,14 +120,14 @@ public class PropertyRepository {
         return properties;
     }
 
-    /*public int addProperty(Property property) throws DatabaseException {
+    public int addProperty(Property property) throws DatabaseException {
         logger.debug("Adding new property: {}", property.getTitle());
 
         try (Connection conn = dataSource.getConnection()) {
             String sql = "INSERT INTO properties (title, description, property_type, transaction_type, "
                     + "price, surface_area, rooms, bathrooms, floor, total_floors, year_built, "
-                    + "created_at, address, country, city, state, contact_name, contact_phone, contact_email, user_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    + "created_at, address, country, city, state, latitude, longitude, contact_name, contact_phone, contact_email, user_id) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"property_id"});
             stmt.setString(1, property.getTitle());
@@ -146,10 +146,12 @@ public class PropertyRepository {
             stmt.setString(14, property.getCountry());
             stmt.setString(15, property.getCity());
             stmt.setString(16, property.getState());
-            stmt.setString(17, property.getContactName());
-            stmt.setString(18, property.getContactPhone());
-            stmt.setString(19, property.getContactEmail());
-            stmt.setInt(20, property.getUserId()); // hardcoded for demo
+            stmt.setDouble(17, property.getLatitude());
+            stmt.setDouble(18, property.getLongitude());
+            stmt.setString(19, property.getContactName());
+            stmt.setString(20, property.getContactPhone());
+            stmt.setString(21, property.getContactEmail());
+            stmt.setInt(22, property.getUserId());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -171,7 +173,7 @@ public class PropertyRepository {
         } catch (SQLException e) {
             throw new DatabaseException("Error adding property: " + e.getMessage());
         }
-    }*/
+    }
 
     public void updateProperty(int propertyId, int userId, Property property) throws DatabaseException, PropertyNotFoundException {
         logger.debug("Attempting to update property with ID: {} for user ID: {}", propertyId, userId);
@@ -193,7 +195,7 @@ public class PropertyRepository {
                     "title = ?, description = ?, property_type = ?, transaction_type = ?, " +
                     "price = ?, surface_area = ?, rooms = ?, bathrooms = ?, " +
                     "floor = ?, total_floors = ?, year_built = ?, " +
-                    "address = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
+                    "address = ?, country = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
                     "contact_name = ?, contact_phone = ?, contact_email = ? " +
                     "WHERE property_id = ? AND user_id = ?";
 
@@ -210,15 +212,16 @@ public class PropertyRepository {
                 stmt.setInt(10, property.getTotalFloors());
                 stmt.setInt(11, property.getYearBuilt());
                 stmt.setString(12, property.getAddress());
-                stmt.setString(13, property.getCity());
-                stmt.setString(14, property.getState());
-                stmt.setDouble(15, property.getLatitude());
-                stmt.setDouble(16, property.getLongitude());
-                stmt.setString(17, property.getContactName());
-                stmt.setString(18, property.getContactPhone());
-                stmt.setString(19, property.getContactEmail());
-                stmt.setInt(20, propertyId);
-                stmt.setInt(21, userId);
+                stmt.setString(13, property.getCountry());
+                stmt.setString(14, property.getCity());
+                stmt.setString(15, property.getState());
+                stmt.setDouble(16, property.getLatitude());
+                stmt.setDouble(17, property.getLongitude());
+                stmt.setString(18, property.getContactName());
+                stmt.setString(19, property.getContactPhone());
+                stmt.setString(20, property.getContactEmail());
+                stmt.setInt(21, propertyId);
+                stmt.setInt(22, userId);
 
                 int rowsAffected = stmt.executeUpdate();
 

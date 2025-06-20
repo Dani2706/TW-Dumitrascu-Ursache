@@ -90,7 +90,13 @@ export class LoginComponent extends AbstractComponent {
             const result = await response.json();
             window.sessionStorage.setItem("jwt", result.token)
             window.sessionStorage.setItem("isLoggedIn", "true");
-            this.router.navigate("/profile");
+
+            if (this.router) {
+                this.router.navigate("/profile");
+            } else { // Fallback if router is not working
+                console.error('Router not found');
+                window.location.href = '/profile';
+            }
         }
         else if (response.status === 401) {
             this.errorSelectorName = ".login-failed-error-message";

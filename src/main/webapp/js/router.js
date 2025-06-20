@@ -113,7 +113,6 @@ export class Router {
         mainWindow.style.visibility = 'hidden';
         footer.style.visibility = 'hidden';
         nav_bar.style.visibility = 'hidden';
-        console.log("Before");
         console.log("After");
         await this.navigate(path);
         mainWindow.style.visibility = 'visible';

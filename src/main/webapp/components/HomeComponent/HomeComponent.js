@@ -32,8 +32,12 @@ export class HomeComponent extends AbstractComponent {
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'sell');
 
-                    //window.location.href = 'properties-list?filterCriteria=$categoryType';
-                    this.router.navigate("/properties-list");
+                    if (this.router) {
+                        this.router.navigate("/properties-list");
+                    } else { // Fallback if router is not working
+                        console.error('Router not found');
+                        window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    }
                 });
             }
 
@@ -43,7 +47,12 @@ export class HomeComponent extends AbstractComponent {
                     sessionStorage.setItem('propertyType', propertyType);
                     sessionStorage.setItem('transactionType', 'rent');
 
-                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    if (this.router) {
+                        this.router.navigate("/properties-list");
+                    } else { // Fallback if router is not working
+                        console.error('Router not found');
+                        window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    }
                 });
             }
         });

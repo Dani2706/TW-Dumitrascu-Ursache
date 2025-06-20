@@ -488,7 +488,12 @@ export class EditListingComponent extends AbstractComponent {
 
                 if (count <= 0) {
                     clearInterval(countdownInterval);
-                    window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+                    if (this.router) {
+                        this.router.safeNavigate('/manage-listings');
+                    } else { // Fallback if router is not working
+                        console.error('Router not found');
+                        window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+                    }
                 }
             }, 1000);
         }
@@ -496,8 +501,8 @@ export class EditListingComponent extends AbstractComponent {
 
     handleCancel(event) {
         event.preventDefault();
-        if (router) {
-            router.safeNavigate('/manage-listings');
+        if (this.router) {
+            this.router.safeNavigate('/manage-listings');
         } else { // Fallback if router is not working
             console.error('Router not found');
             window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';

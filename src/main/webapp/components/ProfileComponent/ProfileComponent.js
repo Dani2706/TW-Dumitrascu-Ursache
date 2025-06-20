@@ -82,7 +82,7 @@ export class ProfileComponent extends AbstractComponent {
             email.setAttribute('value', userData.email);
 
             const phone = profileContainer.querySelector('#phone');
-            phone.setAttribute('value', userData.phone);
+            phone.setAttribute('value', userData.phoneNumber);
 
         } catch (error) {
             this.prependInitErrorMessage(profileContainer, error.message);
