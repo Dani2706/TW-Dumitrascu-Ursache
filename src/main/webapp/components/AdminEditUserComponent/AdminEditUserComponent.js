@@ -1,13 +1,14 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { UserService } from "../../services/UserService.js";
-import {environment} from "../../environment.js";
+import { AdminService } from "../../services/AdminService.js";
 
-export class ProfileComponent extends AbstractComponent {
+export class AdminEditUserComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
         this.container = "";
         this.userService = new UserService();
+        this.adminService = new AdminService();
         this.errorContainer = null;
         this.runtimeErrorContainer = null;
         this.runtimeErrorParentContainer = null;
@@ -73,7 +74,8 @@ export class ProfileComponent extends AbstractComponent {
 
     async getUserProfile(profileContainer) {
         try {
-            const response = await this.userService.getUserProfile();
+            const userId = sessionStorage.getItem("adminUserId");
+            const response = await this.adminService.getUser(userId);
 
             if (response.status === 200) {
                 const userData = await response.json();
@@ -107,17 +109,22 @@ export class ProfileComponent extends AbstractComponent {
 
         const errorMessage = this.verifyPasswordValidity(formData);
         if (!this.appendErrorMessage(errorMessage)) {
-            const plainObject = Object.fromEntries(formData.entries());
+            const userData = Object.fromEntries(formData.entries());
 
-            const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/user/profile", {
-                    method: "PUT",
-                    body: JSON.stringify(plainObject),
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                    }
-                }
-            );
+            userData.userId = sessionStorage.getItem("adminUserId");
+
+            // const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/user/profile", {
+            //         method: "PUT",
+            //         body: JSON.stringify(plainObject),
+            //         headers: {
+            //             "Content-Type": "application/x-www-form-urlencoded",
+            //             "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+            //         }
+            //     }
+            // );
+
+            const response = await this.adminService.updateUser(userData);
+
             try {
                 let errorMessage = "";
                 console.log(response.status);

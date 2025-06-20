@@ -3,10 +3,7 @@ package controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.UserDTO;
 import entity.User;
-import exceptions.EmailAlreadyInUseException;
-import exceptions.NotAuthorizedException;
-import exceptions.PhoneNumberAlreadyInUseException;
-import exceptions.UsernameAlreadyInUseException;
+import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UserService;
@@ -40,7 +37,8 @@ public class UserController extends HttpServlet {
         String authHeader = req.getHeader("Authorization");
         try {
             String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
-            UserDTO user = this.userService.getUserData(token);
+            int userId = this.jwtUtil.getUserId(token);
+            UserDTO user = this.userService.getUserData(userId);
 
             ObjectMapper objectMapper = new ObjectMapper();
             String json = objectMapper.writeValueAsString(user);
@@ -50,6 +48,9 @@ public class UserController extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (NotAuthorizedException e) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            logger.warn("", e);
+        } catch (InvalidUserIdException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             logger.warn("", e);
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -76,8 +77,8 @@ public class UserController extends HttpServlet {
             String email = (String) bodyParams.get("email");
             String phoneNumber = (String) bodyParams.get("phone");
 
-            User user = new User(username, email, phoneNumber);
-            this.userService.updateUserById(user, token);
+            User user = new User(this.jwtUtil.getUserId(token), username, email, phoneNumber);
+            this.userService.updateUserById(user);
 
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
 

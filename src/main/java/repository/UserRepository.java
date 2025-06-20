@@ -57,16 +57,16 @@ public class UserRepository {
         }
     }
 
-    public UserDTO getUserDataByUsername(String username) throws DatabaseException, InvalidUsernameException {
-        String stmtAsString = "SELECT username, email, phone_number FROM users WHERE username = ?";
+    public UserDTO getUserDataByUserId(int userId) throws DatabaseException, InvalidUserIdException {
+        String stmtAsString = "SELECT username, email, phone_number FROM users WHERE user_id = ?";
         try(Connection connection = this.dataSource.getConnection();
             PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
 
-            stmt.setString(1, username);
+            stmt.setInt(1, userId);
             ResultSet result = stmt.executeQuery();
 
             if (!result.next()) {
-                throw new InvalidUsernameException("The user with the given username (" + username + ") does not exist");
+                throw new InvalidUserIdException("The user with the given user_id (" + userId + ") does not exist");
             }
             else {
                 return new UserDTO(result.getString(1), result.getString(2), result.getString(3));
@@ -96,16 +96,16 @@ public class UserRepository {
     }
 
     public void updateUser(User user) throws EmailAlreadyInUseException, UsernameAlreadyInUseException, PhoneNumberAlreadyInUseException, DatabaseException {
-        String updateUser = "{call update_user(?,?,?,?)}";
+        String callAsString = "{call update_user(?,?,?,?)}";
         try(Connection connection = this.dataSource.getConnection();
-            CallableStatement stmt = connection.prepareCall(updateUser)){
+            CallableStatement call = connection.prepareCall(callAsString)){
 
-            stmt.setInt(1, user.getId());
-            stmt.setString(2, user.getName());
-            stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getPhoneNumber());
+            call.setInt(1, user.getId());
+            call.setString(2, user.getName());
+            call.setString(3, user.getEmail());
+            call.setString(4, user.getPhoneNumber());
 
-            stmt.execute();
+            call.execute();
 
         } catch (SQLException e) {
             if (e.getErrorCode() == 20001) {
@@ -122,4 +122,36 @@ public class UserRepository {
             }
         }
     }
+
+    public void deleteUser(int userId) throws DatabaseException, InvalidUserIdException {
+        String stmtAsString = "DELETE FROM users WHERE user_id = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, userId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected < 1) {
+                throw new InvalidUserIdException("The user with the given user_id (" + userId + ") does not exist");
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+//    public boolean doesUserExist(int userId) throws DatabaseException {
+//        String stmtAsString = "SELECT user_id FROM users WHERE user_id = ?";
+//        try(Connection connection = this.dataSource.getConnection();
+//            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+//
+//            stmt.setInt(1, userId);
+//
+//            ResultSet result = stmt.executeQuery();
+//
+//            return result.next();
+//        } catch (SQLException e) {
+//            throw new DatabaseException(e);
+//        }
+//    }
 }

@@ -8,8 +8,13 @@ import { AddPropertyComponent } from "../components/AddPropertyComponent/AddProp
 import { ListingManagerComponent } from "../components/ListingManagerComponent/ListingManagerComponent.js";
 import { EditListingComponent } from "../components/EditListingComponent/EditListingComponent.js";
 import { PropertiesListComponent } from "../components/PropertiesListComponent/PropertiesListComponent.js";
+import { AdminAddPropertyComponent } from "../components/AdminAddPropertyComponent/AdminAddPropertyComponent.js";
+import { AdminEditPropertyComponent} from "../components/AdminEditPropertyComponent/AdminEditPropertyComponent.js";
+import {AdminAddUserComponent} from "../components/AdminAddUserComponent/AdminAddUserComponent.js";
+import {AdminEditUserComponent} from "../components/AdminEditUserComponent/AdminEditUserComponent.js";
+import {AdminDashboardComponent} from "../components/AdminDashboardComponent/AdminDashboardComponent.js";
 
-const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
 const routes = {
             "/" : HomeComponent,
             "/properties-list" :PropertiesListComponent,
@@ -19,7 +24,12 @@ const routes = {
             "/edit-listing" : EditListingComponent,
             "/property" : PropertyComponent,
             "/login" : LoginComponent,
-            "/register" : RegisterComponent
+            "/register" : RegisterComponent,
+            "/admin/add-property" : AdminAddPropertyComponent,
+            "/admin/edit-property" : AdminEditPropertyComponent,
+            "/admin/add-user" : AdminAddUserComponent,
+            "/admin/edit-user" : AdminEditUserComponent,
+            "/dashboard" : AdminDashboardComponent
         }
 export const router = new Router('#main-window', basePath, routes);
 console.log("Router initialized with base path:", basePath);

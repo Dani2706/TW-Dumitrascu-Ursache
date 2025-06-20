@@ -56,7 +56,7 @@ public class DeletePropertyServlet extends HttpServlet {
 
             String propertyIdAsString = (String) bodyParams.get("propertyId");
 
-            int propertyId = HandleErrorUtil.handleIntParsingError(propertyIdAsString);
+            int propertyId = Integer.parseInt(propertyIdAsString);
 
             propertyService.deleteProperty(propertyId, token);
 
@@ -65,7 +65,7 @@ public class DeletePropertyServlet extends HttpServlet {
             response.getWriter().write("{\"success\":true,\"message\":\"Property deleted successfully\"}");
             logger.debug("Property with ID {} deleted successfully", propertyId);
 
-        } catch (InvalidPropertyIdException e) {
+        } catch (NumberFormatException e) {
             logger.error("Invalid property ID: ", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);
