@@ -322,61 +322,68 @@ public class PropertyRepository {
         }
     }
 
-//    public String getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException {
-//        String stmtAsString = "SELECT * FROM properties WHERE property_type = ?";
-//        try(Connection connection = this.dataSource.getConnection();
-//            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
-//            stmt.setString(1, filterCriteria);
-//            ResultSet result = stmt.executeQuery();
-//            List<Property> properties = new ArrayList<>();
-//            if (!result.next()) {
-//                throw new NoListingsForThisCategory("There are no listings for the category: " + filterCriteria);
-//            }
-//            else while(result.next()){
-//                Clob desc = result.getClob("description");
-//                if (desc != null) {
-//                    StringBuilder stringBuilder = new StringBuilder();
-//                    try (Reader reader = desc.getCharacterStream();
-//                         BufferedReader bufferedReader = new BufferedReader(reader)) {
-//                        String line;
-//                        while ((line = bufferedReader.readLine()) != null) {
-//                            stringBuilder.append(line);
-//                        }
-//                    }
-//                }
-//                properties.add(new Property(
-//                        result.getInt("property_id"),
-//                        result.getInt("user_id"),
-//                        result.getString("title"),
-//                        result.getClob("description"),
-//                        result.getString("property_type"),
-//                        result.getString("transaction_type"),
-//                        result.getInt("price"),
-//                        result.getInt("surface_area"),
-//                        result.getInt("rooms"),
-//                        result.getInt("bathrooms"),
-//                        result.getInt("floor"),
-//                        result.getInt("total_floors"),
-//                        result.getInt("year_built"),
-//                        result.getDate("created_at"),
-//                        result.getDate("updated_at"),
-//                        result.getString("country"),
-//                        result.getString("city"),
-//                        result.getString("state"),
-//                        result.getString("address"),
-//                        result.getInt("latitude"),
-//                        result.getInt("longitude"),
-//                        result.getString("contact_name"),
-//                        result.getString("contact_phone"),
-//                        result.getString("contact_email")
-//                ));
-//            }
-//        } catch (SQLException e) {
-//            throw new DatabaseException(e.getMessage());
-//        } catch (IOException e){
-//
-//        }
-//    }
+    public List<PropertyForAllListings> getAllPropertiesWithBothFilters(String propertyType, String transactionType)
+            throws DatabaseException, NoListingsForThisCategoryException {
+
+        String sql = "SELECT property_id, title, rooms, floor, year_built, bathrooms, surface_area, " +
+                "city, state, country, latitude, longitude, price, transaction_type " +
+                "FROM properties WHERE 1=1";
+
+        List<Object> params = new ArrayList<>();
+
+        if (propertyType != null && !propertyType.isEmpty()) {
+            sql += " AND property_type = ?";
+            params.add(propertyType);
+        }
+
+        if (transactionType != null && !transactionType.isEmpty()) {
+            sql += " AND transaction_type = ?";
+            params.add(transactionType);
+        }
+
+        try (Connection connection = this.dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet result = stmt.executeQuery();
+            List<PropertyForAllListings> properties = new ArrayList<>();
+
+            if (!result.isBeforeFirst()) {
+                // No results found
+                String filterInfo = propertyType + (transactionType != null ? " with transaction type " + transactionType : "");
+                throw new NoListingsForThisCategoryException("There are no listings for: " + filterInfo);
+            }
+
+            while (result.next()) {
+                properties.add(new PropertyForAllListings(
+                        result.getInt("property_id"),
+                        result.getString("title"),
+                        result.getInt("rooms"),
+                        result.getInt("floor"),
+                        result.getInt("year_built"),
+                        result.getInt("bathrooms"),
+                        result.getInt("surface_area"),
+                        result.getString("city"),
+                        result.getString("state"),
+                        result.getString("country"),
+                        result.getDouble("latitude"),
+                        result.getDouble("longitude"),
+                        result.getInt("price"),
+                        result.getString("transaction_type")
+                ));
+            }
+
+            logger.debug("Found {} properties matching the filter criteria", properties.size());
+            return properties;
+
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving filtered properties", e);
+            throw new DatabaseException("Error retrieving properties: " + e.getMessage(), e);
+        }
+    }
 
         public List<PropertyForAllListings> getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException {
             String stmtAsString = "SELECT property_id, title, rooms, floor, year_built, bathrooms, surface_area, city, state, country, latitude, longitude, price, transaction_type FROM properties WHERE property_type = ?";
