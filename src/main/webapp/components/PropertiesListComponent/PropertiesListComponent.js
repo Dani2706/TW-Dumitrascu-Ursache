@@ -10,6 +10,18 @@ export class PropertiesListComponent extends AbstractComponent {
         this.properties = [];
         this.mapDebounceTimer = null;
         this.map = null;
+        this.filterTimer = null;
+        this.filterConfig = {
+            fields: [
+                {id: 'price', type: 'float', property: 'price'},
+                {id: 'area', type: 'float', property: 'surfaceArea'},
+                {id: 'bedrooms', type: 'int', property: 'rooms'},
+                {id: 'bathrooms', type: 'float', property: 'bathrooms'},
+                {id: 'floor', type: 'int', property: 'floor'},
+                {id: 'year-built', type: 'int', property: 'yearBuilt'}
+            ],
+            locations: ['city', 'state']
+        };
     }
 
     //@Override
@@ -23,6 +35,21 @@ export class PropertiesListComponent extends AbstractComponent {
             throw new Error('Template not loaded. Call super.init() first.');
         }
 
+        this.setupCategoryCardListeners();
+        this.addPropertyCardListeners();
+        this.setupClearFiltersButton();
+
+        const sortSelect = this.container.querySelector('#sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                this.dynamicallyLoadData(sortSelect.value);
+            });
+        }
+
+        this.setupFilterInputListeners();
+    }
+
+    setupCategoryCardListeners() {
         const categoryCards = this.container.querySelectorAll('.category-card');
 
         categoryCards.forEach(card => {
@@ -32,82 +59,37 @@ export class PropertiesListComponent extends AbstractComponent {
 
             if (buyButton) {
                 buyButton.addEventListener('click', () => {
-                    const propertyType = this.getPropertyTypeParam(categoryType);
-                    sessionStorage.setItem('propertyType', propertyType);
-                    sessionStorage.setItem('transactionType', 'sell');
-
-                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    this.navigateToFilteredProperties(categoryType, 'sell');
                 });
             }
 
             if (rentButton) {
                 rentButton.addEventListener('click', () => {
-                    const propertyType = this.getPropertyTypeParam(categoryType);
-                    sessionStorage.setItem('propertyType', propertyType);
-                    sessionStorage.setItem('transactionType', 'rent');
-
-                    window.location.href = 'properties-list?filterCriteria=$categoryType';
+                    this.navigateToFilteredProperties(categoryType, 'rent');
                 });
             }
         });
+    }
 
-        const propertyCards = this.container.querySelectorAll('.property-card');
-        propertyCards.forEach(card => {
-            const viewDetailsBtn = card.querySelector('.view-details-btn');
-            if (viewDetailsBtn) {
-                viewDetailsBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const propertyId = card.dataset.propertyId;
-                    sessionStorage.setItem('selectedPropertyId', propertyId);
-                    //window.location.href = `property?id=$propertyId`;
-                    this.router.safeNavigate("/property");
-                });
-            }
+    navigateToFilteredProperties(categoryType, transactionType) {
+        const propertyType = this.getPropertyTypeParam(categoryType);
+        sessionStorage.setItem('propertyType', propertyType);
+        sessionStorage.setItem('transactionType', transactionType);
 
-            card.addEventListener('click', () => {
-                const propertyId = card.dataset.propertyId;
-                sessionStorage.setItem('selectedPropertyId', propertyId);
-                window.location.href = `property?id=$propertyId`;
-            });
-        });
+        this.router.safeNavigate('/properties-list')
+    }
 
-        const sortSelect = this.container.querySelector('#sort-select');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', () => {
-                const selectedSort = sortSelect.value;
-                this.dynamicallyLoadData(selectedSort);
-            });
-        }
-
-        const rangeInputs = this.container.querySelectorAll('.range-input input[type="number"]');
-        rangeInputs.forEach(input => {
-            input.addEventListener('change', () => {
-                this.applyFilters();
-            });
-
-            input.addEventListener('input', this.debounceFilter.bind(this));
-        });
-
-        const filterInputs = [
-            '#price-min', '#price-max',
-            '#area-min', '#area-max',
-            '#bedrooms-min', '#bedrooms-max',
-            '#bathrooms-min', '#bathrooms-max',
-            '#floor-min', '#floor-max',
-            '#year-built-min', '#year-built-max'
-        ];
+    setupFilterInputListeners() {
+        const filterInputs = this.filterConfig.fields.flatMap(field =>
+            [`#${field.id}-min`, `#${field.id}-max`]);
 
         filterInputs.forEach(selector => {
             const input = this.container.querySelector(selector);
             if (input) {
                 input.addEventListener('input', this.debounceFilter.bind(this));
-                input.addEventListener('change', () => {
-                    this.applyFilters();
-                });
+                input.addEventListener('change', this.applyFilters.bind(this));
             }
         });
-
-        this.addPropertyCardListeners();
     }
 
     debounceFilter() {
@@ -118,41 +100,31 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     getPropertyTypeParam(category) {
-        switch(category) {
-            case 'flat': return 'flat';
-            case 'house': return 'house';
-            case 'land': return 'land';
-            case 'commercial': return 'commercial';
-            default: return 'flat';
-        }
+        const propertyTypeMap = {
+            'flat': 'flat',
+            'house': 'house',
+            'land': 'land',
+            'commercial': 'commercial'
+        };
+
+        return propertyTypeMap[category] || 'flat';
     }
 
     //@Override
     eventListenerRemover() {
         if (this.templateLoaded) {
-            const dropdownToggle = this.container.querySelector('.category-dropdown-toggle');
-            if (dropdownToggle) {
-                dropdownToggle.replaceWith(dropdownToggle.cloneNode(true));
-            }
+            const elementsToClone = [
+                '.category-dropdown-toggle',
+                '.category-btn',
+                '.property-card',
+                '.view-details-btn',
+                '#sort-select'
+            ];
 
-            const categoryButtons = this.container.querySelectorAll('.category-btn');
-            categoryButtons.forEach(button => {
-                button.replaceWith(button.cloneNode(true));
+            elementsToClone.forEach(selector => {
+                const elements = this.container.querySelectorAll(selector);
+                elements.forEach(el => el.replaceWith(el.cloneNode(true)));
             });
-
-            const propertyCards = this.container.querySelectorAll('.property-card');
-            propertyCards.forEach(card => {
-                const viewDetailsBtn = card.querySelector('.view-details-btn');
-                if (viewDetailsBtn) {
-                    viewDetailsBtn.replaceWith(viewDetailsBtn.cloneNode(true));
-                }
-                card.replaceWith(card.cloneNode(true));
-            });
-
-            const sortSelect = this.container.querySelector('#sort-select');
-            if (sortSelect) {
-                sortSelect.replaceWith(sortSelect.cloneNode(true));
-            }
         }
     }
 
@@ -170,12 +142,10 @@ export class PropertiesListComponent extends AbstractComponent {
         this.container = container;
 
         this.setupCategoryDropdown();
-
         this.setupPropertyMap();
-
         this.dynamicallyLoadData();
-
         this.eventListenerLoader();
+
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
         return container;
@@ -188,31 +158,22 @@ export class PropertiesListComponent extends AbstractComponent {
             return;
         }
 
-        console.log('Setting up category dropdown');
-
         const dropdownToggle = document.createElement('div');
         dropdownToggle.className = 'category-dropdown-toggle';
         dropdownToggle.innerHTML = '<span>Change the category</span><i class="fas fa-chevron-down"></i>';
 
         categorySection.parentNode.insertBefore(dropdownToggle, categorySection);
-
         categorySection.classList.add('collapsed');
 
         dropdownToggle.addEventListener('click', (event) => {
-            console.log('Dropdown clicked');
             event.preventDefault();
             categorySection.classList.toggle('collapsed');
             dropdownToggle.classList.toggle('active');
 
             const icon = dropdownToggle.querySelector('i');
-            if (icon.classList.contains('fa-chevron-down')) {
-                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
-            } else {
-                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-            }
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
         });
-
-        console.log('Category dropdown setup complete');
     }
 
     setupPropertyMap() {
@@ -229,10 +190,7 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     initMap() {
-        if (!this.properties || this.properties.length === 0) return;
-
-        const mapElement = document.getElementById('properties-map');
-        if (!mapElement || !window.L) return;
+        if (!this.properties?.length || !document.getElementById('properties-map') || !window.L) return;
 
         if (this.map) {
             this.map.remove();
@@ -244,46 +202,20 @@ export class PropertiesListComponent extends AbstractComponent {
             attribution: '© OpenStreetMap contributors'
         }).addTo(this.map);
 
+        this.addPropertiesToMap(this.properties);
+    }
+
+    addPropertiesToMap(properties) {
         const bounds = L.latLngBounds();
         let hasValidCoordinates = false;
 
-        this.properties.forEach(property => {
-            if (property.latitude && property.longitude) {
-                hasValidCoordinates = true;
-                const marker = L.marker([property.latitude, property.longitude]).addTo(this.map);
+        properties.forEach(property => {
+            if (!property.latitude || !property.longitude) return;
 
-                const popupContent = document.createElement('div');
-                popupContent.className = 'map-info-window';
-
-                const title = document.createElement('h3');
-                title.textContent = property.title;
-                title.className = 'map-title clickable';
-                title.onclick = (e) => {
-                    console.log("Viewing property with ID:", property.propertyId);
-                    sessionStorage.setItem('selectedPropertyID', property.propertyId);
-
-                    if (this.router) {
-                        this.router.safeNavigate('/property');
-                    } else { // Fallback if router is not working
-                        console.error('Router not available for navigation');
-                        window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/property`;
-                    }
-                };
-
-                const details = document.createElement('p');
-                details.textContent = `${property.rooms} rooms · ${property.bathrooms} baths · ${property.surfaceArea} m²`;
-
-                const price = document.createElement('p');
-                price.textContent = `${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}`;
-
-                popupContent.appendChild(title);
-                popupContent.appendChild(details);
-                popupContent.appendChild(price);
-
-                marker.bindPopup(popupContent);
-
-                bounds.extend([property.latitude, property.longitude]);
-            }
+            hasValidCoordinates = true;
+            const marker = L.marker([property.latitude, property.longitude]).addTo(this.map);
+            marker.bindPopup(this.createMapPopupContent(property));
+            bounds.extend([property.latitude, property.longitude]);
         });
 
         if (hasValidCoordinates) {
@@ -294,333 +226,180 @@ export class PropertiesListComponent extends AbstractComponent {
         }
     }
 
-    debouncedInitMap() {
-        if (this.mapDebounceTimer) {
-            clearTimeout(this.mapDebounceTimer);
-        }
+    createMapPopupContent(property) {
+        const popupContent = document.createElement('div');
+        popupContent.className = 'map-info-window';
 
-        this.mapDebounceTimer = setTimeout(() => {
-            this.initMap();
-        }, 1000);
+        const title = document.createElement('h3');
+        title.textContent = property.title;
+        title.className = 'map-title clickable';
+        title.onclick = () => {
+            console.log("Viewing property with ID:", property.propertyId);
+            sessionStorage.setItem('selectedPropertyID', property.propertyId);
+
+            this.router.safeNavigate('/property');
+        };
+
+        const details = document.createElement('p');
+        details.textContent = `${property.rooms} rooms · ${property.bathrooms} baths · ${property.surfaceArea} m²`;
+
+        const price = document.createElement('p');
+        price.textContent = `${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}`;
+
+        popupContent.append(title, details, price);
+        return popupContent;
     }
 
-    async loadFilterLocations(type = 'city', limit = 3) {
+    debouncedInitMap() {
+        clearTimeout(this.mapDebounceTimer);
+        this.mapDebounceTimer = setTimeout(() => this.initMap(), 1000);
+    }
+
+    async loadFilterLocations(type = 'city') {
         try {
-            const minPrice = document.querySelector('#price-min')?.value || '';
-            const maxPrice = document.querySelector('#price-max')?.value || '';
-            const minArea = document.querySelector('#area-min')?.value || '';
-            const maxArea = document.querySelector('#area-max')?.value || '';
-            const minBedrooms = document.querySelector('#bedrooms-min')?.value || '';
-            const maxBedrooms = document.querySelector('#bedrooms-max')?.value || '';
-            const minBathrooms = document.querySelector('#bathrooms-min')?.value || '';
-            const maxBathrooms = document.querySelector('#bathrooms-max')?.value || '';
-            const minFloor = document.querySelector('#floor-min')?.value || '';
-            const maxFloor = document.querySelector('#floor-max')?.value || '';
-            const minYearBuilt = document.querySelector('#year-built-min')?.value || '';
-            const maxYearBuilt = document.querySelector('#year-built-max')?.value || '';
+            const filterParams = new URLSearchParams({type});
 
+            this.filterConfig.fields.forEach(field => {
+                const minValue = document.querySelector(`#${field.id}-min`)?.value;
+                const maxValue = document.querySelector(`#${field.id}-max`)?.value;
 
-            const params = new URLSearchParams({
-                type: type
+                if (minValue) filterParams.append(`min${field.id.charAt(0).toUpperCase() + field.id.slice(1)}`, minValue);
+                if (maxValue) filterParams.append(`max${field.id.charAt(0).toUpperCase() + field.id.slice(1)}`, maxValue);
             });
 
-            if (minPrice) params.append('minPrice', minPrice);
-            if (maxPrice) params.append('maxPrice', maxPrice);
-            if (minArea) params.append('minArea', minArea);
-            if (maxArea) params.append('maxArea', maxArea);
-            if (minBedrooms) params.append('minBedrooms', minBedrooms);
-            if (maxBedrooms) params.append('maxBedrooms', maxBedrooms);
-            if (minBathrooms) params.append('minBathrooms', minBathrooms);
-            if (maxBathrooms) params.append('maxBathrooms', maxBathrooms);
-            if (minFloor) params.append('minFloor', minFloor);
-            if (maxFloor) params.append('maxFloor', maxFloor);
-            if (minYearBuilt) params.append('minYearBuilt', minYearBuilt);
-            if (maxYearBuilt) params.append('maxYearBuilt', maxYearBuilt);
-
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/getFilteredLocations?${params}`);
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/getFilteredLocations?${filterParams}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const locations = await response.json();
-            return locations;
+            return await response.json();
         } catch (error) {
             console.error(`Error loading ${type} filters:`, error);
             return [];
         }
     }
 
-    async renderCityFilters() {
-        const cityFilterContainer = this.container.querySelector('.city-filter-container');
-        if (!cityFilterContainer) return;
+    async renderLocationFilters(locationType, locations, selectedLocations = null) {
+        const filterContainer = this.container.querySelector(`.${locationType}-filter-container`);
+        if (!filterContainer) return;
 
-        cityFilterContainer.innerHTML = '<div class="loading-filters">Loading cities...</div>';
+        if (selectedLocations === null) {
+            if (locationType === 'city') {
+                selectedLocations = this.getSelectedCities();
+            } else if (locationType === 'state') {
+                selectedLocations = this.getSelectedStates();
+            }
+        }
+
+        filterContainer.innerHTML = `<div class="loading-filters">Loading ${locationType}s...</div>`;
 
         try {
-            const cities = await this.loadFilterLocations('city');
-            this.cities = cities;
-
-            if (cities.length === 0) {
-                cityFilterContainer.innerHTML = '<div class="no-results">No cities found</div>';
+            if (!locations?.length) {
+                filterContainer.innerHTML = `<div class="no-results">No ${locationType}s found</div>`;
                 return;
             }
 
             let html = '<div class="filter-options">';
 
-            cities.slice(0, 3).forEach(city => {
-                html += `
-                <div class="filter-option">
-                    <input type="checkbox" id="city-${city}" name="city" value="${city}">
-                    <label for="city-${city}">${city}</label>
-                </div>
-            `;
+            locations.slice(0, 3).forEach(location => {
+                const isChecked = selectedLocations.includes(location) ? 'checked' : '';
+                html += this.createLocationFilterOption(locationType, location, isChecked);
             });
 
-            if (cities.length > 3) {
-                html += `<div class="expanded-cities" style="display: none;">`;
+            if (locations.length > 3) {
+                html += `<div class="expanded-${locationType}s" style="display: none;">`;
 
-                cities.slice(3).forEach(city => {
-                    html += `
-                    <div class="filter-option">
-                        <input type="checkbox" id="city-${city}" name="city" value="${city}">
-                        <label for="city-${city}">${city}</label>
-                    </div>
-                `;
+                locations.slice(3).forEach(location => {
+                    const isChecked = selectedLocations.includes(location) ? 'checked' : '';
+                    html += this.createLocationFilterOption(locationType, location, isChecked);
                 });
 
-                html += `</div>`;
-
-                html += `
-                <div class="show-more-container">
-                    <button class="show-more-btn">Show More</button>
-                </div>
-            `;
+                html += `</div>
+                    <div class="show-more-container">
+                        <button class="show-more-btn">Show More</button>
+                    </div>`;
             }
 
             html += '</div>';
-            cityFilterContainer.innerHTML = html;
+            filterContainer.innerHTML = html;
 
-            const showMoreBtn = cityFilterContainer.querySelector('.show-more-btn');
-            if (showMoreBtn) {
-                showMoreBtn.addEventListener('click', () => {
-                    const expandedCities = cityFilterContainer.querySelector('.expanded-cities');
+            this.setupShowMoreButton(filterContainer, locationType);
 
-                    if (expandedCities.style.display === 'none') {
-                        expandedCities.style.display = 'block';
-                        showMoreBtn.textContent = 'Show Less';
-                    } else {
-                        expandedCities.style.display = 'none';
-                        showMoreBtn.textContent = 'Show More';
-                    }
-                });
-            }
-
-            const cityCheckboxes = cityFilterContainer.querySelectorAll('input[type="checkbox"]');
-            cityCheckboxes.forEach(checkbox => {
+            const checkboxes = filterContainer.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
-                    this.applyFilters();
+                    setTimeout(() => this.applyFilters(), 0);
                 });
             });
         } catch (error) {
-            console.error('Error loading cities:', error);
-            cityFilterContainer.innerHTML = '<div class="error-message">Failed to load cities</div>';
+            console.error(`Error rendering ${locationType} filters:`, error);
+            filterContainer.innerHTML = `<div class="error-message">Failed to load ${locationType}s</div>`;
         }
+    }
+
+    createLocationFilterOption(locationType, location, isChecked) {
+        return `
+            <div class="filter-option">
+                <input type="checkbox" id="${locationType}-${location}" name="${locationType}" value="${location}" ${isChecked}>
+                <label for="${locationType}-${location}">${location}</label>
+            </div>
+        `;
+    }
+
+    setupShowMoreButton(filterContainer, locationType) {
+        const showMoreBtn = filterContainer.querySelector('.show-more-btn');
+        if (!showMoreBtn) return;
+
+        showMoreBtn.addEventListener('click', () => {
+            const expandedSection = filterContainer.querySelector(`.expanded-${locationType}s`);
+            const isExpanded = expandedSection.style.display !== 'none';
+
+            expandedSection.style.display = isExpanded ? 'none' : 'block';
+            showMoreBtn.textContent = isExpanded ? 'Show More' : 'Show Less';
+        });
+    }
+
+    async renderCityFilters() {
+        const cities = await this.loadFilterLocations('city');
+        this.cities = cities;
+        this.renderLocationFilters('city', cities);
     }
 
     async renderStateFilters() {
-        const stateFilterContainer = this.container.querySelector('.state-filter-container');
-        if (!stateFilterContainer) return;
-
-        stateFilterContainer.innerHTML = '<div class="loading-filters">Loading states...</div>';
-
-        try {
-            const states = await this.loadFilterLocations('state');
-            this.states = states;
-
-            if (states.length === 0) {
-                stateFilterContainer.innerHTML = '<div class="no-results">No states found</div>';
-                return;
-            }
-
-            let html = '<div class="filter-options">';
-
-            states.slice(0, 3).forEach(state => {
-                html += `
-            <div class="filter-option">
-                <input type="checkbox" id="state-${state}" name="state" value="${state}">
-                <label for="state-${state}">${state}</label>
-            </div>
-        `;
-            });
-
-            if (states.length > 3) {
-                html += `<div class="expanded-states" style="display: none;">`;
-
-                states.slice(3).forEach(state => {
-                    html += `
-                <div class="filter-option">
-                    <input type="checkbox" id="state-${state}" name="state" value="${state}">
-                    <label for="state-${state}">${state}</label>
-                </div>
-            `;
-                });
-
-                html += `</div>`;
-
-                html += `
-            <div class="show-more-container">
-                <button class="show-more-btn">Show More</button>
-            </div>
-        `;
-            }
-
-            html += '</div>';
-            stateFilterContainer.innerHTML = html;
-
-            const showMoreBtn = stateFilterContainer.querySelector('.show-more-btn');
-            if (showMoreBtn) {
-                showMoreBtn.addEventListener('click', () => {
-                    const expandedStates = stateFilterContainer.querySelector('.expanded-states');
-
-                    if (expandedStates.style.display === 'none') {
-                        expandedStates.style.display = 'block';
-                        showMoreBtn.textContent = 'Show Less';
-                    } else {
-                        expandedStates.style.display = 'none';
-                        showMoreBtn.textContent = 'Show More';
-                    }
-                });
-            }
-
-            const stateCheckboxes = stateFilterContainer.querySelectorAll('input[type="checkbox"]');
-            stateCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    this.applyFilters();
-                });
-            });
-        } catch (error) {
-            console.error('Error loading states:', error);
-            stateFilterContainer.innerHTML = '<div class="error-message">Failed to load states</div>';
-        }
+        const states = await this.loadFilterLocations('state');
+        this.states = states;
+        this.renderLocationFilters('state', states);
     }
 
     getSelectedCities() {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="city"]:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
+        return Array.from(document.querySelectorAll('input[type="checkbox"][name="city"]:checked'))
+            .map(cb => cb.value);
     }
 
     getSelectedStates() {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="state"]:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
+        return Array.from(document.querySelectorAll('input[type="checkbox"][name="state"]:checked'))
+            .map(cb => cb.value);
     }
 
     applyFilters() {
-        const minPrice = document.querySelector('#price-min')?.value;
-        const maxPrice = document.querySelector('#price-max')?.value;
-        const minArea = document.querySelector('#area-min')?.value;
-        const maxArea = document.querySelector('#area-max')?.value;
-        const minBedrooms = document.querySelector('#bedrooms-min')?.value;
-        const maxBedrooms = document.querySelector('#bedrooms-max')?.value;
-        const minBathrooms = document.querySelector('#bathrooms-min')?.value;
-        const maxBathrooms = document.querySelector('#bathrooms-max')?.value;
-        const minFloor = document.querySelector('#floor-min')?.value;
-        const maxFloor = document.querySelector('#floor-max')?.value;
-        const minYearBuilt = document.querySelector('#year-built-min')?.value;
-        const maxYearBuilt = document.querySelector('#year-built-max')?.value;
-
-
         let filteredProperties = [...this.properties];
-
-        if (minPrice && minPrice.trim() !== '') {
-            const minPriceValue = parseFloat(minPrice);
-            filteredProperties = filteredProperties.filter(property =>
-                property.price >= minPriceValue
-            );
-        }
-
-        if (maxPrice && maxPrice.trim() !== '') {
-            const maxPriceValue = parseFloat(maxPrice);
-            filteredProperties = filteredProperties.filter(property =>
-                property.price <= maxPriceValue
-            );
-        }
-
-        if (minArea && minArea.trim() !== '') {
-            const minAreaValue = parseFloat(minArea);
-            filteredProperties = filteredProperties.filter(property =>
-                property.surfaceArea >= minAreaValue
-            );
-        }
-
-        if (maxArea && maxArea.trim() !== '') {
-            const maxAreaValue = parseFloat(maxArea);
-            filteredProperties = filteredProperties.filter(property =>
-                property.surfaceArea <= maxAreaValue
-            );
-        }
-
-        if (minBedrooms && minBedrooms.trim() !== '') {
-            const minBedroomsValue = parseInt(minBedrooms);
-            filteredProperties = filteredProperties.filter(property =>
-                property.rooms >= minBedroomsValue
-            );
-        }
-
-        if (maxBedrooms && maxBedrooms.trim() !== '') {
-            const maxBedroomsValue = parseInt(maxBedrooms);
-            filteredProperties = filteredProperties.filter(property =>
-                property.rooms <= maxBedroomsValue
-            );
-        }
-
-        if (minBathrooms && minBathrooms.trim() !== '') {
-            const minBathroomsValue = parseFloat(minBathrooms);
-            filteredProperties = filteredProperties.filter(property =>
-                property.bathrooms >= minBathroomsValue
-            );
-        }
-
-        if (maxBathrooms && maxBathrooms.trim() !== '') {
-            const maxBathroomsValue = parseFloat(maxBathrooms);
-            filteredProperties = filteredProperties.filter(property =>
-                property.bathrooms <= maxBathroomsValue
-            );
-        }
-
-        if (minFloor && minFloor.trim() !== '') {
-            const minFloorValue = parseInt(minFloor);
-            filteredProperties = filteredProperties.filter(property =>
-                property.floor >= minFloorValue
-            );
-        }
-
-        if (maxFloor && maxFloor.trim() !== '') {
-            const maxFloorValue = parseInt(maxFloor);
-            filteredProperties = filteredProperties.filter(property =>
-                property.floor <= maxFloorValue
-            );
-        }
-
-        if (minYearBuilt && minYearBuilt.trim() !== '') {
-            const minYearBuiltValue = parseInt(minYearBuilt);
-            filteredProperties = filteredProperties.filter(property =>
-                property.yearBuilt >= minYearBuiltValue
-            );
-        }
-
-        if (maxYearBuilt && maxYearBuilt.trim() !== '') {
-            const maxYearBuiltValue = parseInt(maxYearBuilt);
-            filteredProperties = filteredProperties.filter(property =>
-                property.yearBuilt <= maxYearBuiltValue
-            );
-        }
-
-        this.refreshCityFilters(filteredProperties);
-        this.refreshStateFilters(filteredProperties);
 
         const selectedCities = this.getSelectedCities();
         const selectedStates = this.getSelectedStates();
+
+        this.filterConfig.fields.forEach(field => {
+            const minValue = document.querySelector(`#${field.id}-min`)?.value;
+            const maxValue = document.querySelector(`#${field.id}-max`)?.value;
+
+            filteredProperties = this.applyRangeFilter(
+                filteredProperties,
+                field.property,
+                minValue,
+                maxValue,
+                field.type
+            );
+        });
 
         if (selectedCities.length > 0) {
             filteredProperties = filteredProperties.filter(property =>
@@ -638,150 +417,22 @@ export class PropertiesListComponent extends AbstractComponent {
         this.updateMapWithFilteredProperties(filteredProperties);
     }
 
-    async refreshCityFilters(filteredProperties) {
-        const cityFilterContainer = this.container.querySelector('.city-filter-container');
-        if (!cityFilterContainer) return;
+    applyRangeFilter(properties, property, minValue, maxValue, type) {
+        if (!properties?.length) return [];
 
-        const selectedCities = this.getSelectedCities();
+        let result = properties;
 
-        const availableCities = [...new Set(filteredProperties.map(property => property.city))].sort();
-
-        if (availableCities.length === 0) {
-            cityFilterContainer.innerHTML = '<div class="no-results">No cities available with current filters</div>';
-            return;
+        if (minValue && minValue.trim() !== '') {
+            const value = type === 'int' ? parseInt(minValue) : parseFloat(minValue);
+            result = result.filter(p => p[property] >= value);
         }
 
-        let html = '<div class="filter-options">';
-
-        availableCities.slice(0, 3).forEach(city => {
-            const isChecked = selectedCities.includes(city) ? 'checked' : '';
-            html += `
-        <div class="filter-option">
-            <input type="checkbox" id="city-${city}" name="city" value="${city}" ${isChecked}>
-            <label for="city-${city}">${city}</label>
-        </div>
-        `;
-        });
-
-        if (availableCities.length > 3) {
-            html += `<div class="expanded-cities" style="display: none;">`;
-
-            availableCities.slice(3).forEach(city => {
-                const isChecked = selectedCities.includes(city) ? 'checked' : '';
-                html += `
-            <div class="filter-option">
-                <input type="checkbox" id="city-${city}" name="city" value="${city}" ${isChecked}>
-                <label for="city-${city}">${city}</label>
-            </div>
-            `;
-            });
-
-            html += `</div>`;
-
-            html += `
-        <div class="show-more-container">
-            <button class="show-more-btn">Show More</button>
-        </div>
-        `;
+        if (maxValue && maxValue.trim() !== '') {
+            const value = type === 'int' ? parseInt(maxValue) : parseFloat(maxValue);
+            result = result.filter(p => p[property] <= value);
         }
 
-        html += '</div>';
-        cityFilterContainer.innerHTML = html;
-
-        const showMoreBtn = cityFilterContainer.querySelector('.show-more-btn');
-        if (showMoreBtn) {
-            showMoreBtn.addEventListener('click', () => {
-                const expandedCities = cityFilterContainer.querySelector('.expanded-cities');
-
-                if (expandedCities.style.display === 'none') {
-                    expandedCities.style.display = 'block';
-                    showMoreBtn.textContent = 'Show Less';
-                } else {
-                    expandedCities.style.display = 'none';
-                    showMoreBtn.textContent = 'Show More';
-                }
-            });
-        }
-
-        const cityCheckboxes = cityFilterContainer.querySelectorAll('input[type="checkbox"]');
-        cityCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                this.applyFilters();
-            });
-        });
-    }
-
-    async refreshStateFilters(filteredProperties) {
-        const stateFilterContainer = this.container.querySelector('.state-filter-container');
-        if (!stateFilterContainer) return;
-
-        const selectedStates = this.getSelectedStates();
-
-        const availableStates = [...new Set(filteredProperties.map(property => property.state))].sort();
-
-        if (availableStates.length === 0) {
-            stateFilterContainer.innerHTML = '<div class="no-results">No states available with current filters</div>';
-            return;
-        }
-
-        let html = '<div class="filter-options">';
-
-        availableStates.slice(0, 3).forEach(state => {
-            const isChecked = selectedStates.includes(state) ? 'checked' : '';
-            html += `
-        <div class="filter-option">
-            <input type="checkbox" id="state-${state}" name="state" value="${state}" ${isChecked}>
-            <label for="state-${state}">${state}</label>
-        </div>
-        `;
-        });
-
-        if (availableStates.length > 3) {
-            html += `<div class="expanded-states" style="display: none;">`;
-
-            availableStates.slice(3).forEach(state => {
-                const isChecked = selectedStates.includes(state) ? 'checked' : '';
-                html += `
-            <div class="filter-option">
-                <input type="checkbox" id="state-${state}" name="state" value="${state}" ${isChecked}>
-                <label for="state-${state}">${state}</label>
-            </div>
-            `;
-            });
-
-            html += `</div>`;
-
-            html += `
-        <div class="show-more-container">
-            <button class="show-more-btn">Show More</button>
-        </div>
-        `;
-        }
-
-        html += '</div>';
-        stateFilterContainer.innerHTML = html;
-
-        const showMoreBtn = stateFilterContainer.querySelector('.show-more-btn');
-        if (showMoreBtn) {
-            showMoreBtn.addEventListener('click', () => {
-                const expandedStates = stateFilterContainer.querySelector('.expanded-states');
-
-                if (expandedStates.style.display === 'none') {
-                    expandedStates.style.display = 'block';
-                    showMoreBtn.textContent = 'Show Less';
-                } else {
-                    expandedStates.style.display = 'none';
-                    showMoreBtn.textContent = 'Show More';
-                }
-            });
-        }
-
-        const stateCheckboxes = stateFilterContainer.querySelectorAll('input[type="checkbox"]');
-        stateCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
-                this.applyFilters();
-            });
-        });
+        return result;
     }
 
     updateMapWithFilteredProperties(filteredProperties) {
@@ -793,70 +444,30 @@ export class PropertiesListComponent extends AbstractComponent {
             }
         });
 
-        if (!filteredProperties || filteredProperties.length === 0) return;
-
-        const bounds = L.latLngBounds();
-        let hasValidCoordinates = false;
-
-        filteredProperties.forEach(property => {
-            if (property.latitude && property.longitude) {
-                hasValidCoordinates = true;
-                const marker = L.marker([property.latitude, property.longitude]).addTo(this.map);
-
-                const popupContent = document.createElement('div');
-                popupContent.className = 'map-info-window';
-
-                const title = document.createElement('h3');
-                title.textContent = property.title;
-                title.className = 'map-title clickable';
-                title.onclick = (e) => {
-                    console.log("Viewing property with ID:", property.propertyId);
-                    sessionStorage.setItem('selectedPropertyID', property.propertyId);
-
-                    if (this.router) {
-                        this.router.safeNavigate('/property');
-                    } else { // Fallback if router is not working
-                        console.error('Router not available for navigation');
-                        window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/property`;
-                    }
-                };
-
-                const details = document.createElement('p');
-                details.textContent = `${property.rooms} rooms · ${property.bathrooms} baths · ${property.surfaceArea} m²`;
-
-                const price = document.createElement('p');
-                price.textContent = `${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}`;
-
-                popupContent.appendChild(title);
-                popupContent.appendChild(details);
-                popupContent.appendChild(price);
-
-                marker.bindPopup(popupContent);
-
-                bounds.extend([property.latitude, property.longitude]);
-            }
-        });
-
-        if (hasValidCoordinates) {
-            this.map.fitBounds(bounds, {
-                padding: [30, 30],
-                maxZoom: 15
-            });
-        }
+        this.addPropertiesToMap(filteredProperties);
     }
 
-    updatePropertiesDisplay(filteredProperties) {
+    updatePropertiesDisplay(properties) {
         const propertiesGrid = this.container.querySelector('.properties-grid');
         if (!propertiesGrid) return;
 
-        if (filteredProperties.length === 0) {
+        const propertiesCountSpan = this.container.querySelector('.properties-count');
+        if (propertiesCountSpan) {
+            propertiesCountSpan.textContent = `(${properties.length} listings)`;
+        }
+
+        if (properties.length === 0) {
             propertiesGrid.innerHTML = '<div class="no-properties">No properties match your filters</div>';
             return;
         }
 
-        let propertiesHTML = '';
-        filteredProperties.forEach(property => {
-            propertiesHTML += `
+        propertiesGrid.innerHTML = properties.map(property => this.createPropertyCardHTML(property)).join('');
+
+        this.addPropertyCardListeners();
+    }
+
+    createPropertyCardHTML(property) {
+        return `
             <div class="property-card" data-property-id="${property.propertyId}">
                 <div class="property-details">
                     <h3>${property.title}</h3>
@@ -873,33 +484,23 @@ export class PropertiesListComponent extends AbstractComponent {
                 </div>
             </div>
         `;
-        });
-
-        propertiesGrid.innerHTML = propertiesHTML;
-
-        const propertiesCountSpan = this.container.querySelector('.properties-count');
-        if (propertiesCountSpan) {
-            propertiesCountSpan.textContent = `(${filteredProperties.length} listings)`;
-        }
-
-        this.addPropertyCardListeners();
     }
 
     addPropertyCardListeners() {
         const propertyCards = this.container.querySelectorAll('.property-card');
         propertyCards.forEach(card => {
             const viewDetailsBtn = card.querySelector('.view-details-btn');
+            const propertyId = card.dataset.propertyId;
+
             if (viewDetailsBtn) {
                 viewDetailsBtn.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    const propertyId = card.dataset.propertyId;
                     sessionStorage.setItem('selectedPropertyId', propertyId);
                     this.router.safeNavigate("/property");
                 });
             }
 
             card.addEventListener('click', () => {
-                const propertyId = card.dataset.propertyId;
                 sessionStorage.setItem('selectedPropertyId', propertyId);
                 this.router.safeNavigate("/property");
             });
@@ -914,89 +515,136 @@ export class PropertiesListComponent extends AbstractComponent {
 
         const propertyType = sessionStorage.getItem('propertyType') || 'flat';
         const transactionType = sessionStorage.getItem('transactionType');
-        console.log("PropertyType: " + propertyType);
-        console.log("TransactionType: " + transactionType);
 
         try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-properties?filterCriteria=${propertyType}`);
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/properties?propertyType=${propertyType}&transactionType=${transactionType}`);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            let properties = await response.json();
+            this.properties = await response.json();
 
-            if (transactionType) {
-                properties = properties.filter(property => property.transactionType === transactionType);
-            }
+            this.sortProperties(sortOption);
 
-            this.properties = properties;
+            this.updateFilterRanges();
 
-            this.cities = await this.loadFilterLocations('city');
-            this.renderCityFilters();
+            const currentCitySelections = this.getSelectedCities();
+            const currentStateSelections = this.getSelectedStates();
+            const currentFilters = {};
 
-            this.states = await this.loadFilterLocations('state');
-            this.renderStateFilters();
+            this.filterConfig.fields.forEach(field => {
+                const minInput = this.container.querySelector(`#${field.id}-min`);
+                const maxInput = this.container.querySelector(`#${field.id}-max`);
 
-
-            this.debouncedInitMap();
-
-            const propertiesCountSpan = this.container.querySelector('.properties-count');
-            if (propertiesCountSpan) {
-                propertiesCountSpan.textContent = `(${this.properties.length} listings)`;
-            }
-
-            if (this.properties.length === 0) {
-                propertiesGrid.innerHTML = '<div class="no-properties">No apartments found</div>';
-                return;
-            }
-
-            if (sortOption === 'price-asc') {
-                this.properties.sort((a, b) => a.price - b.price);
-            } else if (sortOption === 'price-desc') {
-                this.properties.sort((a, b) => b.price - a.price);
-            } else if (sortOption === 'area-asc') {
-                this.properties.sort((a, b) => a.surfaceArea - b.surfaceArea);
-            } else if (sortOption === 'area-desc') {
-                this.properties.sort((a, b) => b.surfaceArea - a.surfaceArea);
-            }
-
-            let propertiesHTML = '';
-            this.properties.forEach(property => {
-                propertiesHTML += `
-                    <div class="property-card" data-property-id="${property.propertyId}">
-                        <!-- <div class="property-image"> -->
-                        <!--    <img src="assets/images/apartment-placeholder.jpg" alt="${property.title}"> -->
-                        <!-- </div> -->
-                        <div class="property-details">
-                            <h3>${property.title}</h3>
-                            <p class="property-location">${property.city}, ${property.country}</p>
-                            <div class="property-features">
-                                <span>${property.rooms} rooms</span>
-                                <span>${property.bathrooms} bathrooms</span>
-                                <span>${property.surfaceArea} m²</span>
-                            </div>
-                            
-                            <div class="property-action-row">
-                                <div class="property-price">$${property.price.toLocaleString()}</div>
-                                <button class="view-details-btn">View Details</button>
-                            </div>
-                            
-                        </div>
-                    </div>
-                `;
+                currentFilters[`${field.id}-min`] = minInput?.value || '';
+                currentFilters[`${field.id}-max`] = maxInput?.value || '';
             });
 
-            propertiesGrid.innerHTML = propertiesHTML;
-            this.eventListenerLoader();
+            await Promise.all([
+                this.renderCityFilters(),
+                this.renderStateFilters()
+            ]);
+
+            this.filterConfig.fields.forEach(field => {
+                const minInput = this.container.querySelector(`#${field.id}-min`);
+                const maxInput = this.container.querySelector(`#${field.id}-max`);
+
+                if (minInput) minInput.value = currentFilters[`${field.id}-min`];
+                if (maxInput) maxInput.value = currentFilters[`${field.id}-max`];
+            });
+
+            if (currentCitySelections.length > 0 || currentStateSelections.length > 0 ||
+                Object.values(currentFilters).some(val => val !== '')) {
+
+                this.applyFilters();
+            } else {
+                this.updatePropertiesDisplay(this.properties);
+                this.updateMapWithFilteredProperties(this.properties);
+            }
 
         } catch (error) {
             console.error('Error fetching properties:', error);
             propertiesGrid.innerHTML = '<div class="error-message">Failed to load properties. Please try again later.</div>';
-
-            const propertiesCountSpan = this.container.querySelector('.properties-count');
-            if (propertiesCountSpan) {
-                propertiesCountSpan.textContent = '(0 listings)';
-            }
         }
+    }
+
+    sortProperties(sortOption) {
+        const sortingStrategies = {
+            'price-asc': (a, b) => a.price - b.price,
+            'price-desc': (a, b) => b.price - a.price,
+            'area-asc': (a, b) => a.surfaceArea - b.surfaceArea,
+            'area-desc': (a, b) => b.surfaceArea - a.surfaceArea
+        };
+
+        if (sortingStrategies[sortOption]) {
+            this.properties.sort(sortingStrategies[sortOption]);
+        }
+    }
+
+    updateFilterRanges() {
+        if (!this.properties?.length) return;
+
+        const ranges = {};
+
+        this.filterConfig.fields.forEach(field => {
+            const values = this.properties.map(p => p[field.property]);
+            ranges[field.id] = {
+                min: Math.min(...values),
+                max: Math.max(...values)
+            };
+
+            const minInput = this.container.querySelector(`#${field.id}-min`);
+            const maxInput = this.container.querySelector(`#${field.id}-max`);
+
+            if (minInput) {
+                minInput.placeholder = field.type === 'float' ?
+                    ranges[field.id].min.toLocaleString() :
+                    ranges[field.id].min.toString();
+            }
+
+            if (maxInput) {
+                maxInput.placeholder = field.type === 'float' ?
+                    ranges[field.id].max.toLocaleString() :
+                    ranges[field.id].max.toString();
+            }
+        });
+
+        this.filterRanges = ranges;
+    }
+
+    setupClearFiltersButton() {
+        const clearFiltersBtn = this.container.querySelector('.clear-filters-btn');
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+                this.clearAllFilters();
+            });
+        }
+    }
+
+    clearAllFilters() {
+        this.filterConfig.fields.forEach(field => {
+            const minInput = this.container.querySelector(`#${field.id}-min`);
+            const maxInput = this.container.querySelector(`#${field.id}-max`);
+
+            if (minInput) minInput.value = '';
+            if (maxInput) maxInput.value = '';
+        });
+
+        const cityCheckboxes = this.container.querySelectorAll('input[type="checkbox"][name="city"]');
+        cityCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        const stateCheckboxes = this.container.querySelectorAll('input[type="checkbox"][name="state"]');
+        stateCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        this.updatePropertiesDisplay(this.properties);
+        this.updateMapWithFilteredProperties(this.properties);
+
+        this.renderCityFilters();
+        this.renderStateFilters();
     }
 }

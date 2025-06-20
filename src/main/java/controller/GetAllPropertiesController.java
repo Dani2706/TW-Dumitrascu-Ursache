@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 
 
-@WebServlet("/api/all-properties")
+@WebServlet("/api/properties")
 public class GetAllPropertiesController extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(GetAllPropertiesController.class);
     private PropertyService propertyService;
@@ -28,16 +28,25 @@ public class GetAllPropertiesController extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            String filterCriteria = req.getParameter("filterCriteria");
+            String propertyType = req.getParameter("propertyType");
+            String transactionType = req.getParameter("transactionType");
 
-            String jsonString = this.propertyService.getAllPropertiesWithCriteria(filterCriteria);
+            logger.info("Fetching properties with propertyType: {} and transactionType: {}", propertyType, transactionType);
+
+            String jsonString = this.propertyService.getAllPropertiesWithFilters(propertyType, transactionType);
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
             resp.getWriter().write(jsonString);
             resp.setStatus(HttpServletResponse.SC_OK);
         } catch (NoListingsForThisCategoryException e) {
-            logger.warn("", e);
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            logger.warn("No listings found for the specified criteria", e);
+            try {
+                resp.getWriter().write("[]");
+                resp.setContentType("application/json");
+            } catch (IOException ex) {
+                logger.error("Error writing empty response", ex);
+            }
+            resp.setStatus(HttpServletResponse.SC_OK);
         } catch (IOException | DatabaseException e) {
             logger.error("Error processing request", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

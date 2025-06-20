@@ -134,11 +134,25 @@ public class PropertyService {
         return topProperties;
     }
 
-    public String getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException, JsonProcessingException {
-        List<PropertyForAllListings> properties = propertyRepository.getAllPropertiesWithCriteria(filterCriteria);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(properties);
+    public String getAllPropertiesWithFilters(String propertyType, String transactionType)
+            throws DatabaseException, NoListingsForThisCategoryException {
+        logger.debug("Fetching properties with type: {} and transaction type: {}", propertyType, transactionType);
 
+        try {
+            List<PropertyForAllListings> properties;
+
+            if (transactionType == null || transactionType.isEmpty()) {
+                properties = propertyRepository.getAllPropertiesWithCriteria(propertyType);
+            } else {
+                properties = propertyRepository.getAllPropertiesWithBothFilters(propertyType, transactionType);
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(properties);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting properties to JSON", e);
+            throw new DatabaseException("Error processing property data: " + e.getMessage(), e);
+        }
     }
 
     public List<String> getFilteredCities(int minPrice, int maxPrice, int minArea, int maxArea,
