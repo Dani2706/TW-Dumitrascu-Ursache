@@ -22,6 +22,27 @@ body .app .header, .header {
     margin: 0;
     font-size: 1.8rem;
     font-weight: bold;
+    color: #ffffff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+    position: relative;
+    padding-left: 10px;
+}
+
+.header h1:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 15%;
+    height: 70%;
+    width: 4px;
+    background: linear-gradient(to bottom, #3498db, #1a5276);
+    border-radius: 2px;
+}
+
+.header h1 span {
+    color: #3498db;
+    font-weight: 800;
 }
 
 body .app .header .nav-bar, .nav-bar {

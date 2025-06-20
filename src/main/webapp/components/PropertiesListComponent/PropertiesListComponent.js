@@ -143,6 +143,7 @@ export class PropertiesListComponent extends AbstractComponent {
 
         this.setupCategoryDropdown();
         this.setupPropertyMap();
+        this.setupPropertySearch();
         this.dynamicallyLoadData();
         this.eventListenerLoader();
 
@@ -182,10 +183,43 @@ export class PropertiesListComponent extends AbstractComponent {
         mapContainer.id = 'properties-map';
         mapContainer.className = 'properties-map-container';
 
+        const mapControls = document.createElement('div');
+        mapControls.className = 'map-controls';
+        mapContainer.appendChild(mapControls);
+
+        // Create draw button
+        const drawButton = document.createElement('button');
+        drawButton.className = 'map-control-btn draw-btn';
+        drawButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+        drawButton.title = 'Draw area to filter properties';
+        mapControls.appendChild(drawButton);
+
+        const eraseButton = document.createElement('button');
+        eraseButton.className = 'map-control-btn erase-btn';
+        eraseButton.innerHTML = '<i class="fas fa-eraser"></i>';
+        eraseButton.title = 'Clear drawn area';
+        eraseButton.style.display = 'none';
+        mapControls.appendChild(eraseButton);
+
+        const instructionMsg = document.createElement('div');
+        instructionMsg.className = 'map-instruction-msg';
+        instructionMsg.textContent = 'Draw 4 points to narrow down the area where you\'re searching for properties.';
+        instructionMsg.style.display = 'none';
+        mapContainer.appendChild(instructionMsg);
+
         mainContent.parentNode.insertBefore(mapContainer, mainContent);
 
         if (window.L) {
             this.debouncedInitMap();
+
+            drawButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                this.startDrawingMode(event);
+            });
+            eraseButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                this.clearDrawnArea();
+            });
         }
     }
 
@@ -202,7 +236,120 @@ export class PropertiesListComponent extends AbstractComponent {
             attribution: '© OpenStreetMap contributors'
         }).addTo(this.map);
 
+        this.drawingMode = false;
+        this.drawnPoints = [];
+        this.drawnPolygon = null;
+        this.markers = [];
+
         this.addPropertiesToMap(this.properties);
+    }
+
+    startDrawingMode() {
+        const drawButton = this.container.querySelector('.draw-btn');
+        const eraseButton = this.container.querySelector('.erase-btn');
+        const instructionMsg = this.container.querySelector('.map-instruction-msg');
+
+        event.stopPropagation();
+
+        this.clearDrawnArea(false);
+
+        instructionMsg.style.display = 'block';
+
+        drawButton.classList.add('active');
+        this.drawingMode = true;
+        this.drawnPoints = [];
+
+        this.mapClickHandler = (e) => this.handleMapClick(e);
+        this.map.on('click', this.mapClickHandler);
+    }
+
+    handleMapClick(e) {
+        if (!this.drawingMode) return;
+
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        this.drawnPoints.push([lat, lng]);
+
+        const marker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'drawing-point-marker',
+                iconSize: [12, 12]
+            })
+        }).addTo(this.map);
+
+        this.markers.push(marker);
+
+        if (this.drawnPoints.length === 4) {
+            this.completePolygon();
+        }
+    }
+
+    completePolygon() {
+        const drawButton = this.container.querySelector('.draw-btn');
+        const eraseButton = this.container.querySelector('.erase-btn');
+        const instructionMsg = this.container.querySelector('.map-instruction-msg');
+
+        instructionMsg.style.display = 'none';
+
+        this.drawnPolygon = L.polygon(this.drawnPoints, {
+            color: '#3498db',
+            fillColor: '#3498db',
+            fillOpacity: 0.2,
+            weight: 2
+        }).addTo(this.map);
+
+        eraseButton.style.display = 'block';
+
+        drawButton.classList.remove('active');
+        this.drawingMode = false;
+
+        this.map.off('click', this.mapClickHandler);
+
+        this.filterPropertiesByPolygon();
+    }
+
+    clearDrawnArea(resetFilter = true) {
+        const eraseButton = this.container.querySelector('.erase-btn');
+        const instructionMsg = this.container.querySelector('.map-instruction-msg');
+
+        instructionMsg.style.display = 'none';
+
+        this.markers.forEach(marker => {
+            this.map.removeLayer(marker);
+        });
+        this.markers = [];
+
+        if (this.drawnPolygon) {
+            this.map.removeLayer(this.drawnPolygon);
+            this.drawnPolygon = null;
+        }
+
+        this.drawingMode = false;
+        this.drawnPoints = [];
+
+        eraseButton.style.display = 'none';
+
+        if (resetFilter) {
+            this.updatePropertiesDisplay(this.properties);
+            this.updateMapWithFilteredProperties(this.properties);
+        }
+
+        this.map.off('click', this.mapClickHandler);
+    }
+
+    filterPropertiesByPolygon() {
+        if (!this.drawnPolygon) return;
+
+        const filteredProperties = this.properties.filter(property => {
+            if (!property.latitude || !property.longitude) return false;
+
+            const point = L.latLng(property.latitude, property.longitude);
+            return this.drawnPolygon.getBounds().contains(point);
+        });
+
+        this.updatePropertiesDisplay(filteredProperties);
+        this.updateMapWithFilteredProperties(filteredProperties);
     }
 
     addPropertiesToMap(properties) {
@@ -383,34 +530,27 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     applyFilters() {
-        let filteredProperties = [...this.properties];
+        const searchText = this.container.querySelector('#property-search')?.value.trim().toLowerCase() || '';
 
-        const selectedCities = this.getSelectedCities();
-        const selectedStates = this.getSelectedStates();
-
-        this.filterConfig.fields.forEach(field => {
-            const minValue = document.querySelector(`#${field.id}-min`)?.value;
-            const maxValue = document.querySelector(`#${field.id}-max`)?.value;
-
-            filteredProperties = this.applyRangeFilter(
-                filteredProperties,
-                field.property,
-                minValue,
-                maxValue,
-                field.type
+        let filteredProperties;
+        if (searchText) {
+            filteredProperties = this.properties.filter(property =>
+                property.title.toLowerCase().includes(searchText) ||
+                property.city.toLowerCase().includes(searchText) ||
+                property.country.toLowerCase().includes(searchText)
             );
-        });
-
-        if (selectedCities.length > 0) {
-            filteredProperties = filteredProperties.filter(property =>
-                selectedCities.includes(property.city)
-            );
+        } else {
+            filteredProperties = [...this.properties];
         }
 
-        if (selectedStates.length > 0) {
-            filteredProperties = filteredProperties.filter(property =>
-                selectedStates.includes(property.state)
-            );
+        filteredProperties = this.applyCurrentFilters(filteredProperties);
+
+        if (this.drawnPolygon) {
+            filteredProperties = filteredProperties.filter(property => {
+                if (!property.latitude || !property.longitude) return false;
+                const point = L.latLng(property.latitude, property.longitude);
+                return this.drawnPolygon.getBounds().contains(point);
+            });
         }
 
         this.updatePropertiesDisplay(filteredProperties);
@@ -646,5 +786,91 @@ export class PropertiesListComponent extends AbstractComponent {
 
         this.renderCityFilters();
         this.renderStateFilters();
+    }
+
+
+    setupPropertySearch() {
+        const propertiesHeader = this.container.querySelector('.properties-header');
+        if (!propertiesHeader) return;
+
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'property-search-container';
+        searchContainer.innerHTML = `
+            <div class="property-search-wrapper">
+                <input type="text" id="property-search" placeholder="Search properties...">
+                <button class="clear-search-btn" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+
+        propertiesHeader.insertAdjacentElement('afterend', searchContainer);
+
+        const searchInput = searchContainer.querySelector('#property-search');
+        const clearButton = searchContainer.querySelector('.clear-search-btn');
+
+        searchInput.addEventListener('input', () => {
+            const searchText = searchInput.value.trim().toLowerCase();
+            clearButton.style.display = searchText ? 'block' : 'none';
+            this.filterPropertiesBySearch(searchText);
+        });
+
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            clearButton.style.display = 'none';
+            this.filterPropertiesBySearch('');
+        });
+    }
+
+    filterPropertiesBySearch(searchText) {
+        let filteredProperties;
+
+        if (searchText === '') {
+            filteredProperties = [...this.properties];
+        } else {
+            filteredProperties = this.properties.filter(property =>
+                property.title.toLowerCase().includes(searchText) ||
+                property.city.toLowerCase().includes(searchText) ||
+                property.country.toLowerCase().includes(searchText)
+            );
+        }
+
+        filteredProperties = this.applyCurrentFilters(filteredProperties);
+        this.updatePropertiesDisplay(filteredProperties);
+        this.updateMapWithFilteredProperties(filteredProperties);
+    }
+
+    applyCurrentFilters(properties) {
+        const selectedCities = this.getSelectedCities();
+        const selectedStates = this.getSelectedStates();
+        let result = [...properties];
+
+        this.filterConfig.fields.forEach(field => {
+            const minValue = document.querySelector(`#${field.id}-min`)?.value;
+            const maxValue = document.querySelector(`#${field.id}-max`)?.value;
+
+            result = this.applyRangeFilter(
+                result,
+                field.property,
+                minValue,
+                maxValue,
+                field.type
+            );
+        });
+
+        if (selectedCities.length > 0) {
+            result = result.filter(property =>
+                selectedCities.includes(property.city)
+            );
+        }
+
+        if (selectedStates.length > 0) {
+            result = result.filter(property =>
+                selectedStates.includes(property.state)
+            );
+        }
+
+        return result;
     }
 }
