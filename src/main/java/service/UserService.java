@@ -36,18 +36,19 @@ public class UserService {
         return jwtUtil.generateToken(username, userId);
     }
 
-    public UserDTO getUserData(String token) throws DatabaseException, InvalidUsernameException, JsonProcessingException {
-        String username = this.jwtUtil.getUsername(token);
-        return this.userRepository.getUserDataByUsername(username);
+    public UserDTO getUserData(int userId) throws DatabaseException, InvalidUserIdException {
+        return this.userRepository.getUserDataByUserId(userId);
     }
 
     public int getUserIdByUsername(String username) throws InvalidUsernameException, DatabaseException {
         return this.userRepository.getUserIdByUsername(username);
     }
 
-    public void updateUserById(User user, String token) throws DatabaseException, EmailAlreadyInUseException, UsernameAlreadyInUseException, PhoneNumberAlreadyInUseException {
-        int userId = this.jwtUtil.getUserId(token);
-        user.setId(userId);
+    public void updateUserById(User user) throws DatabaseException, EmailAlreadyInUseException, UsernameAlreadyInUseException, PhoneNumberAlreadyInUseException {
         this.userRepository.updateUser(user);
+    }
+
+    public void deleteUserById(int userId) throws DatabaseException, InvalidUserIdException {
+        this.userRepository.deleteUser(userId);
     }
 }
