@@ -382,7 +382,7 @@ export class PropertiesListComponent extends AbstractComponent {
         title.className = 'map-title clickable';
         title.onclick = () => {
             console.log("Viewing property with ID:", property.propertyId);
-            sessionStorage.setItem('selectedPropertyID', property.propertyId);
+            sessionStorage.setItem('selectedPropertyId', property.propertyId);
 
             this.router.safeNavigate('/property');
         };

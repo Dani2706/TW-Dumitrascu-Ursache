@@ -127,11 +127,23 @@ public class PropertyService {
         }
     }
 
-    public List<TopProperty> getTopProperties() throws DatabaseException {
+    public String getTopProperties() throws DatabaseException, PropertyDataException {
         logger.debug("Fetching top properties");
-        List<TopProperty> topProperties = propertyRepository.findTopProperties();
-        logger.debug("Retrieved {} top properties", topProperties.size());
-        return topProperties;
+
+        try {
+            List<PropertyForAllListings> topProperties = propertyRepository.findTopProperties();
+            logger.debug("Retrieved {} top properties", topProperties.size());
+
+            if (topProperties.isEmpty()) {
+                throw new PropertyDataException("No top properties found");
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(topProperties);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting top properties to JSON", e);
+            throw new DatabaseException("Error processing property data: " + e.getMessage(), e);
+        }
     }
 
     public String getAllPropertiesWithFilters(String propertyType, String transactionType)

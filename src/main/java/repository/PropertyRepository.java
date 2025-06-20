@@ -269,23 +269,35 @@ public class PropertyRepository {
         }
     }
 
-    public List<TopProperty> findTopProperties() throws DatabaseException {
+    public List<PropertyForAllListings> findTopProperties() throws DatabaseException {
         logger.debug("Retrieving top properties");
-        List<TopProperty> topProperties = new ArrayList<>();
+        List<PropertyForAllListings> topProperties = new ArrayList<>();
 
         try (Connection conn = dataSource.getConnection()) {
-            String sql = "SELECT tp.property_id, p.title, p.price " +
-                    "FROM top_properties tp " +
-                    "JOIN properties p ON tp.property_id = p.property_id ";
+            String sql = "SELECT p.property_id, p.title, p.rooms, p.floor, p.year_built, p.bathrooms, " +
+                    "p.surface_area, p.city, p.state, p.country, p.latitude, p.longitude, p.price, p.transaction_type " +
+                    "FROM properties p " +
+                    "JOIN top_properties tp ON p.property_id = tp.property_id";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                TopProperty property = new TopProperty(
+                PropertyForAllListings property = new PropertyForAllListings(
                         rs.getInt("property_id"),
                         rs.getString("title"),
-                        rs.getInt("price")
+                        rs.getInt("rooms"),
+                        rs.getInt("floor"),
+                        rs.getInt("year_built"),
+                        rs.getInt("bathrooms"),
+                        rs.getInt("surface_area"),
+                        rs.getString("city"),
+                        rs.getString("state"),
+                        rs.getString("country"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude"),
+                        rs.getInt("price"),
+                        rs.getString("transaction_type")
                 );
                 topProperties.add(property);
             }
@@ -297,13 +309,14 @@ public class PropertyRepository {
             }
 
         } catch (SQLException e) {
-            throw new DatabaseException("Error retrieving top properties: " + e.getMessage());
+            logger.error("Database error when retrieving top properties", e);
+            throw new DatabaseException("Error retrieving top properties: " + e.getMessage(), e);
         }
 
         return topProperties;
     }
 
-    public int testAddPropertyAsObject(Property property) throws DatabaseException, PropertyValidationException {
+    /*public int testAddPropertyAsObject(Property property) throws DatabaseException, PropertyValidationException {
         String testAddPropertyAsObject = "{call test_add(?)}";
         try(Connection connection = this.dataSource.getConnection();
         CallableStatement stmt = connection.prepareCall(testAddPropertyAsObject)){
@@ -320,7 +333,7 @@ public class PropertyRepository {
             }
             throw new DatabaseException(e.getMessage());
         }
-    }
+    }*/
 
     public List<PropertyForAllListings> getAllPropertiesWithBothFilters(String propertyType, String transactionType)
             throws DatabaseException, NoListingsForThisCategoryException {
