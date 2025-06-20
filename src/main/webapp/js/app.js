@@ -13,6 +13,7 @@ import { AdminEditPropertyComponent} from "../components/AdminEditPropertyCompon
 import {AdminAddUserComponent} from "../components/AdminAddUserComponent/AdminAddUserComponent.js";
 import {AdminEditUserComponent} from "../components/AdminEditUserComponent/AdminEditUserComponent.js";
 import {AdminDashboardComponent} from "../components/AdminDashboardComponent/AdminDashboardComponent.js";
+import {FavoriteListingsComponent} from "../components/FavoriteListingsComponent/FavoriteListingsComponent.js";
 
 const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
 const routes = {
@@ -22,6 +23,7 @@ const routes = {
             "/manage-listings" : ListingManagerComponent,
             "/add-property" : AddPropertyComponent,
             "/edit-listing" : EditListingComponent,
+            "/favorite-listings" : FavoriteListingsComponent,
             "/property" : PropertyComponent,
             "/login" : LoginComponent,
             "/register" : RegisterComponent,

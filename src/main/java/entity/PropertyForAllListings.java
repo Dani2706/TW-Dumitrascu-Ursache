@@ -1,5 +1,7 @@
 package entity;
 
+import java.util.Date;
+
 public class PropertyForAllListings {
     private int propertyId;
     private String title;
@@ -15,6 +17,7 @@ public class PropertyForAllListings {
     private double longitude;
     private double price;
     private String transactionType;
+    private Date createdAt;
 
     public PropertyForAllListings() {}
 
@@ -91,6 +94,10 @@ public class PropertyForAllListings {
         return transactionType;
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
     public void setPropertyId(int propertyId) {
         this.propertyId = propertyId;
     }
@@ -145,5 +152,9 @@ public class PropertyForAllListings {
 
     public void setTransactionType(String transactionType) {
         this.transactionType = transactionType;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

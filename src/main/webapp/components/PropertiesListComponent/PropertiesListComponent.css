@@ -601,6 +601,43 @@ body {
     color: var(--text-light);
 }
 
+.favorite-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.favorite-btn i {
+    color: #ccc;
+    font-size: 18px;
+    transition: all 0.2s ease;
+}
+
+.favorite-btn.favorited i {
+    color: #e74c3c;
+}
+
+.favorite-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.favorite-btn:hover i {
+    color: #e74c3c;
+}
+
 .map-controls {
     position: absolute;
     top: 10px;

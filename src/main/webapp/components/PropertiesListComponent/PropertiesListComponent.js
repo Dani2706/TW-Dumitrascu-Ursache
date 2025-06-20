@@ -607,44 +607,95 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     createPropertyCardHTML(property) {
+        const isFavorited = property.isFavorite ? 'favorited' : '';
+
         return `
-            <div class="property-card" data-property-id="${property.propertyId}">
+            <div class="property-card" data-id="${property.propertyId}">
+                <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <div class="property-thumbnail" style="background-image: url(${property.images && property.images.length > 0 ? property.images[0] : '/TW_Dumitrascu_Ursache_war_exploded/images/default-property.jpg'})"></div>
                 <div class="property-details">
                     <h3>${property.title}</h3>
-                    <p class="property-location">${property.city}, ${property.country}</p>
+                    <div class="property-location">${property.city}, ${property.state}</div>
                     <div class="property-features">
                         <span>${property.rooms} rooms</span>
-                        <span>${property.bathrooms} bathrooms</span>
+                        <span>${property.bathrooms} baths</span>
                         <span>${property.surfaceArea} m²</span>
                     </div>
                     <div class="property-action-row">
-                        <div class="property-price">$${property.price.toLocaleString()}</div>
-                        <button class="view-details-btn">View Details</button>
+                        <div class="property-price">${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}</div>
+                        <button class="view-details-btn" data-id="${property.propertyId}">View Details</button>
                     </div>
                 </div>
             </div>
-        `;
+            `;
     }
 
     addPropertyCardListeners() {
         const propertyCards = this.container.querySelectorAll('.property-card');
         propertyCards.forEach(card => {
             const viewDetailsBtn = card.querySelector('.view-details-btn');
-            const propertyId = card.dataset.propertyId;
-
             if (viewDetailsBtn) {
-                viewDetailsBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
+                viewDetailsBtn.addEventListener('click', () => {
+                    const propertyId = card.getAttribute('data-id');
                     sessionStorage.setItem('selectedPropertyId', propertyId);
-                    this.router.safeNavigate("/property");
+                    router.safeNavigate('/property');
                 });
             }
 
-            card.addEventListener('click', () => {
-                sessionStorage.setItem('selectedPropertyId', propertyId);
-                this.router.safeNavigate("/property");
-            });
+            // Add favorite button listener
+            const favoriteBtn = card.querySelector('.favorite-btn');
+            if (favoriteBtn) {
+                favoriteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleFavorite(favoriteBtn);
+                });
+            }
         });
+    }
+
+    async toggleFavorite(button) {
+        const propertyId = button.getAttribute('data-id');
+        if (!propertyId) {
+            console.error('No property ID found on favorite button');
+            return;
+        }
+
+        const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+        if (!isLoggedIn) {
+            // Redirect to login or show message
+            alert('Please log in to add properties to favorites');
+            return;
+        }
+
+        const isFavorited = button.classList.contains('favorited');
+
+        try {
+            const method = isFavorited ? 'DELETE' : 'POST';
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/favorites/${propertyId}`, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('jwt')
+                }
+            });
+
+            if (response.ok) {
+                // Toggle favorite UI state
+                button.classList.toggle('favorited');
+
+                // Update the property in the array
+                const property = this.properties.find(p => p.propertyId == propertyId);
+                if (property) {
+                    property.isFavorite = !isFavorited;
+                }
+            } else {
+                console.error('Failed to update favorite status');
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+        }
     }
 
     async dynamicallyLoadData(sortOption = 'newest') {
@@ -663,48 +714,47 @@ export class PropertiesListComponent extends AbstractComponent {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            this.properties = await response.json();
+            let properties = await response.json();
 
-            this.sortProperties(sortOption);
+            // Fetch user favorites if logged in
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            let userFavorites = [];
 
-            this.updateFilterRanges();
+            if (isLoggedIn) {
+                try {
+                    const favoritesResponse = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/favorites', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + sessionStorage.getItem('jwt')
+                        }
+                    });
 
-            const currentCitySelections = this.getSelectedCities();
-            const currentStateSelections = this.getSelectedStates();
-            const currentFilters = {};
-
-            this.filterConfig.fields.forEach(field => {
-                const minInput = this.container.querySelector(`#${field.id}-min`);
-                const maxInput = this.container.querySelector(`#${field.id}-max`);
-
-                currentFilters[`${field.id}-min`] = minInput?.value || '';
-                currentFilters[`${field.id}-max`] = maxInput?.value || '';
-            });
-
-            await Promise.all([
-                this.renderCityFilters(),
-                this.renderStateFilters()
-            ]);
-
-            this.filterConfig.fields.forEach(field => {
-                const minInput = this.container.querySelector(`#${field.id}-min`);
-                const maxInput = this.container.querySelector(`#${field.id}-max`);
-
-                if (minInput) minInput.value = currentFilters[`${field.id}-min`];
-                if (maxInput) maxInput.value = currentFilters[`${field.id}-max`];
-            });
-
-            if (currentCitySelections.length > 0 || currentStateSelections.length > 0 ||
-                Object.values(currentFilters).some(val => val !== '')) {
-
-                this.applyFilters();
-            } else {
-                this.updatePropertiesDisplay(this.properties);
-                this.updateMapWithFilteredProperties(this.properties);
+                    if (favoritesResponse.ok) {
+                        userFavorites = await favoritesResponse.json();
+                    }
+                } catch (e) {
+                    console.error('Error fetching user favorites:', e);
+                    userFavorites = [];
+                }
             }
 
+            // Mark favorited properties
+            this.properties = properties.map(property => {
+                return {
+                    ...property,
+                    isFavorite: userFavorites.some(fav => fav.id === property.id)
+                };
+            });
+
+            // Update the properties display
+            this.updatePropertiesDisplay(this.properties);
+
+            // Initialize map with all properties
+            this.debouncedInitMap();
+
         } catch (error) {
-            console.error('Error fetching properties:', error);
+            console.error('Error loading properties:', error);
             propertiesGrid.innerHTML = '<div class="error-message">Failed to load properties. Please try again later.</div>';
         }
     }

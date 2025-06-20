@@ -120,6 +120,61 @@ public class PropertyRepository {
         return properties;
     }
 
+    public List<PropertyForAllListings> findFavoritePropertiesByUserId(int userId) throws DatabaseException {
+        logger.debug("Retrieving favorite properties for user with ID: {}", userId);
+        List<PropertyForAllListings> favoriteProperties = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "SELECT p.property_id, p.title, p.created_at " +
+                    "FROM properties p " +
+                    "JOIN favorites f ON p.property_id = f.property_id " +
+                    "WHERE f.user_id = ?";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                PropertyForAllListings property = new PropertyForAllListings();
+                property.setPropertyId(rs.getInt("property_id"));
+                property.setTitle(rs.getString("title"));
+                property.setCreatedAt(rs.getDate("created_at"));
+
+                favoriteProperties.add(property);
+            }
+
+            logger.debug("Found {} favorite properties for user ID: {}", favoriteProperties.size(), userId);
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving favorite properties for user ID: {}", userId, e);
+            throw new DatabaseException("Error retrieving user favorite properties: " + e.getMessage(), e);
+        }
+
+        return favoriteProperties;
+    }
+
+    public void removeFavoriteProperty(int propertyId, int userId) throws DatabaseException {
+        logger.debug("Attempting to remove property ID: {} from favorites for user ID: {}", propertyId, userId);
+
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "DELETE FROM favorites WHERE property_id = ? AND user_id = ?";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, propertyId);
+            stmt.setInt(2, userId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                logger.warn("No favorite relationship found for property ID: {} and user ID: {}", propertyId, userId);
+            } else {
+                logger.info("Successfully removed property ID: {} from favorites for user ID: {}", propertyId, userId);
+            }
+        } catch (SQLException e) {
+            logger.error("Database error when removing favorite", e);
+            throw new DatabaseException("Error removing property from favorites: " + e.getMessage(), e);
+        }
+    }
+
     public int addProperty(Property property) throws DatabaseException {
         logger.debug("Adding new property: {}", property.getTitle());
 
@@ -234,6 +289,42 @@ public class PropertyRepository {
             }
         } catch (SQLException e) {
             throw new DatabaseException("Error updating property: " + e.getMessage());
+        }
+    }
+
+    public void addFavoriteProperty(int propertyId, int userId) throws DatabaseException {
+        logger.debug("Attempting to add property ID: {} to favorites for user ID: {}", propertyId, userId);
+
+        try (Connection conn = dataSource.getConnection()) {
+            String checkSql = "SELECT 1 FROM favorites WHERE property_id = ? AND user_id = ?";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, propertyId);
+                checkStmt.setInt(2, userId);
+                ResultSet rs = checkStmt.executeQuery();
+
+                if (rs.next()) {
+                    logger.info("Favorite already exists for property ID: {} and user ID: {}", propertyId, userId);
+                    return;
+                }
+            }
+
+            String insertSql = "INSERT INTO favorites (property_id, user_id) VALUES (?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+                stmt.setInt(1, propertyId);
+                stmt.setInt(2, userId);
+
+                int rowsAffected = stmt.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    logger.info("Successfully added property ID: {} to favorites for user ID: {}", propertyId, userId);
+                } else {
+                    logger.warn("Failed to add favorite - no rows affected");
+                    throw new DatabaseException("Failed to add property to favorites");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Database error when adding favorite", e);
+            throw new DatabaseException("Error adding property to favorites: " + e.getMessage(), e);
         }
     }
 
