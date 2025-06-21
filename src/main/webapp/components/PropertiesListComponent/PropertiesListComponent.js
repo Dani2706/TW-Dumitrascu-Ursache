@@ -188,6 +188,7 @@ export class PropertiesListComponent extends AbstractComponent {
 
         const mapControls = document.createElement('div');
         mapControls.className = 'map-controls';
+        mapControls.style.display = 'none';
         mapContainer.appendChild(mapControls);
 
         const drawButton = document.createElement('button');
@@ -372,6 +373,11 @@ export class PropertiesListComponent extends AbstractComponent {
                 padding: [30, 30],
                 maxZoom: 15
             });
+
+            const mapControls = this.container.querySelector('.map-controls');
+            if (mapControls) {
+                mapControls.style.display = 'flex';
+            }
         }
     }
 
@@ -621,7 +627,6 @@ export class PropertiesListComponent extends AbstractComponent {
                 <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
                     <i class="fas fa-heart"></i>
                 </button>
-                <div class="property-thumbnail" style="background-image: url(${property.images && property.images.length > 0 ? property.images[0] : '/TW_Dumitrascu_Ursache_war_exploded/images/default-property.jpg'})"></div>
                 <div class="property-details">
                     <h3>${property.title}</h3>
                     <div class="property-location">${property.city}, ${property.state}</div>

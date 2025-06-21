@@ -739,16 +739,13 @@ body {
 }
 
 .property-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 25px;
-    box-shadow: var(--shadow-md);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    cursor: pointer;
     position: relative;
-    display: flex;
-    flex-direction: column;
-    border-top: 4px solid var(--primary-color);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
 }
 
 .property-card:hover {
@@ -756,11 +753,15 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-.property-card .thumbnail {
-    height: 200px;
-    background-color: #e0e0e0;
+.property-card .property-thumbnail {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 220px;
     background-size: cover;
     background-position: center;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .property-card .content {
@@ -775,12 +776,11 @@ body {
 }
 
 .property-card h3 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     margin-bottom: 12px;
     color: var(--dark-color);
     position: relative;
-    padding-bottom: 12px;
     line-height: 1.4;
 }
 
@@ -796,20 +796,16 @@ body {
 }
 
 .property-card .property-details {
+    padding: 15px;
+    flex: 1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 15px;
-    color: var(--text-light);
-    font-size: 14px;
+    flex-direction: column;
 }
 
 .property-location {
     font-size: 14px;
-    color: var(--text-light);
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
+    color: #7f8c8d;
+    margin-bottom: 10px;
 }
 
 .property-location:before {
@@ -823,6 +819,22 @@ body {
 .property-card .location i {
     margin-right: 5px;
 }
+
+.property-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    margin: 0;
+    border-bottom: 1px solid #eee;
+}
+
+.property-card .photo {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    margin-bottom: 0;
+}
+
 
 .loader-container {
     grid-column: 1 / -1;
@@ -852,10 +864,10 @@ body {
 .property-features {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #555;
 }
 
 .property-features span {
@@ -891,24 +903,19 @@ body {
 }
 
 .property-details {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+    padding: 12px 15px;
 }
 
 .view-details-btn {
     background: linear-gradient(135deg, var(--primary-color), #2980b9);
     color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 10px 15px;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-align: center;
-    margin-top: 10px;
-    align-self: flex-start;
 }
 
 .view-details-btn:hover {
@@ -965,6 +972,13 @@ body {
     display: none;
 }
 
+.property-details h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
 .clear-search-btn:hover {
     color: var(--accent-color);
 }
@@ -1019,10 +1033,14 @@ body {
 
 .property-action-row {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-top: 10px;
-    width: 100%;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.property-card .property-action-row {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 .property-price {

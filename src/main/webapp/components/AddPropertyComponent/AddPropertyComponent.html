@@ -1,6 +1,43 @@
 <div class="add-property-container">
     <h2>Add New Property</h2>
     <form id="addPropertyForm" class="property-form">
+
+        <h3 class="section-title">Image Upload</h3>
+        <div class="image-upload-section">
+            <div class="main-photo-container">
+                <div class="photo-upload-card">
+                    <div class="photo-preview" id="main-preview">
+                        <img id="main-img" class="preview-image">
+                        <div class="photo-placeholder">
+                            <i class="fa fa-image"></i>
+                            <span>Main Photo</span>
+                        </div>
+                    </div>
+                    <label for="mainPhoto" class="upload-btn">
+                        <span>Select Main Photo*</span>
+                        <input type="file" id="mainPhoto" name="mainPhoto" accept="image/*" required>
+                    </label>
+                </div>
+            </div>
+
+            <div class="extra-photos-container" id="extra-photos">
+                <div class="photo-upload-card">
+                    <div class="photo-preview">
+                        <img id="photo1-img" class="photo preview-image">
+                        <div class="photo-placeholder">
+                            <i class="fa fa-image"></i>
+                            <span>Additional Photo</span>
+                        </div>
+                    </div>
+                    <label for="photo1" class="upload-btn">
+                        <span>Add Photo</span>
+                        <input type="file" id="photo1" name="photo" accept="image/*">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <h3>Basic Information</h3>
         <div class="form-group">
             <label for="title">Title*</label>
             <input type="text" id="title" name="title" required>
@@ -127,21 +164,6 @@
             <div class="form-group">
                 <label for="contactEmail">Contact Email*</label>
                 <input type="email" id="contactEmail" name="contactEmail" required>
-            </div>
-        </div>
-
-        <h3>Image Upload</h3>
-        <div class="form-group">
-            <label for="mainPhoto">Main photo*</label>
-            <input type="file" id="mainPhoto" name="mainPhoto" accept="image/*" required>
-            <img id="main-img" style="max-width: 200px; display: block; margin-top: 10px">
-        </div>
-
-        <div class="form-row" id="extra-photos">
-            <div class="form-group">
-                <label for="photo1">Photo 1</label>
-                <input type="file" id="photo1" name="photo" accept="image/*">
-                <img id="photo1-img" class="photo" style="max-width: 200px; display: block; margin-top: 10px">
             </div>
         </div>
 

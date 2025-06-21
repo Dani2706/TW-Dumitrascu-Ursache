@@ -22,6 +22,59 @@ export class AddPropertyComponent extends AbstractComponent {
             return;
         }
         await super.init();
+
+        this.container = document.querySelector(`.${this.className}`);
+
+        this.setupMainPhoto();
+
+        this.setupExtraPhotoSlot(this.container.querySelector('#photo1'));
+    }
+
+    setupMainPhoto() {
+        const mainPhoto = this.container.querySelector('#mainPhoto');
+        const mainImage = this.container.querySelector('#main-img');
+        const mainPreview = this.container.querySelector('#main-preview');
+        const mainPlaceholder = mainPreview.querySelector('.photo-placeholder');
+
+        let mainRemoveBtn = mainPreview.querySelector('.remove-photo-btn');
+        if (!mainRemoveBtn) {
+            mainRemoveBtn = document.createElement('button');
+            mainRemoveBtn.className = 'remove-photo-btn';
+            mainRemoveBtn.innerHTML = '<i class="fa fa-times"></i>';
+            mainRemoveBtn.style.display = 'none';
+            mainPreview.appendChild(mainRemoveBtn);
+        }
+
+        mainRemoveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mainImage.removeAttribute('src');
+            mainPhoto.value = '';
+            if (mainPlaceholder) {
+                mainPlaceholder.style.display = 'flex';
+            }
+            mainRemoveBtn.style.display = 'none';
+        });
+
+        mainPhoto.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    mainImage.src = reader.result;
+                    if (mainPlaceholder) {
+                        mainPlaceholder.style.display = 'none';
+                    }
+                    mainRemoveBtn.style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                mainImage.removeAttribute('src');
+                if (mainPlaceholder) {
+                    mainPlaceholder.style.display = 'flex';
+                }
+                mainRemoveBtn.style.display = 'none';
+            }
+        });
     }
 
     //@Override
@@ -29,6 +82,8 @@ export class AddPropertyComponent extends AbstractComponent {
         if (!this.templateLoaded) {
             throw new Error('Template not loaded. Call super.init() first.');
         }
+
+        this.container = container;
 
         const form = container.querySelector('#addPropertyForm');
         if (form) {
@@ -42,64 +97,13 @@ export class AddPropertyComponent extends AbstractComponent {
                 stateField.addEventListener('blur', this.handleLocationChange.bind(this));
             }
 
-            setTimeout( () => this.initializeMap(), 100);
+            setTimeout(() => this.initializeMap(), 100);
 
+            this.setupMainPhoto();
 
-            const mainPhoto = container.querySelector('#mainPhoto');
-            const mainImage = container.querySelector('#main-img');
-            mainPhoto.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        mainImage.src = reader.result;
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    mainImage.removeAttribute('src');
-                }
-            });
-
-            const extraPhotos = container.querySelector('#extra-photos');
-            if (extraPhotos) {
-                const photo1 = extraPhotos.querySelector("#photo1");
-                const imagePreview = extraPhotos.querySelector('#photo1-img');
-                //photo1.addEventListener('change', this.changeExtraPhotosContainer.bind(this));
-                photo1.addEventListener('click', (event) => {
-                    this.dialogBoxOpen = true;
-                    this.activeInputEvent = event;
-                })
-
-                // photo1.addEventListener('focus', () => {
-                //     setTimeout (() => {
-                //         if (this.dialogBoxOpen) {
-                //             if (this.activeInputEvent.target.files.length === 0) {
-                //                 this.removePhotoField(this.activeInputEvent)
-                //                 console.log('focus event');
-                //             }
-                //             this.activeInputEvent = null;
-                //             this.dialogBoxOpen = false;
-                //         }
-                //     }, 2000);
-                // })
-
-                photo1.addEventListener('change', (event) => {
-                    this.activeInputEvent = null;
-                    this.dialogBoxOpen = false;
-                    console.log('change event');
-                    const file = event.target.files[0];
-                    if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            imagePreview.src = reader.result;
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        imagePreview.src = '';
-                    }
-
-                    this.changeExtraPhotosContainer(event);
-                });
+            const photo1 = container.querySelector('#photo1');
+            if (photo1) {
+                this.setupExtraPhotoSlot(photo1);
             }
 
         } else {
@@ -107,17 +111,98 @@ export class AddPropertyComponent extends AbstractComponent {
         }
     }
 
-    changeExtraPhotosContainer(event) {
-        const input = event.target;
-        const lastDigitOfInputName = parseInt(input.getAttribute("id").slice(-1), 10);
-        if (input.files.length > 0){
-            if (lastDigitOfInputName === this.numberOfPhotosUploaded) {
-                this.addNewPhotoField();
+    setupExtraPhotoSlot(photoInput) {
+        const photoCard = photoInput.closest('.photo-upload-card');
+        const imagePreview = photoCard.querySelector('.preview-image');
+        const photoPreview = photoCard.querySelector('.photo-preview');
+        const placeholder = photoCard.querySelector('.photo-placeholder');
+
+        let removeBtn = photoPreview.querySelector('.remove-photo-btn');
+        if (!removeBtn) {
+            removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-photo-btn';
+            removeBtn.innerHTML = '<i class="fa fa-times"></i>';
+            removeBtn.style.display = 'none';
+            photoPreview.appendChild(removeBtn);
+        }
+
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            imagePreview.removeAttribute('src');
+            photoInput.value = '';
+            placeholder.style.display = 'flex';
+            removeBtn.style.display = 'none';
+
+            this.manageExtraPhotoContainers();
+        });
+
+        photoInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                    removeBtn.style.display = 'flex';
+                    placeholder.style.display = 'none';
+
+                    this.manageExtraPhotoContainers();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.removeAttribute('src');
+                placeholder.style.display = 'flex';
+                removeBtn.style.display = 'none';
             }
+        });
+    }
+
+    renumberPhotoFields() {
+        const extraPhotos = this.container.querySelector('#extra-photos');
+        const photoCards = extraPhotos.querySelectorAll('.photo-upload-card');
+
+        photoCards.forEach((card, index) => {
+            const photoNum = index + 1;
+
+            const input = card.querySelector('input[type="file"]');
+            const oldId = input.id;
+            input.id = `photo${photoNum}`;
+
+            const label = card.querySelector('label.upload-btn');
+            label.setAttribute('for', `photo${photoNum}`);
+
+            const img = card.querySelector('.preview-image');
+            img.id = `photo${photoNum}-img`;
+        });
+
+        this.numberOfPhotosUploaded = photoCards.length;
+    }
+
+    manageExtraPhotoContainers() {
+        const extraPhotos = this.container.querySelector('#extra-photos');
+        const photoCards = extraPhotos.querySelectorAll('.photo-upload-card');
+
+        let filledCards = 0;
+        let emptyCards = [];
+
+        photoCards.forEach(card => {
+            const img = card.querySelector('.preview-image');
+            if (img && img.src && img.src !== '') {
+                filledCards++;
+            } else {
+                emptyCards.push(card);
+            }
+        });
+
+        if (emptyCards.length === 0) {
+            this.addNewPhotoField();
+        } else if (emptyCards.length > 1) {
+            for (let i = 1; i < emptyCards.length; i++) {
+                emptyCards[i].remove();
+            }
+            this.numberOfPhotosUploaded = filledCards + 1;
         }
-        else {
-            this.removePhotoField(event);
-        }
+
+        this.renumberPhotoFields();
     }
 
     addNewPhotoField() {
@@ -126,88 +211,42 @@ export class AddPropertyComponent extends AbstractComponent {
 
         const extraPhotos = this.container.querySelector('#extra-photos');
 
-        const newPhotoField = document.createElement('div');
-        newPhotoField.setAttribute('class', 'form-group');
+        const newPhotoCard = document.createElement('div');
+        newPhotoCard.setAttribute('class', 'photo-upload-card');
 
-        const newLabel = document.createElement('label');
-        newLabel.setAttribute('for', 'photo' + this.numberOfPhotosUploaded);
-        newLabel.textContent = "Photo " + this.numberOfPhotosUploaded;
+        const previewContainer = document.createElement('div');
+        previewContainer.setAttribute('class', 'photo-preview');
+
+        const imagePreview = document.createElement('img');
+        imagePreview.setAttribute('id', `photo${this.numberOfPhotosUploaded}-img`);
+        imagePreview.setAttribute('class', 'photo preview-image');
+
+        const placeholder = document.createElement('div');
+        placeholder.setAttribute('class', 'photo-placeholder');
+        placeholder.innerHTML = '<i class="fa fa-image"></i><span>Additional Photo</span>';
+
+        previewContainer.appendChild(imagePreview);
+        previewContainer.appendChild(placeholder);
+
+        const uploadLabel = document.createElement('label');
+        uploadLabel.setAttribute('for', `photo${this.numberOfPhotosUploaded}`);
+        uploadLabel.setAttribute('class', 'upload-btn');
+        uploadLabel.innerHTML = '<span>Add Photo</span>';
 
         const newInput = document.createElement('input');
         newInput.setAttribute('type', 'file');
-        newInput.setAttribute('id', 'photo' + this.numberOfPhotosUploaded);
+        newInput.setAttribute('id', `photo${this.numberOfPhotosUploaded}`);
         newInput.setAttribute('name', 'photo');
         newInput.setAttribute('accept', 'image/*');
 
-        const imagePreview = document.createElement('img');
-        imagePreview.style.maxWidth = '200px';
-        imagePreview.style.display = 'block';
-        imagePreview.style.marginTop = '10px';
-        imagePreview.setAttribute('class', 'photo');
+        uploadLabel.appendChild(newInput);
 
-        newInput.addEventListener('click', (event) => {
-            this.dialogBoxOpen = true;
-            this.activeInputEvent = event;
-        })
+        newPhotoCard.appendChild(previewContainer);
+        newPhotoCard.appendChild(uploadLabel);
 
-        // newInput.addEventListener('focus', () => {
-        //     setTimeout (() => {
-        //         if (this.dialogBoxOpen) {
-        //             if (this.activeInputEvent.target.files.length === 0) {
-        //                 this.removePhotoField(this.activeInputEvent)
-        //                 console.log('focus event');
-        //             }
-        //             this.activeInputEvent = null;
-        //             this.dialogBoxOpen = false;
-        //         }
-        //     }, 5000);
-        // })
+        extraPhotos.appendChild(newPhotoCard);
 
-        newInput.addEventListener('change', (event) => {
-            console.log('dynamic change event');
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    imagePreview.src = reader.result;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                imagePreview.removeAttribute('src');
-            }
-
-            this.changeExtraPhotosContainer(event);
-        });
-
-        newPhotoField.appendChild(newLabel);
-        newPhotoField.appendChild(newInput);
-        newPhotoField.appendChild(imagePreview);
-
-        extraPhotos.appendChild(newPhotoField);
-    }
-
-    removePhotoField(event){
-        const input = event.target;
-        const lastDigitOfInputName = parseInt(input.getAttribute("id").slice(-1), 10);
-        const inputParent = input.closest('.form-group');
-        inputParent.remove();
-        if ((lastDigitOfInputName !== this.numberOfPhotosUploaded)){
-            const extraPhotos = this.container.querySelector('#extra-photos');
-            const photos = extraPhotos.querySelectorAll('.form-group');
-
-            photos.forEach((photo, index) => {
-                const label = photo.querySelector('label');
-                const input = photo.querySelector('input');
-
-                const number = index + 1;
-
-                label.htmlFor = `photo${number}`
-                label.textContent = `Photo ${number}`;
-
-                input.setAttribute('id', `photo${number}`);
-            });
-        }
-        this.numberOfPhotosUploaded -= 1;
+        this.setupExtraPhotoSlot(newInput);
     }
 
     //@Override

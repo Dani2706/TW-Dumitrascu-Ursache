@@ -331,6 +331,21 @@ export class EditListingComponent extends AbstractComponent {
                 this.populateMainPhoto(propertyData.mainPhoto);
                 this.populateExtraPhotos(propertyData.extraPhotos);
 
+                this.container = renderedContainer;
+
+                this.setupMainPhoto();
+
+                setTimeout(() => {
+                    this.numberOfPhotosUploaded = 0;
+
+                    if (propertyData.mainPhoto) {
+                        this.populateMainPhoto(propertyData.mainPhoto);
+                    }
+                    if (propertyData.extraPhotos && Array.isArray(propertyData.extraPhotos)) {
+                        this.populateExtraPhotos(propertyData.extraPhotos);
+                    }
+                }, 100);
+
                 setTimeout(() => {
                     this.initializeMap(
                         propertyData.latitude !== undefined ? parseFloat(propertyData.latitude) : null,
@@ -391,17 +406,87 @@ export class EditListingComponent extends AbstractComponent {
         }
     }
 
-    populateMainPhoto(mainPhoto){
+    populateMainPhoto(mainPhoto) {
+        if (!mainPhoto) return;
+
+        const mainPhotoInput = this.container.querySelector('#mainPhoto');
         const mainPhotoContainer = this.container.querySelector('#main-img');
+        const mainPreview = this.container.querySelector('#main-preview');
+        const mainPlaceholder = mainPreview.querySelector('.photo-placeholder');
+
         mainPhotoContainer.setAttribute('src', `data:image/png;base64,${mainPhoto}`);
+
+        if (mainPhotoInput && mainPhotoInput.hasAttribute('required')) {
+            mainPhotoInput.removeAttribute('required');
+        }
+
+        if (mainPlaceholder) {
+            mainPlaceholder.style.display = 'none';
+        }
+
+        let mainRemoveBtn = mainPreview.querySelector('.remove-photo-btn');
+        if (mainRemoveBtn) {
+            mainRemoveBtn.style.display = 'flex';
+        }
     }
 
-    populateExtraPhotos(extraPhotos){
+    populateExtraPhotos(extraPhotos) {
+        if (!extraPhotos || !extraPhotos.length) {
+            this.addNewPhotoField();
+            return;
+        }
+
         const extraPhotosContainer = this.container.querySelector('#extra-photos');
-        extraPhotos.forEach(extraPhotoUrl => {
-            const imagePreview = this.addNewPhotoField();
-            imagePreview.setAttribute('src', `data:image/png;base64,${extraPhotoUrl}`)
-        })
+
+        extraPhotosContainer.innerHTML = '';
+
+        extraPhotos.forEach((extraPhotoBase64, index) => {
+            this.numberOfPhotosUploaded = index + 1;
+
+            const photoCard = document.createElement('div');
+            photoCard.className = 'photo-upload-card';
+
+            const photoPreview = document.createElement('div');
+            photoPreview.className = 'photo-preview';
+
+            const img = document.createElement('img');
+            img.id = `photo${this.numberOfPhotosUploaded}-img`;
+            img.className = 'photo preview-image';
+            img.src = `data:image/png;base64,${extraPhotoBase64}`;
+
+            const placeholder = document.createElement('div');
+            placeholder.className = 'photo-placeholder';
+            placeholder.innerHTML = '<i class="fa fa-image"></i><span>Additional Photo</span>';
+            placeholder.style.display = 'none';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-photo-btn';
+            removeBtn.innerHTML = '<i class="fa fa-times"></i>';
+            removeBtn.style.display = 'flex';
+
+            const uploadLabel = document.createElement('label');
+            uploadLabel.setAttribute('for', `photo${this.numberOfPhotosUploaded}`);
+            uploadLabel.className = 'upload-btn';
+            uploadLabel.innerHTML = '<span>Replace Photo</span>';
+
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.id = `photo${this.numberOfPhotosUploaded}`;
+            input.name = 'photo';
+            input.accept = 'image/*';
+
+            uploadLabel.appendChild(input);
+            photoPreview.appendChild(img);
+            photoPreview.appendChild(placeholder);
+            photoPreview.appendChild(removeBtn);
+            photoCard.appendChild(photoPreview);
+            photoCard.appendChild(uploadLabel);
+
+            extraPhotosContainer.appendChild(photoCard);
+
+            this.setupExtraPhotoSlot(input);
+        });
+
         this.addNewPhotoField();
     }
 
@@ -434,19 +519,6 @@ export class EditListingComponent extends AbstractComponent {
             this.dialogBoxOpen = true;
             this.activeInputEvent = event;
         })
-
-        // newInput.addEventListener('focus', () => {
-        //     setTimeout (() => {
-        //         if (this.dialogBoxOpen) {
-        //             if (this.activeInputEvent.target.files.length === 0) {
-        //                 this.removePhotoField(this.activeInputEvent)
-        //                 console.log('focus event');
-        //             }
-        //             this.activeInputEvent = null;
-        //             this.dialogBoxOpen = false;
-        //         }
-        //     }, 5000);
-        // })
 
         newInput.addEventListener('change', (event) => {
             console.log('dynamic change event');
@@ -510,14 +582,16 @@ export class EditListingComponent extends AbstractComponent {
         this.numberOfPhotosUploaded -= 1;
     }
 
-    getMainPhoto(){
+    getMainPhoto() {
         const mainImg = this.container.querySelector('#main-img');
         return mainImg.getAttribute('src');
     }
 
-    getExtraPhotos(){
-        const extraPhotos = this.container.querySelectorAll('.photo');
-        return Array.from(extraPhotos).map(extraPhoto => extraPhoto.getAttribute('src'));
+    getExtraPhotos() {
+        const extraPhotos = this.container.querySelectorAll('.photo.preview-image');
+        return Array.from(extraPhotos)
+            .filter(img => img.getAttribute('src'))
+            .map(img => img.getAttribute('src'));
     }
 
     async handleSubmit(event) {
@@ -525,6 +599,13 @@ export class EditListingComponent extends AbstractComponent {
 
         try {
             this.clearMessages();
+
+            const mainImg = this.container.querySelector('#main-img');
+            const mainPhoto = this.container.querySelector('#mainPhoto');
+
+            if (mainImg.src && mainPhoto.hasAttribute('required')) {
+                mainPhoto.removeAttribute('required');
+            }
 
             const form = event.target;
             const formData = new FormData(form);
@@ -678,5 +759,194 @@ export class EditListingComponent extends AbstractComponent {
                 message.parentNode.removeChild(message);
             }
         });
+    }
+
+    setupMainPhoto() {
+        const mainPhoto = this.container.querySelector('#mainPhoto');
+        const mainImage = this.container.querySelector('#main-img');
+        const mainPreview = this.container.querySelector('#main-preview');
+        const mainPlaceholder = mainPreview.querySelector('.photo-placeholder');
+
+        if (mainImage && mainImage.src && mainImage.src !== '') {
+            mainPhoto.removeAttribute('required');
+        }
+
+        let mainRemoveBtn = mainPreview.querySelector('.remove-photo-btn');
+        if (!mainRemoveBtn) {
+            mainRemoveBtn = document.createElement('button');
+            mainRemoveBtn.className = 'remove-photo-btn';
+            mainRemoveBtn.innerHTML = '<i class="fa fa-times"></i>';
+            mainRemoveBtn.style.display = 'none';
+            mainPreview.appendChild(mainRemoveBtn);
+        }
+
+        mainRemoveBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            mainImage.removeAttribute('src');
+            mainPhoto.value = '';
+            if (mainPlaceholder) {
+                mainPlaceholder.style.display = 'flex';
+            }
+            mainRemoveBtn.style.display = 'none';
+        });
+
+        mainPhoto.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    mainImage.src = reader.result;
+                    if (mainPlaceholder) {
+                        mainPlaceholder.style.display = 'none';
+                    }
+                    mainRemoveBtn.style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                mainImage.removeAttribute('src');
+                if (mainPlaceholder) {
+                    mainPlaceholder.style.display = 'flex';
+                }
+                mainRemoveBtn.style.display = 'none';
+            }
+        });
+    }
+
+    setupExtraPhotoSlot(photoInput) {
+        const photoCard = photoInput.closest('.photo-upload-card');
+        const imagePreview = photoCard.querySelector('.preview-image');
+        const photoPreview = photoCard.querySelector('.photo-preview');
+        const placeholder = photoCard.querySelector('.photo-placeholder');
+
+        let removeBtn = photoPreview.querySelector('.remove-photo-btn');
+        if (!removeBtn) {
+            removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-photo-btn';
+            removeBtn.innerHTML = '<i class="fa fa-times"></i>';
+            removeBtn.style.display = 'none';
+            photoPreview.appendChild(removeBtn);
+        }
+
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            imagePreview.removeAttribute('src');
+            photoInput.value = '';
+            placeholder.style.display = 'flex';
+            removeBtn.style.display = 'none';
+
+            this.manageExtraPhotoContainers();
+        });
+
+        photoInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                    removeBtn.style.display = 'flex';
+                    placeholder.style.display = 'none';
+
+                    this.manageExtraPhotoContainers();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.removeAttribute('src');
+                placeholder.style.display = 'flex';
+                removeBtn.style.display = 'none';
+            }
+        });
+    }
+
+    renumberPhotoFields() {
+        const extraPhotos = this.container.querySelector('#extra-photos');
+        const photoCards = extraPhotos.querySelectorAll('.photo-upload-card');
+
+        photoCards.forEach((card, index) => {
+            const photoNum = index + 1;
+
+            const input = card.querySelector('input[type="file"]');
+            const oldId = input.id;
+            input.id = `photo${photoNum}`;
+
+            const label = card.querySelector('label.upload-btn');
+            label.setAttribute('for', `photo${photoNum}`);
+
+            const img = card.querySelector('.preview-image');
+            img.id = `photo${photoNum}-img`;
+        });
+
+        this.numberOfPhotosUploaded = photoCards.length;
+    }
+
+    manageExtraPhotoContainers() {
+        const extraPhotos = this.container.querySelector('#extra-photos');
+        const photoCards = extraPhotos.querySelectorAll('.photo-upload-card');
+
+        let filledCards = 0;
+        let emptyCards = [];
+
+        photoCards.forEach(card => {
+            const img = card.querySelector('.preview-image');
+            if (img && img.src && img.src !== '') {
+                filledCards++;
+            } else {
+                emptyCards.push(card);
+            }
+        });
+
+        if (emptyCards.length === 0) {
+            this.addNewPhotoField();
+        } else if (emptyCards.length > 1) {
+            for (let i = 1; i < emptyCards.length; i++) {
+                emptyCards[i].remove();
+            }
+            this.numberOfPhotosUploaded = filledCards + 1;
+        }
+
+        this.renumberPhotoFields();
+    }
+
+    addNewPhotoField() {
+        console.log("Adding new photo field");
+        this.numberOfPhotosUploaded += 1;
+
+        const extraPhotos = this.container.querySelector('#extra-photos');
+
+        const newPhotoCard = document.createElement('div');
+        newPhotoCard.setAttribute('class', 'photo-upload-card');
+
+        const previewContainer = document.createElement('div');
+        previewContainer.setAttribute('class', 'photo-preview');
+
+        const imagePreview = document.createElement('img');
+        imagePreview.setAttribute('id', `photo${this.numberOfPhotosUploaded}-img`);
+        imagePreview.setAttribute('class', 'photo preview-image');
+
+        const placeholder = document.createElement('div');
+        placeholder.setAttribute('class', 'photo-placeholder');
+        placeholder.innerHTML = '<i class="fa fa-image"></i><span>Additional Photo</span>';
+
+        previewContainer.appendChild(imagePreview);
+        previewContainer.appendChild(placeholder);
+
+        const uploadLabel = document.createElement('label');
+        uploadLabel.setAttribute('for', `photo${this.numberOfPhotosUploaded}`);
+        uploadLabel.setAttribute('class', 'upload-btn');
+        uploadLabel.innerHTML = '<span>Add Photo</span>';
+
+        const newInput = document.createElement('input');
+        newInput.setAttribute('type', 'file');
+        newInput.setAttribute('id', `photo${this.numberOfPhotosUploaded}`);
+        newInput.setAttribute('name', 'photo');
+        newInput.setAttribute('accept', 'image/*');
+
+        uploadLabel.appendChild(newInput);
+
+        newPhotoCard.appendChild(previewContainer);
+        newPhotoCard.appendChild(uploadLabel);
+
+        extraPhotos.appendChild(newPhotoCard);
+
+        this.setupExtraPhotoSlot(newInput);
     }
 }

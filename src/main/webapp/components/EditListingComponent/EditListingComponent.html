@@ -4,6 +4,29 @@
     <form id="editPropertyForm" class="property-form">
         <input type="hidden" id="propertyId" name="propertyId" value="">
 
+        <h3 class="section-title">Image Upload</h3>
+        <div class="image-upload-section">
+            <div class="main-photo-container">
+                <div class="photo-upload-card">
+                    <div class="photo-preview" id="main-preview">
+                        <img id="main-img" class="preview-image">
+                        <div class="photo-placeholder">
+                            <i class="fa fa-image"></i>
+                            <span>Main Photo</span>
+                        </div>
+                    </div>
+                    <label for="mainPhoto" class="upload-btn">
+                        <span>Select Main Photo*</span>
+                        <input type="file" id="mainPhoto" name="mainPhoto" accept="image/*" required>
+                    </label>
+                </div>
+            </div>
+
+            <div class="extra-photos-container" id="extra-photos">
+                <!-- Extra photos will be added here dynamically -->
+            </div>
+        </div>
+
         <h3>Basic Information</h3>
         <div class="form-row">
             <div class="form-group">
@@ -128,16 +151,6 @@
                 <label for="contactEmail">Email</label>
                 <input type="email" id="contactEmail" name="contactEmail" required>
             </div>
-        </div>
-
-        <h3>Image Upload</h3>
-        <div class="form-group">
-            <label for="mainPhoto">Main photo*</label>
-            <input type="file" id="mainPhoto" name="mainPhoto" accept="image/*" required>
-            <img id="main-img" style="max-width: 200px; display: block; margin-top: 10px">
-        </div>
-
-        <div class="form-row" id="extra-photos">
         </div>
 
         <div class="form-actions">

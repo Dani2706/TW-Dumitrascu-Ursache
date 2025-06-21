@@ -43,6 +43,9 @@ export class RegisterComponent extends AbstractComponent {
 
     //@Override
     destroy() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+        }
         this.eventListenerRemover();
         super.destroy();
     }
@@ -94,13 +97,7 @@ export class RegisterComponent extends AbstractComponent {
             );
 
             if (response.status === 201) {
-                alert("User registered!");
-                if (this.router) {
-                    this.router.safeNavigate("/home");
-                } else { // Fallback if router is not working
-                    console.error('Router not found');
-                    window.location.href = '/home';
-                }
+                this.replaceFormWithSuccess();
                 return;
             }
             else if (response.status === 409) {
@@ -132,8 +129,10 @@ export class RegisterComponent extends AbstractComponent {
     verifyPasswordValidity(formData) {
         const username = formData.get("username");
         const email = formData.get("email");
+        const phone = formData.get("phone");
         const password = formData.get("password");
         const confirmedPassword = formData.get("confirm-password");
+
         if (!(/^[a-zA-Z0-9]+$/.test(username))){
             this.errorMessage = "Username must contain only letters and numbers";
             this.errorSelectorName = ".frontend-username-error-message";
@@ -142,6 +141,11 @@ export class RegisterComponent extends AbstractComponent {
         else if (!(/^.+@.+$/.test(email))) {
             this.errorMessage = "Invalid email";
             this.errorSelectorName = ".frontend-email-error-message";
+            this.showErrorMessage();
+        }
+        else if (!(/^\+?\d+$/.test(phone))) {
+            this.errorMessage = "Phone number must contain only digits and optionally a '+' sign";
+            this.errorSelectorName = ".frontend-phone-error-message";
             this.showErrorMessage();
         }
         else if (password !== confirmedPassword) {
@@ -155,6 +159,99 @@ export class RegisterComponent extends AbstractComponent {
             this.showErrorMessage();
         } else {
             this.isSignUpFailed = false;
+        }
+    }
+
+    replaceFormWithSuccess() {
+        const registerContainer = this.container.querySelector('.register-container');
+        const form = this.container.querySelector('.register-form');
+
+        if (registerContainer && form) {
+            const successContent = document.createElement('div');
+            successContent.className = 'success-content';
+
+            const messageElement = document.createElement('div');
+            messageElement.className = 'success-message';
+            messageElement.innerHTML = `
+            <h3>Your account has been successfully created!</h3>
+            <p>You will be redirected to login page in <span id="countdown">5</span> seconds...</p>
+        `;
+            successContent.appendChild(messageElement);
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'success-buttons';
+
+            this.countdownInterval = null;
+
+            const homeButton = document.createElement('a');
+            homeButton.className = 'btn btn-secondary';
+            homeButton.innerHTML = 'Go to Home';
+            homeButton.href = '#';
+            homeButton.onclick = (e) => {
+                e.preventDefault();
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                }
+                this.router.safeNavigate("/home");
+
+                document.querySelectorAll('.nav-bar a').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('data-route') === '/') {
+                        link.classList.add('active');
+                    }
+                });
+
+                return false;
+            };
+
+            const loginButton = document.createElement('a');
+            loginButton.className = 'btn btn-primary';
+            loginButton.innerHTML = 'Go to Login';
+            loginButton.href = '#';
+            loginButton.onclick = (e) => {
+                e.preventDefault();
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                }
+                this.router.safeNavigate("/login");
+
+                document.querySelectorAll('.nav-bar a').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('data-route') === '/login') {
+                        link.classList.add('active');
+                    }
+                });
+
+                return false;
+            };
+
+            buttonContainer.appendChild(homeButton);
+            buttonContainer.appendChild(loginButton);
+            successContent.appendChild(buttonContainer);
+
+            form.style.display = 'none';
+            registerContainer.appendChild(successContent);
+
+            let countdown = 5;
+            const countdownElement = document.getElementById('countdown');
+            this.countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdownElement) {
+                    countdownElement.textContent = countdown;
+                }
+
+                if (countdown <= 0) {
+                    clearInterval(this.countdownInterval);
+                    this.router.safeNavigate("/login");
+
+                    document.querySelectorAll('.nav-bar a').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('data-route') === '/login') {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            }, 1000);
         }
     }
 }

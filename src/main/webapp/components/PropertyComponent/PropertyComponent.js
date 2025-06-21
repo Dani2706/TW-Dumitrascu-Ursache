@@ -21,51 +21,36 @@ export class PropertyComponent extends AbstractComponent {
         }
 
         this.currentContainer = container;
-
-        /*const slides = container.querySelectorAll('.slides');
-        if (slides.length > 0) {
-            this.showSlides(this.slideIndex, container);
-        }
-
-        const prev = container.querySelector('.prev');
-        const next = container.querySelector('.next');
-
-        if (prev) prev.addEventListener('click', () => this.plusSlides(-1));
-        if (next) next.addEventListener('click', () => this.plusSlides(1));*/
     }
 
     //@Override
     eventListenerRemover(container) {
-        /*if (this.templateLoaded) {
-            const prev = container.querySelector('.prev');
-            const next = container.querySelector('.next');
 
-            if (prev) prev.removeEventListener('click', () => this.plusSlides(-1));
-            if (next) next.removeEventListener('click', () => this.plusSlides(1));
-        }*/
     }
 
-    /*plusSlides(n, container) {
-        this.showSlides(this.slideIndex += n, this.currentContainer);
+    plusSlides(n) {
+        this.showSlides(this.slideIndex += n);
     }
 
-    currentSlide(n, container) {
-        this.showSlides(this.slideIndex = n, this.currentContainer);
-    }
+    showSlides(n) {
+        const slides = this.currentContainer.querySelectorAll('.slide');
+        const counter = this.currentContainer.querySelector('#current-slide');
 
-    showSlides(n, container) {
-        const slides = container.querySelectorAll(".slides");
         if (!slides.length) return;
 
         if (n > slides.length) this.slideIndex = 1;
         if (n < 1) this.slideIndex = slides.length;
 
         for (let i = 0; i < slides.length; i++) {
-            slides[i].style.display = "none";
+            slides[i].classList.remove('active');
         }
 
-        slides[this.slideIndex - 1].style.display = "block";
-    }*/
+        slides[this.slideIndex - 1].classList.add('active');
+
+        if (counter) {
+            counter.textContent = this.slideIndex;
+        }
+    }
 
     //@Override
     destroy() {
@@ -179,22 +164,66 @@ export class PropertyComponent extends AbstractComponent {
         this.initializeMap(data);
     }
 
-    addPhotos(container, mainPhoto, extraPhotos){
-        const imageContainer = container.querySelector('#images');
+    addPhotos(container, mainPhoto, extraPhotos) {
+        const imageContainer = container.querySelector('.property-images');
 
-        const newMainPhoto = document.createElement('img');
-        newMainPhoto.setAttribute('src', `data:image/png;base64,${mainPhoto}`);
-
-        imageContainer.appendChild(newMainPhoto);
-
-        if (extraPhotos !== "null") {
-            extraPhotos.forEach(extraPhoto => {
-                const newExtraPhoto = document.createElement('img');
-                newExtraPhoto.setAttribute('src', `data:image/png;base64,${extraPhoto}`);
-
-                imageContainer.appendChild(newExtraPhoto);
-            })
+        if (!mainPhoto) {
+            imageContainer.innerHTML = '<div class="no-photos">No photos available</div>';
+            return;
         }
+
+        imageContainer.innerHTML = '';
+
+        const mainSlide = document.createElement('div');
+        mainSlide.className = 'slide active';
+
+        const mainImg = document.createElement('img');
+        mainImg.src = `data:image/png;base64,${mainPhoto}`;
+        mainImg.alt = 'Property Photo';
+        mainImg.addEventListener('click', () => this.openFullscreen(mainImg.src));
+
+        mainSlide.appendChild(mainImg);
+        imageContainer.appendChild(mainSlide);
+
+        if (extraPhotos && extraPhotos !== "null" && extraPhotos.length > 0) {
+            extraPhotos.forEach(photo => {
+                const slide = document.createElement('div');
+                slide.className = 'slide';
+
+                const img = document.createElement('img');
+                img.src = `data:image/png;base64,${photo}`;
+                img.alt = 'Property Photo';
+                img.addEventListener('click', () => this.openFullscreen(img.src));
+
+                slide.appendChild(img);
+                imageContainer.appendChild(slide);
+            });
+        }
+
+        const totalSlides = 1 + (extraPhotos && extraPhotos !== "null" ? extraPhotos.length : 0);
+
+        if (totalSlides > 1) {
+            const prevButton = document.createElement('a');
+            prevButton.className = 'prev';
+            prevButton.innerHTML = '&#10094;';
+            prevButton.addEventListener('click', () => this.plusSlides(-1));
+
+            const nextButton = document.createElement('a');
+            nextButton.className = 'next';
+            nextButton.innerHTML = '&#10095;';
+            nextButton.addEventListener('click', () => this.plusSlides(1));
+
+            imageContainer.appendChild(prevButton);
+            imageContainer.appendChild(nextButton);
+
+            const counter = document.createElement('div');
+            counter.className = 'slide-counter';
+            counter.innerHTML = `<span id="current-slide">1</span>/<span id="total-slides">${totalSlides}</span>`;
+            imageContainer.appendChild(counter);
+        }
+
+        this.slideIndex = 1;
+        this.showSlides(this.slideIndex);
     }
 
     formatNumberWithDot(number) {
@@ -238,13 +267,6 @@ export class PropertyComponent extends AbstractComponent {
         }, 100);
     }
 
-    /*setElementAttribute(container, selector, attribute, value) {
-        const element = container.querySelector(selector);
-        if (element && value) {
-            element.setAttribute(attribute, value);
-        }
-    }*/
-
     handleError(error) {
         const container = this.currentContainer || document.querySelector(`.${this.className}`);
         if (container) {
@@ -253,11 +275,29 @@ export class PropertyComponent extends AbstractComponent {
         }
     }
 
-    loadProperty(propertyId) {
-        if (propertyId && propertyId > 0) {
-            this.loadPropertyDetails(propertyId);
-        } else {
-            console.error('Invalid property ID provided');
-        }
+    openFullscreen(imgSrc) {
+        const overlay = document.createElement('div');
+        overlay.className = 'fullscreen-overlay';
+
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.className = 'fullscreen-image';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'fullscreen-close';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+        });
+
+        overlay.appendChild(closeBtn);
+        overlay.appendChild(img);
+        document.body.appendChild(overlay);
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+            }
+        });
     }
 }
