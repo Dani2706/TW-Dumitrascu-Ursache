@@ -4,6 +4,15 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.photo {
+    max-height: 400px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4; /* optional: control image height */
+    object-fit: cover;
+    display: block;
+}
+
 .listing-manager-component {
     padding: 40px 20px;
     max-width: 1200px;
@@ -279,7 +288,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 30px;
+    padding: 10px;
 }
 
 .property-card .content {

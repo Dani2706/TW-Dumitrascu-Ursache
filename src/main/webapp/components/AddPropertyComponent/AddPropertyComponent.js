@@ -8,7 +8,11 @@ export class AddPropertyComponent extends AbstractComponent {
 
         this.map = null;
         this.marker = null;
-        this.debounceTimer = null;
+        this.debounceTimer = null
+        this.container = null;
+        this.numberOfPhotosUploaded = 1;
+        this.dialogBoxOpen = false;
+        this.activeInputEvent = null;
     }
 
     //@Override
@@ -39,9 +43,171 @@ export class AddPropertyComponent extends AbstractComponent {
             }
 
             setTimeout( () => this.initializeMap(), 100);
+
+
+            const mainPhoto = container.querySelector('#mainPhoto');
+            const mainImage = container.querySelector('#main-img');
+            mainPhoto.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        mainImage.src = reader.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    mainImage.removeAttribute('src');
+                }
+            });
+
+            const extraPhotos = container.querySelector('#extra-photos');
+            if (extraPhotos) {
+                const photo1 = extraPhotos.querySelector("#photo1");
+                const imagePreview = extraPhotos.querySelector('#photo1-img');
+                //photo1.addEventListener('change', this.changeExtraPhotosContainer.bind(this));
+                photo1.addEventListener('click', (event) => {
+                    this.dialogBoxOpen = true;
+                    this.activeInputEvent = event;
+                })
+
+                // photo1.addEventListener('focus', () => {
+                //     setTimeout (() => {
+                //         if (this.dialogBoxOpen) {
+                //             if (this.activeInputEvent.target.files.length === 0) {
+                //                 this.removePhotoField(this.activeInputEvent)
+                //                 console.log('focus event');
+                //             }
+                //             this.activeInputEvent = null;
+                //             this.dialogBoxOpen = false;
+                //         }
+                //     }, 2000);
+                // })
+
+                photo1.addEventListener('change', (event) => {
+                    this.activeInputEvent = null;
+                    this.dialogBoxOpen = false;
+                    console.log('change event');
+                    const file = event.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            imagePreview.src = reader.result;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        imagePreview.src = '';
+                    }
+
+                    this.changeExtraPhotosContainer(event);
+                });
+            }
+
         } else {
             console.error('Form #addPropertyForm not found in the template');
         }
+    }
+
+    changeExtraPhotosContainer(event) {
+        const input = event.target;
+        const lastDigitOfInputName = parseInt(input.getAttribute("id").slice(-1), 10);
+        if (input.files.length > 0){
+            if (lastDigitOfInputName === this.numberOfPhotosUploaded) {
+                this.addNewPhotoField();
+            }
+        }
+        else {
+            this.removePhotoField(event);
+        }
+    }
+
+    addNewPhotoField() {
+        console.log("Adding new photo field");
+        this.numberOfPhotosUploaded += 1;
+
+        const extraPhotos = this.container.querySelector('#extra-photos');
+
+        const newPhotoField = document.createElement('div');
+        newPhotoField.setAttribute('class', 'form-group');
+
+        const newLabel = document.createElement('label');
+        newLabel.setAttribute('for', 'photo' + this.numberOfPhotosUploaded);
+        newLabel.textContent = "Photo " + this.numberOfPhotosUploaded;
+
+        const newInput = document.createElement('input');
+        newInput.setAttribute('type', 'file');
+        newInput.setAttribute('id', 'photo' + this.numberOfPhotosUploaded);
+        newInput.setAttribute('name', 'photo');
+        newInput.setAttribute('accept', 'image/*');
+
+        const imagePreview = document.createElement('img');
+        imagePreview.style.maxWidth = '200px';
+        imagePreview.style.display = 'block';
+        imagePreview.style.marginTop = '10px';
+        imagePreview.setAttribute('class', 'photo');
+
+        newInput.addEventListener('click', (event) => {
+            this.dialogBoxOpen = true;
+            this.activeInputEvent = event;
+        })
+
+        // newInput.addEventListener('focus', () => {
+        //     setTimeout (() => {
+        //         if (this.dialogBoxOpen) {
+        //             if (this.activeInputEvent.target.files.length === 0) {
+        //                 this.removePhotoField(this.activeInputEvent)
+        //                 console.log('focus event');
+        //             }
+        //             this.activeInputEvent = null;
+        //             this.dialogBoxOpen = false;
+        //         }
+        //     }, 5000);
+        // })
+
+        newInput.addEventListener('change', (event) => {
+            console.log('dynamic change event');
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    imagePreview.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.removeAttribute('src');
+            }
+
+            this.changeExtraPhotosContainer(event);
+        });
+
+        newPhotoField.appendChild(newLabel);
+        newPhotoField.appendChild(newInput);
+        newPhotoField.appendChild(imagePreview);
+
+        extraPhotos.appendChild(newPhotoField);
+    }
+
+    removePhotoField(event){
+        const input = event.target;
+        const lastDigitOfInputName = parseInt(input.getAttribute("id").slice(-1), 10);
+        const inputParent = input.closest('.form-group');
+        inputParent.remove();
+        if ((lastDigitOfInputName !== this.numberOfPhotosUploaded)){
+            const extraPhotos = this.container.querySelector('#extra-photos');
+            const photos = extraPhotos.querySelectorAll('.form-group');
+
+            photos.forEach((photo, index) => {
+                const label = photo.querySelector('label');
+                const input = photo.querySelector('input');
+
+                const number = index + 1;
+
+                label.htmlFor = `photo${number}`
+                label.textContent = `Photo ${number}`;
+
+                input.setAttribute('id', `photo${number}`);
+            });
+        }
+        this.numberOfPhotosUploaded -= 1;
     }
 
     //@Override
@@ -178,10 +344,21 @@ export class AddPropertyComponent extends AbstractComponent {
         const container = document.createElement('div');
         container.className = this.className;
         container.innerHTML = this.template;
+        this.container = container;
         this.eventListenerLoader(container);
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
         return container;
+    }
+
+    getMainPhoto(){
+        const mainImg = this.container.querySelector('#main-img');
+        return mainImg.getAttribute('src');
+    }
+
+    getExtraPhotos(){
+        const extraPhotos = this.container.querySelectorAll('.photo');
+        return Array.from(extraPhotos).map(extraPhoto => extraPhoto.getAttribute('src'));
     }
 
     async handleSubmit(event) {
@@ -215,15 +392,16 @@ export class AddPropertyComponent extends AbstractComponent {
                 longitude: formData.get('longitude') || null,
                 contactName: formData.get('contactName'),
                 contactPhone: formData.get('contactPhone'),
-                contactEmail: formData.get('contactEmail')
+                contactEmail: formData.get('contactEmail'),
+                mainPhoto: this.getMainPhoto(),
+                extraPhotos: this.getExtraPhotos()
             };
 
-            console.log('Sending property data:', propertyData);
+            console.log('Json: ' + JSON.stringify(propertyData));
 
             const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/add-property', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     "Authorization": "Bearer " + sessionStorage.getItem("jwt")
                 },
                 body: JSON.stringify(propertyData)

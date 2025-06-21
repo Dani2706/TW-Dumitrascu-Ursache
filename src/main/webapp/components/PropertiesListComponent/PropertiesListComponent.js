@@ -467,8 +467,10 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     createPropertyCardHTML(property) {
+        const formattedImageUrl = `data:image/png;base64,${property.mainPhoto}`;
         return `
             <div class="property-card" data-property-id="${property.propertyId}">
+                <img class="photo" src=${formattedImageUrl}>
                 <div class="property-details">
                     <h3>${property.title}</h3>
                     <p class="property-location">${property.city}, ${property.country}</p>

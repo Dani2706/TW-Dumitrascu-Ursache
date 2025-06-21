@@ -1,7 +1,9 @@
 package repository;
 
+import dto.GetUserPropertyDTO;
 import entity.Property;
 import entity.PropertyForAllListings;
+import entity.PropertyMainImage;
 import entity.TopProperty;
 import exceptions.DatabaseException;
 import exceptions.NoListingsForThisCategoryException;
@@ -9,6 +11,7 @@ import exceptions.PropertyNotFoundException;
 import exceptions.PropertyValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.Base64Util;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -72,12 +75,12 @@ public class PropertyRepository {
         return property;
     }
 
-    public List<Property> findPropertiesByUserId(int userId) throws DatabaseException, PropertyValidationException {
+    public List<GetUserPropertyDTO> findPropertiesByUserId(int userId) throws DatabaseException, PropertyValidationException {
         logger.debug("Retrieving properties for user with ID: {}", userId);
-        List<Property> properties = new ArrayList<>();
+        List<GetUserPropertyDTO> properties = new ArrayList<>();
 
         try (Connection conn = dataSource.getConnection()) {
-            String sql = "SELECT * FROM properties WHERE user_id = ?";
+            String sql = "SELECT * FROM properties p JOIN property_main_image i ON p.property_id = i.property_id WHERE user_id = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
@@ -108,7 +111,11 @@ public class PropertyRepository {
                         rs.getString("contact_email"),
                         rs.getInt("user_id")
                 );
-                properties.add(property);
+                PropertyMainImage propertyMainImage = new PropertyMainImage(
+                        rs.getInt("property_id"),
+                        Base64Util.encodeBase64(rs.getBytes("image_data"))
+                );
+                properties.add(new GetUserPropertyDTO(property, propertyMainImage));
             }
 
             logger.debug("Found {} properties for user ID: {}", properties.size(), userId);
@@ -120,16 +127,196 @@ public class PropertyRepository {
         return properties;
     }
 
-    public int addProperty(Property property) throws DatabaseException {
+    public int addProperty(Property property, byte[] mainPhoto, List<byte[]> extraPhotos) throws DatabaseException {
         logger.debug("Adding new property: {}", property.getTitle());
 
-        try (Connection conn = dataSource.getConnection()) {
-            String sql = "INSERT INTO properties (title, description, property_type, transaction_type, "
-                    + "price, surface_area, rooms, bathrooms, floor, total_floors, year_built, "
-                    + "created_at, address, country, city, state, latitude, longitude, contact_name, contact_phone, contact_email, user_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+            int propertyId = addPropertyData(property, conn);
+            addPropertyMainPhoto(propertyId, mainPhoto, conn);
+            for(byte[] extraPhoto : extraPhotos) {
+                addPropertyExtraPhoto(propertyId, extraPhoto, conn);
+            }
+            conn.commit();
+            conn.close();
+            return propertyId;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    conn.close();
+                } catch (SQLException e1) {
+                    throw new DatabaseException("Error rolling back property add: " + e.getMessage());
+                }
+            }
+            throw new DatabaseException("Error adding property: " + e.getMessage());
+        }
+    }
 
-            PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"property_id"});
+    private void addPropertyExtraPhoto(int propertyId, byte[] extraPhoto, Connection conn) throws SQLException {
+        String sql = "INSERT INTO property_images (property_id, image_data) "
+                + "VALUES (?, ?)";
+
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, propertyId);
+        stmt.setBytes(2, extraPhoto);
+
+        int affectedRows = stmt.executeUpdate();
+
+        if (affectedRows == 0) {
+            logger.error("Failed to save extra photo for property with ID: {}", propertyId);
+            throw new SQLException("Failed to save property extra photo");
+        }
+    }
+
+    private int addPropertyData(Property property, Connection conn) throws SQLException {
+        String sql = "INSERT INTO properties (title, description, property_type, transaction_type, "
+                + "price, surface_area, rooms, bathrooms, floor, total_floors, year_built, "
+                + "created_at, address, country, city, state, latitude, longitude, contact_name, contact_phone, contact_email, user_id) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"property_id"});
+        stmt.setString(1, property.getTitle());
+        stmt.setString(2, property.getDescription());
+        stmt.setString(3, property.getPropertyType());
+        stmt.setString(4, property.getTransactionType());
+        stmt.setInt(5, property.getPrice());
+        stmt.setInt(6, property.getSurface());
+        stmt.setInt(7, property.getRooms());
+        stmt.setInt(8, property.getBathrooms());
+        stmt.setInt(9, property.getFloor());
+        stmt.setInt(10, property.getTotalFloors());
+        stmt.setInt(11, property.getYearBuilt());
+        stmt.setDate(12, property.getCreatedAt());
+        stmt.setString(13, property.getAddress());
+        stmt.setString(14, property.getCountry());
+        stmt.setString(15, property.getCity());
+        stmt.setString(16, property.getState());
+        stmt.setDouble(17, property.getLatitude());
+        stmt.setDouble(18, property.getLongitude());
+        stmt.setString(19, property.getContactName());
+        stmt.setString(20, property.getContactPhone());
+        stmt.setString(21, property.getContactEmail());
+        stmt.setInt(22, property.getUserId());
+
+        int affectedRows = stmt.executeUpdate();
+
+        if (affectedRows == 0) {
+            logger.error("Creating property failed, no rows affected");
+            throw new SQLException("Failed to create property, no rows affected");
+        }
+
+        try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                int id = generatedKeys.getInt(1);
+                logger.info("Added new property with ID: {}", id);
+                return id;
+            } else {
+                logger.error("Creating property failed, no ID obtained");
+                throw new SQLException("Failed to create property, no ID obtained");
+            }
+        }
+    }
+
+    private void addPropertyMainPhoto(int propertyId, byte[] mainPhoto, Connection conn) throws DatabaseException, SQLException {
+        String sql = "INSERT INTO property_main_image (property_id, image_data) "
+                + "VALUES (?, ?)";
+
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setInt(1, propertyId);
+        stmt.setBytes(2, mainPhoto);
+
+        int affectedRows = stmt.executeUpdate();
+
+        if (affectedRows == 0) {
+            logger.error("Failed to save property main photo for property with ID: {}", propertyId);
+            throw new SQLException("Failed to save property main photo");
+        }
+    }
+
+    public void updateProperty(int propertyId, int userId, Property property, byte[] mainPhoto, List<byte[]> extraPhotos) throws DatabaseException {
+        logger.debug("Attempting to update property with ID: {} for user ID: {}", propertyId, userId);
+
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+            checkPropertyExistence(conn, propertyId, userId);
+            updatePropertyData(property, conn, propertyId, userId);
+            updatePropertyMainPhoto(mainPhoto, propertyId, conn);
+            deletePropertyExtraPhotos(conn, propertyId);
+            for(byte[] extraPhoto : extraPhotos) {
+                addPropertyExtraPhoto(propertyId, extraPhoto, conn);
+            }
+            conn.commit();
+            conn.close();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    conn.close();
+                } catch (SQLException e1) {
+                    throw new DatabaseException("Error rolling back property update: " + e.getMessage());
+                }
+            }
+            throw new DatabaseException("Error updating property: " + e.getMessage());
+        }
+    }
+
+    private void deletePropertyExtraPhotos(Connection conn, int propertyId) throws SQLException{
+        String stmtAsString = "DELETE FROM property_images WHERE property_id = ?";
+        try(PreparedStatement stmt = conn.prepareStatement(stmtAsString)){
+            stmt.setInt(1, propertyId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                logger.error("No rows affected when deleting property images with id{}", propertyId);
+                throw new SQLException("Failed to delete property images, no rows affected");
+            }
+        }
+    }
+
+    private void updatePropertyMainPhoto(byte[] mainPhoto, int propertyId, Connection conn) throws SQLException {
+        String stmtAsString = "UPDATE property_main_image SET image_data = ? WHERE property_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(stmtAsString)){
+            stmt.setBytes(1, mainPhoto);
+            stmt.setInt(2, propertyId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected == 0) {
+                logger.error("No rows affected when updating property main image with id{}", propertyId);
+                throw new SQLException("Failed to update property main image, no rows affected");
+            }
+        }
+    }
+
+    public void checkPropertyExistence(Connection conn, int propertyId, int userId) throws SQLException{
+        String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND user_id = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, propertyId);
+            checkStmt.setInt(2, userId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (!rs.next()) {
+                logger.warn("Property with ID {} not found or doesn't belong to user ID {}", propertyId, userId);
+                throw new SQLException("Property not found or doesn't belong to this user");
+            }
+        }
+    }
+
+    private void updatePropertyData(Property property, Connection conn, int propertyId, int userId) throws SQLException {
+        String sql = "UPDATE properties SET " +
+                "title = ?, description = ?, property_type = ?, transaction_type = ?, " +
+                "price = ?, surface_area = ?, rooms = ?, bathrooms = ?, " +
+                "floor = ?, total_floors = ?, year_built = ?, " +
+                "address = ?, country = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
+                "contact_name = ?, contact_phone = ?, contact_email = ? " +
+                "WHERE property_id = ? AND user_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, property.getTitle());
             stmt.setString(2, property.getDescription());
             stmt.setString(3, property.getPropertyType());
@@ -141,131 +328,82 @@ public class PropertyRepository {
             stmt.setInt(9, property.getFloor());
             stmt.setInt(10, property.getTotalFloors());
             stmt.setInt(11, property.getYearBuilt());
-            stmt.setDate(12, property.getCreatedAt());
-            stmt.setString(13, property.getAddress());
-            stmt.setString(14, property.getCountry());
-            stmt.setString(15, property.getCity());
-            stmt.setString(16, property.getState());
-            stmt.setDouble(17, property.getLatitude());
-            stmt.setDouble(18, property.getLongitude());
-            stmt.setString(19, property.getContactName());
-            stmt.setString(20, property.getContactPhone());
-            stmt.setString(21, property.getContactEmail());
-            stmt.setInt(22, property.getUserId());
+            stmt.setString(12, property.getAddress());
+            stmt.setString(13, property.getCountry());
+            stmt.setString(14, property.getCity());
+            stmt.setString(15, property.getState());
+            stmt.setDouble(16, property.getLatitude());
+            stmt.setDouble(17, property.getLongitude());
+            stmt.setString(18, property.getContactName());
+            stmt.setString(19, property.getContactPhone());
+            stmt.setString(20, property.getContactEmail());
+            stmt.setInt(21, propertyId);
+            stmt.setInt(22, userId);
 
-            int affectedRows = stmt.executeUpdate();
+            int rowsAffected = stmt.executeUpdate();
 
-            if (affectedRows == 0) {
-                logger.error("Creating property failed, no rows affected");
-                throw new DatabaseException("Failed to create property, no rows affected");
+            if (rowsAffected == 0) {
+                logger.error("No rows affected when updating property data with id{}", propertyId);
+                throw new SQLException("Failed to update property data, no rows affected");
             }
 
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    int id = generatedKeys.getInt(1);
-                    logger.info("Added new property with ID: {}", id);
-                    return id;
-                } else {
-                    logger.error("Creating property failed, no ID obtained");
-                    throw new DatabaseException("Failed to create property, no ID obtained");
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException("Error adding property: " + e.getMessage());
-        }
-    }
-
-    public void updateProperty(int propertyId, int userId, Property property) throws DatabaseException, PropertyNotFoundException {
-        logger.debug("Attempting to update property with ID: {} for user ID: {}", propertyId, userId);
-
-        try (Connection conn = dataSource.getConnection()) {
-            String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND user_id = ?";
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setInt(1, propertyId);
-                checkStmt.setInt(2, userId);
-                ResultSet rs = checkStmt.executeQuery();
-
-                if (!rs.next()) {
-                    logger.warn("Property with ID {} not found or doesn't belong to user ID {}", propertyId, userId);
-                    throw new PropertyNotFoundException("Property not found or doesn't belong to this user");
-                }
-            }
-
-            String sql = "UPDATE properties SET " +
-                    "title = ?, description = ?, property_type = ?, transaction_type = ?, " +
-                    "price = ?, surface_area = ?, rooms = ?, bathrooms = ?, " +
-                    "floor = ?, total_floors = ?, year_built = ?, " +
-                    "address = ?, country = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
-                    "contact_name = ?, contact_phone = ?, contact_email = ? " +
-                    "WHERE property_id = ? AND user_id = ?";
-
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, property.getTitle());
-                stmt.setString(2, property.getDescription());
-                stmt.setString(3, property.getPropertyType());
-                stmt.setString(4, property.getTransactionType());
-                stmt.setInt(5, property.getPrice());
-                stmt.setInt(6, property.getSurface());
-                stmt.setInt(7, property.getRooms());
-                stmt.setInt(8, property.getBathrooms());
-                stmt.setInt(9, property.getFloor());
-                stmt.setInt(10, property.getTotalFloors());
-                stmt.setInt(11, property.getYearBuilt());
-                stmt.setString(12, property.getAddress());
-                stmt.setString(13, property.getCountry());
-                stmt.setString(14, property.getCity());
-                stmt.setString(15, property.getState());
-                stmt.setDouble(16, property.getLatitude());
-                stmt.setDouble(17, property.getLongitude());
-                stmt.setString(18, property.getContactName());
-                stmt.setString(19, property.getContactPhone());
-                stmt.setString(20, property.getContactEmail());
-                stmt.setInt(21, propertyId);
-                stmt.setInt(22, userId);
-
-                int rowsAffected = stmt.executeUpdate();
-
-                if (rowsAffected == 0) {
-                    logger.error("No rows affected when updating property {}", propertyId);
-                    throw new DatabaseException("Failed to update property, no rows affected");
-                }
-
-                logger.info("Successfully updated property with ID: {}", propertyId);
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException("Error updating property: " + e.getMessage());
+            logger.info("Successfully updated property data with ID: {}", propertyId);
         }
     }
 
     public void deleteProperty(int propertyId, int userId) throws DatabaseException, PropertyNotFoundException {
         logger.debug("Attempting to delete property with ID: {} for user ID: {}", propertyId, userId);
 
-        try (Connection conn = dataSource.getConnection()) {
+        Connection conn = null;
+        try {
+            conn = dataSource.getConnection();
+            conn.setAutoCommit(false);
+            checkPropertyExistence(conn, propertyId, userId);
+            deletePropertyMainPhoto(conn, propertyId);
+            deletePropertyExtraPhotos(conn, propertyId);
+            deletePropertyData(conn, propertyId);
 
-            String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND user_id = ?";
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
-            checkStmt.setInt(1, propertyId);
-            checkStmt.setInt(2, userId);
-            ResultSet rs = checkStmt.executeQuery();
+            conn.commit();
+            conn.close();
 
-            if (!rs.next()) {
-                logger.warn("Property with ID {} not found or doesn't belong to user ID {}", propertyId, userId);
-                throw new PropertyNotFoundException("Property not found or doesn't belong to this user");
+            logger.info("Successfully deleted property with ID: {}", propertyId);
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    conn.close();
+                } catch (SQLException e1) {
+                    throw new DatabaseException("Error rolling back property delete: " + e.getMessage());
+                }
             }
+            throw new DatabaseException("Error deleting property: " + e.getMessage());
+        }
+    }
 
-            String sql = "DELETE FROM properties WHERE property_id = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+    private void deletePropertyData(Connection conn, int propertyId) throws SQLException {
+        String sql = "DELETE FROM properties WHERE property_id = ?";
+        try(PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, propertyId);
             int rowsAffected = stmt.executeUpdate();
 
             if (rowsAffected == 0) {
-                logger.error("No rows affected when deleting property {}", propertyId);
-                throw new DatabaseException("Failed to delete property, no rows affected");
+                logger.error("No rows affected when deleting property data with id {}", propertyId);
+                throw new SQLException("Failed to delete property data , no rows affected");
             }
+        }
+    }
 
-            logger.info("Successfully deleted property with ID: {}", propertyId);
-        } catch (SQLException e) {
-            throw new DatabaseException("Error deleting property: " + e.getMessage());
+    private void deletePropertyMainPhoto(Connection conn, int propertyId) throws SQLException {
+        String stmtAsString = "DELETE FROM property_main_image WHERE property_id = ?";
+        try(PreparedStatement stmt = conn.prepareStatement(stmtAsString)) {
+            stmt.setInt(1, propertyId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                logger.error("No rows affected when deleting property main photo with id {}", propertyId);
+                throw new SQLException("Failed to delete property main photo , no rows affected");
+            }
         }
     }
 
@@ -325,9 +463,9 @@ public class PropertyRepository {
     public List<PropertyForAllListings> getAllPropertiesWithBothFilters(String propertyType, String transactionType)
             throws DatabaseException, NoListingsForThisCategoryException {
 
-        String sql = "SELECT property_id, title, rooms, floor, year_built, bathrooms, surface_area, " +
-                "city, state, country, latitude, longitude, price, transaction_type " +
-                "FROM properties WHERE 1=1";
+        String sql = "SELECT p.property_id, title, rooms, floor, year_built, bathrooms, surface_area, " +
+                "city, state, country, latitude, longitude, price, transaction_type, image_data " +
+                "FROM properties p JOIN property_main_image i ON p.property_id = i.property_id WHERE 1=1";
 
         List<Object> params = new ArrayList<>();
 
@@ -372,7 +510,8 @@ public class PropertyRepository {
                         result.getDouble("latitude"),
                         result.getDouble("longitude"),
                         result.getInt("price"),
-                        result.getString("transaction_type")
+                        result.getString("transaction_type"),
+                        Base64Util.encodeBase64(result.getBytes("image_data"))
                 ));
             }
 
@@ -386,7 +525,7 @@ public class PropertyRepository {
     }
 
         public List<PropertyForAllListings> getAllPropertiesWithCriteria(String filterCriteria) throws DatabaseException, NoListingsForThisCategoryException {
-            String stmtAsString = "SELECT property_id, title, rooms, floor, year_built, bathrooms, surface_area, city, state, country, latitude, longitude, price, transaction_type FROM properties WHERE property_type = ?";
+            String stmtAsString = "SELECT p.property_id, title, rooms, floor, year_built, bathrooms, surface_area, city, state, country, latitude, longitude, price, transaction_type, image_data FROM properties p JOIN property_main_image i ON p.property_id = i.property_id WHERE property_type = ?";
             try(Connection connection = this.dataSource.getConnection();
                 PreparedStatement stmt = connection.prepareStatement(stmtAsString)) {
                 stmt.setString(1, filterCriteria);
@@ -410,7 +549,8 @@ public class PropertyRepository {
                             result.getDouble("latitude"),
                             result.getDouble("longitude"),
                             result.getInt("price"),
-                            result.getString("transaction_type")
+                            result.getString("transaction_type"),
+                            Base64Util.encodeBase64(result.getBytes("image_data"))
                         ));
                 }
                 return properties;
@@ -518,6 +658,83 @@ public class PropertyRepository {
         } catch (SQLException e) {
             logger.error("Database error when retrieving filtered states", e);
             throw new DatabaseException("Error retrieving filtered states: " + e.getMessage(), e);
+        }
+    }
+
+    public int addPropertyMainImage(byte[] mainImageAsBytes, int propertyId) throws DatabaseException{
+        String stmtAsString = "INSERT INTO property_main_image (property_id, image_data) VALUES(?, ?)";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, propertyId);
+            stmt.setBytes(2, mainImageAsBytes);
+
+            stmt.executeQuery();
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows == 0) {
+                logger.error("Creating property failed, no rows affected");
+                throw new DatabaseException("Failed to create property, no rows affected");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    logger.info("Added new property with ID: {}", id);
+                    return id;
+                } else {
+                    logger.error("Creating property failed, no ID obtained");
+                    throw new DatabaseException("Failed to create property, no ID obtained");
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Error adding property: " + e.getMessage());
+        }
+    }
+
+    public byte[] getPropertyMainImage(int propertyId) throws DatabaseException{
+        String stmtAsString = "SELECT image_data FROM property_main_image WHERE property_id = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, propertyId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getBytes("image_data");
+            }
+            else{
+                throw new DatabaseException("Failed to retrieve property main image. No main image for property ID: " + propertyId);
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    public List<byte[]> getPropertyExtraPhotos(int propertyId) throws DatabaseException {
+        String stmtAsString = "SELECT image_data FROM property_images WHERE property_id = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, propertyId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (!rs.next()) {
+                return null;
+            }
+
+            List<byte[]> extraPhotos = new ArrayList<>();
+            extraPhotos.add(rs.getBytes("image_data"));
+            while (rs.next()) {
+                extraPhotos.add(rs.getBytes("image_data"));
+                System.out.println("TTTTTTTTTTTTTTextraPhotos: ");
+            }
+            return extraPhotos;
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
         }
     }
 }

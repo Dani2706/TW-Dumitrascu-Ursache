@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import dto.GetUserPropertyDTO;
 import exceptions.DatabaseException;
 import exceptions.NotAuthorizedException;
 import exceptions.PropertyValidationException;
@@ -42,23 +43,25 @@ public class GetUserPropertiesServlet extends HttpServlet {
         String authHeader = request.getHeader("Authorization");
         try {
             String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
-            List<Property> properties = propertyService.getUserProperties(token);
+            List<GetUserPropertyDTO> properties = propertyService.getUserProperties(token);
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             PrintWriter out = response.getWriter();
 
+            boolean first = true;
             StringBuilder json = new StringBuilder("[");
-            for (int i = 0; i < properties.size(); i++) {
-                Property property = properties.get(i);
-                json.append("{");
-                json.append("\"id\":").append(property.getPropertyId()).append(",");
-                json.append("\"title\":\"").append(property.getTitle()).append("\",");
-                json.append("\"creationDate\":\"").append(property.getCreatedAt()).append("\"");
-                json.append("}");
-                if (i < properties.size() - 1) {
+            for (GetUserPropertyDTO property : properties) {
+                if (!first) {
                     json.append(",");
                 }
+                first = false;
+                json.append("{");
+                json.append("\"id\":").append(property.getPropertyData().getPropertyId()).append(",");
+                json.append("\"title\":\"").append(property.getPropertyData().getTitle()).append("\",");
+                json.append("\"creationDate\":\"").append(property.getPropertyData().getCreatedAt()).append("\",");
+                json.append("\"mainPhoto\":\"").append(property.getPropertyMainImage().getData()).append("\"");
+                json.append("}");
             }
             json.append("]");
 

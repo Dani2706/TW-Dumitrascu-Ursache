@@ -375,9 +375,11 @@ export class ListingManagerComponent extends AbstractComponent {
                         month: 'long',
                         day: 'numeric'
                     });
+                    const formattedImageUrl = `data:image/png;base64,${property.mainPhoto}`;
 
                     return `
                 <div class="property-card">
+                    <img class="photo" src=${formattedImageUrl}>
                     <div class="content">
                         <div class="title-wrapper">
                             <h3>${property.title}</h3>
