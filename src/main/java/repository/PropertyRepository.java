@@ -127,6 +127,62 @@ public class PropertyRepository {
         return properties;
     }
 
+    public List<PropertyForAllListings> findFavoritePropertiesByUserId(int userId) throws DatabaseException {
+        logger.debug("Retrieving favorite properties for user with ID: {}", userId);
+        List<PropertyForAllListings> favoriteProperties = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "SELECT p.property_id, p.title, p.created_at " +
+                    "FROM properties p " +
+                    "JOIN favorites f ON p.property_id = f.property_id " +
+                    "WHERE f.user_id = ?";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                PropertyForAllListings property = new PropertyForAllListings();
+                property.setPropertyId(rs.getInt("property_id"));
+                property.setTitle(rs.getString("title"));
+                property.setCreatedAt(rs.getDate("created_at"));
+
+                favoriteProperties.add(property);
+            }
+
+            logger.debug("Found {} favorite properties for user ID: {}", favoriteProperties.size(), userId);
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving favorite properties for user ID: {}", userId, e);
+            throw new DatabaseException("Error retrieving user favorite properties: " + e.getMessage(), e);
+        }
+
+        return favoriteProperties;
+    }
+
+    public void removeFavoriteProperty(int propertyId, int userId) throws DatabaseException {
+        logger.debug("Attempting to remove property ID: {} from favorites for user ID: {}", propertyId, userId);
+
+        try (Connection conn = dataSource.getConnection()) {
+            String sql = "DELETE FROM favorites WHERE property_id = ? AND user_id = ?";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, propertyId);
+            stmt.setInt(2, userId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                logger.warn("No favorite relationship found for property ID: {} and user ID: {}", propertyId, userId);
+            } else {
+                logger.info("Successfully removed property ID: {} from favorites for user ID: {}", propertyId, userId);
+            }
+        } catch (SQLException e) {
+            logger.error("Database error when removing favorite", e);
+            throw new DatabaseException("Error removing property from favorites: " + e.getMessage(), e);
+        }
+    }
+
+
     public int addProperty(Property property, byte[] mainPhoto, List<byte[]> extraPhotos) throws DatabaseException {
         logger.debug("Adding new property: {}", property.getTitle());
 
@@ -351,6 +407,42 @@ public class PropertyRepository {
         }
     }
 
+    public void addFavoriteProperty(int propertyId, int userId) throws DatabaseException {
+        logger.debug("Attempting to add property ID: {} to favorites for user ID: {}", propertyId, userId);
+
+        try (Connection conn = dataSource.getConnection()) {
+            String checkSql = "SELECT 1 FROM favorites WHERE property_id = ? AND user_id = ?";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, propertyId);
+                checkStmt.setInt(2, userId);
+                ResultSet rs = checkStmt.executeQuery();
+
+                if (rs.next()) {
+                    logger.info("Favorite already exists for property ID: {} and user ID: {}", propertyId, userId);
+                    return;
+                }
+            }
+
+            String insertSql = "INSERT INTO favorites (property_id, user_id) VALUES (?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+                stmt.setInt(1, propertyId);
+                stmt.setInt(2, userId);
+
+                int rowsAffected = stmt.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    logger.info("Successfully added property ID: {} to favorites for user ID: {}", propertyId, userId);
+                } else {
+                    logger.warn("Failed to add favorite - no rows affected");
+                    throw new DatabaseException("Failed to add property to favorites");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Database error when adding favorite", e);
+            throw new DatabaseException("Error adding property to favorites: " + e.getMessage(), e);
+        }
+    }
+
     public void deleteProperty(int propertyId, int userId) throws DatabaseException, PropertyNotFoundException {
         logger.debug("Attempting to delete property with ID: {} for user ID: {}", propertyId, userId);
 
@@ -407,23 +499,35 @@ public class PropertyRepository {
         }
     }
 
-    public List<TopProperty> findTopProperties() throws DatabaseException {
+    public List<PropertyForAllListings> findTopProperties() throws DatabaseException {
         logger.debug("Retrieving top properties");
-        List<TopProperty> topProperties = new ArrayList<>();
+        List<PropertyForAllListings> topProperties = new ArrayList<>();
 
         try (Connection conn = dataSource.getConnection()) {
-            String sql = "SELECT tp.property_id, p.title, p.price " +
-                    "FROM top_properties tp " +
-                    "JOIN properties p ON tp.property_id = p.property_id ";
+            String sql = "SELECT p.property_id, p.title, p.rooms, p.floor, p.year_built, p.bathrooms, " +
+                    "p.surface_area, p.city, p.state, p.country, p.latitude, p.longitude, p.price, p.transaction_type " +
+                    "FROM properties p " +
+                    "JOIN top_properties tp ON p.property_id = tp.property_id";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                TopProperty property = new TopProperty(
+                PropertyForAllListings property = new PropertyForAllListings(
                         rs.getInt("property_id"),
                         rs.getString("title"),
-                        rs.getInt("price")
+                        rs.getInt("rooms"),
+                        rs.getInt("floor"),
+                        rs.getInt("year_built"),
+                        rs.getInt("bathrooms"),
+                        rs.getInt("surface_area"),
+                        rs.getString("city"),
+                        rs.getString("state"),
+                        rs.getString("country"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude"),
+                        rs.getInt("price"),
+                        rs.getString("transaction_type")
                 );
                 topProperties.add(property);
             }
@@ -435,13 +539,14 @@ public class PropertyRepository {
             }
 
         } catch (SQLException e) {
-            throw new DatabaseException("Error retrieving top properties: " + e.getMessage());
+            logger.error("Database error when retrieving top properties", e);
+            throw new DatabaseException("Error retrieving top properties: " + e.getMessage(), e);
         }
 
         return topProperties;
     }
 
-    public int testAddPropertyAsObject(Property property) throws DatabaseException, PropertyValidationException {
+    /*public int testAddPropertyAsObject(Property property) throws DatabaseException, PropertyValidationException {
         String testAddPropertyAsObject = "{call test_add(?)}";
         try(Connection connection = this.dataSource.getConnection();
         CallableStatement stmt = connection.prepareCall(testAddPropertyAsObject)){
@@ -458,7 +563,7 @@ public class PropertyRepository {
             }
             throw new DatabaseException(e.getMessage());
         }
-    }
+    }*/
 
     public List<PropertyForAllListings> getAllPropertiesWithBothFilters(String propertyType, String transactionType)
             throws DatabaseException, NoListingsForThisCategoryException {

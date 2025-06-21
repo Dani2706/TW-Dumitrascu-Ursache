@@ -56,6 +56,72 @@ public class PropertyService {
         return properties;
     }
 
+    public String getUserFavorites(String token) throws PropertyDataException, DatabaseException, PropertyValidationException {
+        int userId = jwtUtil.getUserId(token);
+        if (userId <= 0) {
+            logger.warn("Attempt to get favorites with invalid user ID: {}", userId);
+            throw new PropertyDataException("User ID must be positive");
+        }
+
+        logger.debug("Fetching favorite properties for user ID: {}", userId);
+        try {
+            List<PropertyForAllListings> favoriteProperties = propertyRepository.findFavoritePropertiesByUserId(userId);
+            logger.debug("Successfully retrieved {} favorite properties for user ID: {}", favoriteProperties.size(), userId);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(favoriteProperties);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting favorite properties to JSON", e);
+            throw new DatabaseException("Error processing favorite property data: " + e.getMessage(), e);
+        }
+    }
+
+    public void removeFavorite(int propertyId, String token) throws PropertyDataException, DatabaseException {
+        int userId = jwtUtil.getUserId(token);
+
+        if (propertyId <= 0) {
+            logger.warn("Attempt to remove favorite with invalid property ID: {}", propertyId);
+            throw new PropertyDataException("Property ID must be positive");
+        }
+
+        if (userId <= 0) {
+            logger.warn("Attempt to remove favorite with invalid user ID: {}", userId);
+            throw new PropertyDataException("User ID must be positive");
+        }
+
+        try {
+            logger.debug("Removing property ID: {} from favorites for user ID: {}", propertyId, userId);
+            propertyRepository.removeFavoriteProperty(propertyId, userId);
+            logger.info("Successfully removed property ID: {} from favorites for user ID: {}", propertyId, userId);
+        } catch (DatabaseException e) {
+            logger.error("Database error when removing property ID: {} from favorites for user ID: {}", propertyId, userId, e);
+            throw new DatabaseException("Error removing property from favorites: " + e.getMessage(), e);
+        }
+    }
+
+    public void addFavorite(int propertyId, String token) throws PropertyDataException, DatabaseException {
+        int userId = jwtUtil.getUserId(token);
+
+        if (propertyId <= 0) {
+            logger.warn("Attempt to add favorite with invalid property ID: {}", propertyId);
+            throw new PropertyDataException("Property ID must be positive");
+        }
+
+        if (userId <= 0) {
+            logger.warn("Attempt to add favorite with invalid user ID: {}", userId);
+            throw new PropertyDataException("User ID must be positive");
+        }
+
+        try {
+            logger.debug("Adding property ID: {} to favorites for user ID: {}", propertyId, userId);
+            propertyRepository.addFavoriteProperty(propertyId, userId);
+            logger.info("Successfully added property ID: {} to favorites for user ID: {}", propertyId, userId);
+        } catch (DatabaseException e) {
+            logger.error("Database error when adding property ID: {} to favorites for user ID: {}", propertyId, userId, e);
+            throw new DatabaseException("Error adding property to favorites: " + e.getMessage(), e);
+        }
+    }
+
     public int addProperty(String title, String description, String propertyType,
                            String transactionType, int price, int surface, int rooms,
                            int bathrooms, int floor, int totalFloors, int yearBuilt,
@@ -145,11 +211,23 @@ public class PropertyService {
         }
     }
 
-    public List<TopProperty> getTopProperties() throws DatabaseException {
+    public String getTopProperties() throws DatabaseException, PropertyDataException {
         logger.debug("Fetching top properties");
-        List<TopProperty> topProperties = propertyRepository.findTopProperties();
-        logger.debug("Retrieved {} top properties", topProperties.size());
-        return topProperties;
+
+        try {
+            List<PropertyForAllListings> topProperties = propertyRepository.findTopProperties();
+            logger.debug("Retrieved {} top properties", topProperties.size());
+
+            if (topProperties.isEmpty()) {
+                throw new PropertyDataException("No top properties found");
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(topProperties);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting top properties to JSON", e);
+            throw new DatabaseException("Error processing property data: " + e.getMessage(), e);
+        }
     }
 
     public String getAllPropertiesWithFilters(String propertyType, String transactionType)
