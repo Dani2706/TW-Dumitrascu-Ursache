@@ -1,7 +1,6 @@
 package controller;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import com.google.gson.*;
 import exceptions.DatabaseException;
 import exceptions.NotAuthorizedException;
 import exceptions.PropertyValidationException;
@@ -24,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import util.JwtUtil;
 
 @WebServlet("/api/add-property")
@@ -83,16 +80,21 @@ public class AddPropertyServlet extends HttpServlet {
             String contactName = propertyData.get("contactName").getAsString();
             String contactPhone = propertyData.get("contactPhone").getAsString();
             String contactEmail = propertyData.get("contactEmail").getAsString();
-//            JsonArray imagesArray = propertyData.get("images").getAsJsonArray();
-//            List<String> images = new ArrayList<>();
-//
-//            for (JsonElement image : imagesArray) {
-//                images.add(image.getAsString());
-//            }
+            String mainPhoto = propertyData.get("mainPhoto").getAsString();
+            JsonArray extraPhotosJson = propertyData.has("longitude") ? propertyData.get("extraPhotos").getAsJsonArray() : null;
+            List<String> extraPhotos = new ArrayList<>();
+
+            if (extraPhotosJson != null) {
+                for (JsonElement image : extraPhotosJson) {
+                    if (!image.isJsonNull()) {
+                        extraPhotos.add(image.getAsString());
+                    }
+                }
+            }
 
             int propertyId = propertyService.addProperty(title, description, propertyType,
                     transactionType, price, surface, rooms, bathrooms, floor, totalFloors,
-                    yearBuilt, createdAt, address, country, city, state, latitude, longitude, contactName, contactPhone, contactEmail, token);
+                    yearBuilt, createdAt, address, country, city, state, latitude, longitude, contactName, contactPhone, contactEmail, token, mainPhoto, extraPhotos);
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

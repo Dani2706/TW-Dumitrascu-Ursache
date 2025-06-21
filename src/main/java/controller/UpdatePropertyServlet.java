@@ -1,6 +1,8 @@
 package controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import exceptions.*;
 import org.slf4j.Logger;
@@ -17,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @WebServlet("/update-property")
 public class UpdatePropertyServlet extends HttpServlet {
@@ -73,11 +77,22 @@ public class UpdatePropertyServlet extends HttpServlet {
             String contactName = propertyJson.get("contactName").getAsString();
             String contactPhone = propertyJson.get("contactPhone").getAsString();
             String contactEmail = propertyJson.get("contactEmail").getAsString();
+            String mainPhoto = propertyJson.get("mainPhoto").getAsString();
+            JsonArray extraPhotosJson = propertyJson.has("longitude") ? propertyJson.get("extraPhotos").getAsJsonArray() : null;
+            List<String> extraPhotos = new ArrayList<>();
+
+            if (extraPhotosJson != null) {
+                for (JsonElement image : extraPhotosJson) {
+                    if (!image.isJsonNull()) {
+                        extraPhotos.add(image.getAsString());
+                    }
+                }
+            }
 
             propertyService.updateProperty(
                     propertyId, title, description, propertyType, transactionType,
                     price, surface, rooms, bathrooms, floor, totalFloors, yearBuilt,
-                    address, country, city, state, latitude, longitude, contactName, contactPhone, contactEmail, token
+                    address, country, city, state, latitude, longitude, contactName, contactPhone, contactEmail, token, mainPhoto, extraPhotos
             );
 
             response.setStatus(HttpServletResponse.SC_OK);

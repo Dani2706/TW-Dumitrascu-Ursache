@@ -1,6 +1,8 @@
 package controller;
 
 import entity.Property;
+import entity.PropertyExtraImages;
+import entity.PropertyMainImage;
 import service.PropertyService;
 import exceptions.PropertyNotFoundException;
 import exceptions.InvalidPropertyIdException;
@@ -37,14 +39,37 @@ public class GetPropertyServlet extends HttpServlet {
         logger.debug("ID parameter: {}", idParam);
 
         try {
-            if(idParam == null) {
+            if (idParam == null) {
                 logger.warn("Missing 'id' parameter in request");
                 throw new InvalidPropertyIdException("Missing 'id' parameter");
             }
 
-            int id = HandleErrorUtil.handleIntParsingError(idParam);
+            int propertyId = HandleErrorUtil.handleIntParsingError(idParam);
 
-            Property property = propertyService.getPropertyById(id);
+            Property property = propertyService.getPropertyById(propertyId);
+            PropertyMainImage propertyMainImage = propertyService.getPropertyMainImage(propertyId);
+            PropertyExtraImages propertyExtraImages = propertyService.getPropertyExtraImages(propertyId);
+
+            StringBuilder extraPhotosAsJson = new StringBuilder();
+            if (propertyExtraImages != null) {
+                extraPhotosAsJson.append("[");
+                System.out.println("[");
+                boolean first = true;
+                for (String extraPhoto : propertyExtraImages.getData()){
+                    if (!first) {
+                        extraPhotosAsJson.append(",");
+                        System.out.println(",");
+                    }
+                    first = false;
+                    extraPhotosAsJson.append("\"").append(extraPhoto).append("\"");
+                    System.out.println("img");
+                }
+                extraPhotosAsJson.append("]");
+                System.out.println("]");
+            }
+            else {
+                extraPhotosAsJson.append("null");
+            }
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
@@ -72,11 +97,13 @@ public class GetPropertyServlet extends HttpServlet {
                     "\"longitude\":" + property.getLongitude() + "," +
                     "\"contactName\":\"" + property.getContactName() + "\"," +
                     "\"contactPhone\":\"" + property.getContactPhone() + "\"," +
-                    "\"contactEmail\":\"" + property.getContactEmail() + "\"" +
+                    "\"contactEmail\":\"" + property.getContactEmail() + "\"," +
+                    "\"mainPhoto\":\"" + propertyMainImage.getData() + "\"," +
+                    "\"extraPhotos\":" + extraPhotosAsJson +
                     "}";
 
             out.write(json);
-            logger.debug("Successfully returned property data for ID: {}", id);
+            logger.debug("Successfully returned property data for ID: {}", propertyId);
 
         } catch (InvalidPropertyIdException e) {
             logger.error("Invalid property ID: ", e);

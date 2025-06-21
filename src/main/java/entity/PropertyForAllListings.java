@@ -17,11 +17,12 @@ public class PropertyForAllListings {
     private double longitude;
     private double price;
     private String transactionType;
+    private String mainPhoto;
     private Date createdAt;
 
     public PropertyForAllListings() {}
 
-    public PropertyForAllListings(int propertyId, String title, int rooms, int floor, int yearBuilt, int bathrooms, int surfaceArea, String city, String state, String country, double latitude, double longitude, double price, String transactionType) {
+    public PropertyForAllListings(int propertyId, String title, int rooms, int floor, int yearBuilt, int bathrooms, int surfaceArea, String city, String state, String country, double latitude, double longitude, double price, String transactionType, String mainPhoto) {
         this.propertyId = propertyId;
         this.title = title;
         this.rooms = rooms;
@@ -36,6 +37,7 @@ public class PropertyForAllListings {
         this.longitude = longitude;
         this.price = price;
         this.transactionType = transactionType;
+        this.mainPhoto = mainPhoto;
     }
 
     public int getPropertyId() {
@@ -154,6 +156,13 @@ public class PropertyForAllListings {
         this.transactionType = transactionType;
     }
 
+    public String getMainPhoto() {
+        return mainPhoto;
+    }
+
+    public void setMainPhoto(String mainPhoto) {
+        this.mainPhoto = mainPhoto;
+    }
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }

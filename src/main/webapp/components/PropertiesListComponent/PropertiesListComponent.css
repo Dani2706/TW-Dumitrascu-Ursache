@@ -13,6 +13,15 @@
     --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 }
 
+.photo {
+    max-height: 400px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4; /* optional: control image height */
+    object-fit: cover;
+    display: block;
+}
+
 * {
     margin: 0;
     padding: 0;

@@ -63,7 +63,7 @@ public class Property {
         this.setContactEmail(contactEmail);
         this.setUserId(userId);
 
-        logger.debug("Created Property with ID: {}, Title: {}", propertyId, title);
+        logger.debug("Created Property with ID: {}, Title: {}, as instance", propertyId, title);
     }
 
     public Property(String title, String description, String propertyType, String transactionType,

@@ -130,6 +130,16 @@
             </div>
         </div>
 
+        <h3>Image Upload</h3>
+        <div class="form-group">
+            <label for="mainPhoto">Main photo*</label>
+            <input type="file" id="mainPhoto" name="mainPhoto" accept="image/*" required>
+            <img id="main-img" style="max-width: 200px; display: block; margin-top: 10px">
+        </div>
+
+        <div class="form-row" id="extra-photos">
+        </div>
+
         <div class="form-actions">
             <button type="submit" id="updateProperty" class="btn btn-primary">Update Property</button>
             <a href="#" id="cancelEdit" class="btn btn-secondary">Cancel</a>

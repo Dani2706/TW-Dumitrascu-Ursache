@@ -611,26 +611,29 @@ export class PropertiesListComponent extends AbstractComponent {
     }
 
     createPropertyCardHTML(property) {
+        const formattedImageUrl = `data:image/png;base64,${property.mainPhoto}`;
         const isFavorited = property.isFavorite ? 'favorited' : '';
         const formattedPrice = property.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-        return `
-        <div class="property-card" data-id="${property.propertyId}">
-            <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
-                <i class="fas fa-heart"></i>
-            </button>
-            <div class="property-thumbnail" style="background-image: url(${property.images && property.images.length > 0 ? property.images[0] : '/TW_Dumitrascu_Ursache_war_exploded/images/default-property.jpg'})"></div>
-            <div class="property-details">
-                <h3>${property.title}</h3>
-                <div class="property-location">${property.city}, ${property.state}</div>
-                <div class="property-features">
-                    <span>${property.rooms} rooms</span>
-                    <span>${property.bathrooms} baths</span>
-                    <span>${property.surfaceArea} m²</span>
-                </div>
-                <div class="property-action-row">
-                    <div class="property-price">${formattedPrice} ${property.transactionType === 'rent' ? '€/month' : '€'}</div>
-                    <button class="view-details-btn" data-id="${property.propertyId}">View Details</button>
+            return `
+            <div class="property-card" data-id="${property.propertyId}">
+                <img class="photo" src=${formattedImageUrl}>
+                <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <div class="property-thumbnail" style="background-image: url(${property.images && property.images.length > 0 ? property.images[0] : '/TW_Dumitrascu_Ursache_war_exploded/images/default-property.jpg'})"></div>
+                <div class="property-details">
+                    <h3>${property.title}</h3>
+                    <div class="property-location">${property.city}, ${property.state}</div>
+                    <div class="property-features">
+                        <span>${property.rooms} rooms</span>
+                        <span>${property.bathrooms} baths</span>
+                        <span>${property.surfaceArea} m²</span>
+                    </div>
+                    <div class="property-action-row">
+                        <div class="property-price">${formattedPrice} ${property.transactionType === 'rent' ? '€/month' : '€'}</div>
+                        <button class="view-details-btn" data-id="${property.propertyId}">View Details</button>
+                    </div>
                 </div>
             </div>
         </div>

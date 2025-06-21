@@ -2,17 +2,20 @@ package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import entity.Property;
-import entity.PropertyForAllListings;
-import entity.TopProperty;
-import entity.ViewCountResponse;
+import dto.GetUserPropertyDTO;
+import entity.*;
 import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import repository.PropertyRepository;
+import util.Base64Util;
 import util.JwtUtil;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.sql.Date;
 
@@ -40,7 +43,7 @@ public class PropertyService {
         return property;
     }
 
-    public List<Property> getUserProperties(String token) throws PropertyDataException, DatabaseException, PropertyValidationException {
+    public List<GetUserPropertyDTO> getUserProperties(String token) throws PropertyDataException, DatabaseException, PropertyValidationException {
         int userId = jwtUtil.getUserId(token);
         if (userId <= 0) {
             logger.warn("Attempt to get properties with invalid user ID: {}", userId);
@@ -48,7 +51,7 @@ public class PropertyService {
         }
 
         logger.debug("Fetching properties for user ID: {}", userId);
-        List<Property> properties = propertyRepository.findPropertiesByUserId(userId);
+        List<GetUserPropertyDTO> properties = propertyRepository.findPropertiesByUserId(userId);
         logger.debug("Successfully retrieved {} properties for user ID: {}", properties.size(), userId);
         return properties;
     }
@@ -123,7 +126,7 @@ public class PropertyService {
                            String transactionType, int price, int surface, int rooms,
                            int bathrooms, int floor, int totalFloors, int yearBuilt,
                            Date createdAt, String address, String country, String city, String state, double latitude, double longitude,
-                           String contactName, String contactPhone, String contactEmail, String token) throws PropertyValidationException, DatabaseException {
+                           String contactName, String contactPhone, String contactEmail, String token, String mainPhoto, List<String> extraPhotos) throws PropertyValidationException, DatabaseException {
 
         int userId = jwtUtil.getUserId(token);
         logger.debug("Adding new property: {}", title);
@@ -134,7 +137,14 @@ public class PropertyService {
                 yearBuilt, createdAt, address, country, city, state, latitude, longitude,
                 contactName, contactPhone, contactEmail, userId
         );
-        int propertyId = propertyRepository.addProperty(property);
+
+        byte[] mainPhotoBytes = Base64Util.decodeBase64(mainPhoto);
+        List<byte[]> extraPhotosBytes = new ArrayList<>();
+        for (String extraPhoto : extraPhotos){
+            extraPhotosBytes.add(Base64Util.decodeBase64(extraPhoto));
+        }
+
+        int propertyId = propertyRepository.addProperty(property, mainPhotoBytes, extraPhotosBytes);
         //int propertyId = propertyRepository.testAddPropertyAsObject(property);
         logger.debug("Successfully added property with ID: {}", propertyId);
         return propertyId;
@@ -145,7 +155,7 @@ public class PropertyService {
                                int surface, int rooms, int bathrooms, int floor,
                                int totalFloors, int yearBuilt, String address, String country,
                                String city, String state, double latitude, double longitude, String contactName,
-                               String contactPhone, String contactEmail, String token) throws PropertyNotFoundException, DatabaseException, PropertyValidationException, PropertyDataException {
+                               String contactPhone, String contactEmail, String token, String mainPhoto, List<String> extraPhotos) throws PropertyNotFoundException, DatabaseException, PropertyValidationException, PropertyDataException {
         int userId = jwtUtil.getUserId(token);
 
         if (propertyId <= 0) {
@@ -165,7 +175,14 @@ public class PropertyService {
                 yearBuilt, new Date(System.currentTimeMillis()), address, country, city, state, latitude, longitude,
                 contactName, contactPhone, contactEmail, userId
         );
-        propertyRepository.updateProperty(propertyId, userId, property);
+
+        byte[] mainPhotoBytes = Base64Util.decodeBase64(mainPhoto);
+        List<byte[]> extraPhotosBytes = new ArrayList<>();
+        for (String extraPhoto : extraPhotos){
+            extraPhotosBytes.add(Base64Util.decodeBase64(extraPhoto));
+        }
+
+        propertyRepository.updateProperty(propertyId, userId, property, mainPhotoBytes, extraPhotosBytes);
         logger.info("Successfully updated property with ID: {}", propertyId);
     }
 
@@ -308,5 +325,23 @@ public class PropertyService {
             logger.error("Error converting favorited count data to JSON", e);
             throw new DatabaseException("Error processing favorited count data: " + e.getMessage(), e);
         }
+    }
+    
+    public PropertyMainImage getPropertyMainImage(int propertyId) throws DatabaseException {
+        byte[] mainImageBytes = this.propertyRepository.getPropertyMainImage(propertyId);
+        String mainImageBase64String = Base64Util.encodeBase64(mainImageBytes);
+        return new PropertyMainImage(propertyId, mainImageBase64String);
+    }
+
+    public PropertyExtraImages getPropertyExtraImages(int propertyId) throws DatabaseException {
+        List<byte[]> extraPhotosBytes = this.propertyRepository.getPropertyExtraPhotos(propertyId);
+        if (extraPhotosBytes != null) {
+            List<String> extraPhotosBase64String = new ArrayList<>();
+            for (byte[] extraPhotoBytes : extraPhotosBytes) {
+                extraPhotosBase64String.add(Base64Util.encodeBase64(extraPhotoBytes));
+            }
+            return new PropertyExtraImages(propertyId, extraPhotosBase64String);
+        }
+        return null;
     }
 }

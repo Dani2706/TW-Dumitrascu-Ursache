@@ -126,7 +126,12 @@ export class PropertyComponent extends AbstractComponent {
 
     loadPropertyDetails(id) {
         console.log(`Attempting to fetch property with id: ${id}`);
-        fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${id}`)
+        fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${id}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
             .then(response => {
                 console.log('Response status:', response.status);
                 if (!response.ok) throw new Error("Proprietatea nu a fost găsită");
@@ -167,10 +172,29 @@ export class PropertyComponent extends AbstractComponent {
         this.setElementText(container, "#property-contact-phone", data.contactPhone);
         this.setElementText(container, "#property-contact-email", data.contactEmail);
 
+        this.addPhotos(container, data.mainPhoto, data.extraPhotos);
         const formattedPrice = this.formatNumberWithDot(data.price);
         this.setElementText(container, "#property-price", formattedPrice);
 
         this.initializeMap(data);
+    }
+
+    addPhotos(container, mainPhoto, extraPhotos){
+        const imageContainer = container.querySelector('#images');
+
+        const newMainPhoto = document.createElement('img');
+        newMainPhoto.setAttribute('src', `data:image/png;base64,${mainPhoto}`);
+
+        imageContainer.appendChild(newMainPhoto);
+
+        if (extraPhotos !== "null") {
+            extraPhotos.forEach(extraPhoto => {
+                const newExtraPhoto = document.createElement('img');
+                newExtraPhoto.setAttribute('src', `data:image/png;base64,${extraPhoto}`);
+
+                imageContainer.appendChild(newExtraPhoto);
+            })
+        }
     }
 
     formatNumberWithDot(number) {
