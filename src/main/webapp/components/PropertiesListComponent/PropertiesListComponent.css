@@ -1186,3 +1186,73 @@ body {
 .map-info-window .clickable:hover {
     text-decoration: underline;
 }
+
+.notification-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.notification-popup {
+    background-color: white;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 450px;
+    padding: 35px 30px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    transform: translateY(30px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.notification-popup.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.notification-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-light);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.notification-close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--accent-color);
+}
+
+.notification-content {
+    text-align: center;
+}
+
+.notification-content p {
+    font-size: 20px;
+    color: var(--text-color);
+    margin: 0;
+    line-height: 1.5;
+}

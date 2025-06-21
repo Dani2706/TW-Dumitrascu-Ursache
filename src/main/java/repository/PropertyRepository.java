@@ -624,4 +624,56 @@ public class PropertyRepository {
             throw new DatabaseException("Error retrieving filtered states: " + e.getMessage(), e);
         }
     }
+
+    public int getTotalViewCountByUserId(int userId) throws DatabaseException {
+        logger.debug("Calculating total view count for user ID: {}", userId);
+
+        String sql = "SELECT COUNT(*) FROM property_views pv " +
+                "JOIN properties p ON pv.property_id = p.property_id " +
+                "WHERE p.user_id = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int totalViews = rs.getInt(1);
+                logger.debug("Total view count for user ID {}: {} views", userId, totalViews);
+                return totalViews;
+            }
+
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving view count for user ID: {}", userId, e);
+            throw new DatabaseException("Error retrieving view count data: " + e.getMessage(), e);
+        }
+    }
+
+    public int getTotalFavoritedCountByUserId(int userId) throws DatabaseException {
+        logger.debug("Calculating total favorited count for user ID: {}", userId);
+
+        String sql = "SELECT COUNT(*) FROM favorites f " +
+                "JOIN properties p ON f.property_id = p.property_id " +
+                "WHERE p.user_id = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int totalFavorites = rs.getInt(1);
+                logger.debug("Total favorited count for user ID {}: {} favorites", userId, totalFavorites);
+                return totalFavorites;
+            }
+
+            return 0;
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving favorited count for user ID: {}", userId, e);
+            throw new DatabaseException("Error retrieving favorited count data: " + e.getMessage(), e);
+        }
+    }
 }

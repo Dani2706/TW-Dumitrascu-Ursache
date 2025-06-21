@@ -9,26 +9,62 @@
     background-color: #fdfdfd;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 30px 20px;
+    margin-bottom: 30px;
     text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.favorites-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
 .favorites-stats h2 {
-    color: #333;
-    margin-bottom: 10px;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 28px;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+}
+
+.favorites-stats h2::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 2px;
 }
 
 .favorites-count {
-    font-size: 1.2em;
-    color: #007bff;
-    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
 }
 
-.favorites-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+.favorites-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.favorites-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #3498db;
+    margin: 5px 0;
+}
+
+.favorites-label {
+    color: #7f8c8d;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .property-card {
@@ -37,11 +73,14 @@
     overflow: hidden;
     box-shadow: 0 10px 20px rgba(0,0,0,0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
+    height: auto;
     display: flex;
     flex-direction: column;
     position: relative;
-    min-height: 200px;
+    min-height: 300px;
+    aspect-ratio: auto;
+    width: 100%;
+    margin: 0;
 }
 
 .property-card .content {
@@ -171,4 +210,29 @@
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     color: #666;
+}
+
+#favorites-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 30px;
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+    #favorites-container {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    #favorites-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    #favorites-container {
+        grid-template-columns: 1fr;
+    }
 }

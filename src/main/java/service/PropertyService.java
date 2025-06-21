@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import entity.Property;
 import entity.PropertyForAllListings;
 import entity.TopProperty;
+import entity.ViewCountResponse;
 import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -267,5 +268,45 @@ public class PropertyService {
 
         logger.debug("Retrieved {} filtered states", states.size());
         return states;
+    }
+
+    public String getUserListingsViewCount(String token) throws PropertyDataException, DatabaseException {
+        int userId = jwtUtil.getUserId(token);
+        if (userId <= 0) {
+            logger.warn("Attempt to get view counts with invalid user ID: {}", userId);
+            throw new PropertyDataException("User ID must be positive");
+        }
+
+        logger.debug("Fetching total view count for properties of user ID: {}", userId);
+        try {
+            int totalViewCount = propertyRepository.getTotalViewCountByUserId(userId);
+            logger.debug("Successfully retrieved total view count for user ID: {}: {} views", userId, totalViewCount);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(new ViewCountResponse(totalViewCount));
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting view count data to JSON", e);
+            throw new DatabaseException("Error processing view count data: " + e.getMessage(), e);
+        }
+    }
+
+    public String getUserListingsFavoritedCount(String token) throws PropertyDataException, DatabaseException {
+        int userId = jwtUtil.getUserId(token);
+        if (userId <= 0) {
+            logger.warn("Attempt to get favorited counts with invalid user ID: {}", userId);
+            throw new PropertyDataException("User ID must be positive");
+        }
+
+        logger.debug("Fetching total favorited count for properties of user ID: {}", userId);
+        try {
+            int totalFavoritedCount = propertyRepository.getTotalFavoritedCountByUserId(userId);
+            logger.debug("Successfully retrieved total favorited count for user ID: {}: {} favorites", userId, totalFavoritedCount);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(new ViewCountResponse(totalFavoritedCount));
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting favorited count data to JSON", e);
+            throw new DatabaseException("Error processing favorited count data: " + e.getMessage(), e);
+        }
     }
 }

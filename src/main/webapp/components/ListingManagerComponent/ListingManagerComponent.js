@@ -418,6 +418,9 @@ export class ListingManagerComponent extends AbstractComponent {
                 renderedPropertiesContainer.innerHTML = cardsHTML;
             }
 
+            await this.fetchTotalViewsCount();
+            await this.fetchTotalFavoritesCount();
+
             this.sortProperties('newest');
 
         } catch (error) {
@@ -432,6 +435,66 @@ export class ListingManagerComponent extends AbstractComponent {
             }
 
             this.setTemplate(tempDiv.innerHTML);
+        }
+    }
+
+    async fetchTotalViewsCount() {
+        try {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-view-count`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Received view count data:", data);
+
+            const totalViewsElement = document.getElementById('total-views');
+            if (totalViewsElement) {
+                totalViewsElement.textContent = data.totalViewCount;
+            }
+        } catch (error) {
+            console.error('Error fetching view count data:', error);
+            const totalViewsElement = document.getElementById('total-views');
+            if (totalViewsElement) {
+                totalViewsElement.textContent = "N/A";
+            }
+        }
+    }
+
+    async fetchTotalFavoritesCount() {
+        try {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-favorited-count`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Received favorites count data:", data);
+
+            const totalFavoritesElement = document.getElementById('total-favorites');
+            if (totalFavoritesElement) {
+                totalFavoritesElement.textContent = data.totalViewCount || data.totalFavoritedCount || 0;
+            }
+        } catch (error) {
+            console.error('Error fetching favorites count data:', error);
+            const totalFavoritesElement = document.getElementById('total-favorites');
+            if (totalFavoritesElement) {
+                totalFavoritesElement.textContent = "0";
+            }
         }
     }
 }

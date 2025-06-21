@@ -38,15 +38,18 @@ export class PropertiesListComponent extends AbstractComponent {
         this.setupCategoryCardListeners();
         this.addPropertyCardListeners();
         this.setupClearFiltersButton();
+        this.setupSortSelect();
+        this.setupFilterInputListeners();
+    }
 
+    setupSortSelect() {
         const sortSelect = this.container.querySelector('#sort-select');
         if (sortSelect) {
             sortSelect.addEventListener('change', () => {
-                this.dynamicallyLoadData(sortSelect.value);
+                this.sortProperties(sortSelect.value);
+                this.updatePropertiesDisplay(this.properties);
             });
         }
-
-        this.setupFilterInputListeners();
     }
 
     setupCategoryCardListeners() {
@@ -187,7 +190,6 @@ export class PropertiesListComponent extends AbstractComponent {
         mapControls.className = 'map-controls';
         mapContainer.appendChild(mapControls);
 
-        // Create draw button
         const drawButton = document.createElement('button');
         drawButton.className = 'map-control-btn draw-btn';
         drawButton.innerHTML = '<i class="fas fa-pencil-alt"></i>';
@@ -377,6 +379,8 @@ export class PropertiesListComponent extends AbstractComponent {
         const popupContent = document.createElement('div');
         popupContent.className = 'map-info-window';
 
+        const formattedPrice = property.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
         const title = document.createElement('h3');
         title.textContent = property.title;
         title.className = 'map-title clickable';
@@ -391,7 +395,7 @@ export class PropertiesListComponent extends AbstractComponent {
         details.textContent = `${property.rooms} rooms · ${property.bathrooms} baths · ${property.surfaceArea} m²`;
 
         const price = document.createElement('p');
-        price.textContent = `${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}`;
+        price.textContent = `${formattedPrice} ${property.transactionType === 'rent' ? '€/month' : '€'}`;
 
         popupContent.append(title, details, price);
         return popupContent;
@@ -608,28 +612,29 @@ export class PropertiesListComponent extends AbstractComponent {
 
     createPropertyCardHTML(property) {
         const isFavorited = property.isFavorite ? 'favorited' : '';
+        const formattedPrice = property.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
         return `
-            <div class="property-card" data-id="${property.propertyId}">
-                <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
-                    <i class="fas fa-heart"></i>
-                </button>
-                <div class="property-thumbnail" style="background-image: url(${property.images && property.images.length > 0 ? property.images[0] : '/TW_Dumitrascu_Ursache_war_exploded/images/default-property.jpg'})"></div>
-                <div class="property-details">
-                    <h3>${property.title}</h3>
-                    <div class="property-location">${property.city}, ${property.state}</div>
-                    <div class="property-features">
-                        <span>${property.rooms} rooms</span>
-                        <span>${property.bathrooms} baths</span>
-                        <span>${property.surfaceArea} m²</span>
-                    </div>
-                    <div class="property-action-row">
-                        <div class="property-price">${property.price} ${property.transactionType === 'rent' ? '€/month' : '€'}</div>
-                        <button class="view-details-btn" data-id="${property.propertyId}">View Details</button>
-                    </div>
+        <div class="property-card" data-id="${property.propertyId}">
+            <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
+                <i class="fas fa-heart"></i>
+            </button>
+            <div class="property-thumbnail" style="background-image: url(${property.images && property.images.length > 0 ? property.images[0] : '/TW_Dumitrascu_Ursache_war_exploded/images/default-property.jpg'})"></div>
+            <div class="property-details">
+                <h3>${property.title}</h3>
+                <div class="property-location">${property.city}, ${property.state}</div>
+                <div class="property-features">
+                    <span>${property.rooms} rooms</span>
+                    <span>${property.bathrooms} baths</span>
+                    <span>${property.surfaceArea} m²</span>
+                </div>
+                <div class="property-action-row">
+                    <div class="property-price">${formattedPrice} ${property.transactionType === 'rent' ? '€/month' : '€'}</div>
+                    <button class="view-details-btn" data-id="${property.propertyId}">View Details</button>
                 </div>
             </div>
-            `;
+        </div>
+        `;
     }
 
     addPropertyCardListeners() {
@@ -644,7 +649,6 @@ export class PropertiesListComponent extends AbstractComponent {
                 });
             }
 
-            // Add favorite button listener
             const favoriteBtn = card.querySelector('.favorite-btn');
             if (favoriteBtn) {
                 favoriteBtn.addEventListener('click', (e) => {
@@ -664,8 +668,7 @@ export class PropertiesListComponent extends AbstractComponent {
 
         const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
         if (!isLoggedIn) {
-            // Redirect to login or show message
-            alert('Please log in to add properties to favorites');
+            this.showNotificationPopup('Please log in to add properties to favorites');
             return;
         }
 
@@ -682,10 +685,8 @@ export class PropertiesListComponent extends AbstractComponent {
             });
 
             if (response.ok) {
-                // Toggle favorite UI state
                 button.classList.toggle('favorited');
 
-                // Update the property in the array
                 const property = this.properties.find(p => p.propertyId == propertyId);
                 if (property) {
                     property.isFavorite = !isFavorited;
@@ -696,6 +697,55 @@ export class PropertiesListComponent extends AbstractComponent {
         } catch (error) {
             console.error('Error toggling favorite:', error);
         }
+    }
+
+    showNotificationPopup(message) {
+        const existingPopup = document.querySelector('.notification-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        const popupOverlay = document.createElement('div');
+        popupOverlay.className = 'notification-popup-overlay';
+
+        const popup = document.createElement('div');
+        popup.className = 'notification-popup';
+
+        const popupContent = document.createElement('div');
+        popupContent.className = 'notification-content';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'notification-close-btn';
+        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+
+        const messageEl = document.createElement('p');
+        messageEl.textContent = message;
+
+        popupContent.appendChild(messageEl);
+        popup.appendChild(closeBtn);
+        popup.appendChild(popupContent);
+        popupOverlay.appendChild(popup);
+        document.body.appendChild(popupOverlay);
+
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
+
+        closeBtn.addEventListener('click', () => {
+            popup.classList.remove('show');
+            setTimeout(() => {
+                popupOverlay.remove();
+            }, 300);
+        });
+
+        setTimeout(() => {
+            if (document.body.contains(popupOverlay)) {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    popupOverlay.remove();
+                }, 300);
+            }
+        }, 5000);
     }
 
     async dynamicallyLoadData(sortOption = 'newest') {
@@ -716,7 +766,6 @@ export class PropertiesListComponent extends AbstractComponent {
 
             let properties = await response.json();
 
-            // Fetch user favorites if logged in
             const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
             let userFavorites = [];
 
@@ -739,18 +788,21 @@ export class PropertiesListComponent extends AbstractComponent {
                 }
             }
 
-            // Mark favorited properties
             this.properties = properties.map(property => {
                 return {
                     ...property,
-                    isFavorite: userFavorites.some(fav => fav.id === property.id)
+                    isFavorite: userFavorites.some(fav => fav.propertyId === property.propertyId)
                 };
             });
 
-            // Update the properties display
-            this.updatePropertiesDisplay(this.properties);
+            if (sortOption) {
+                this.sortProperties(sortOption);
+            }
 
-            // Initialize map with all properties
+            this.updatePropertiesDisplay(this.properties);
+            this.updateFilterRanges();
+            this.renderCityFilters();
+            this.renderStateFilters();
             this.debouncedInitMap();
 
         } catch (error) {
@@ -761,6 +813,8 @@ export class PropertiesListComponent extends AbstractComponent {
 
     sortProperties(sortOption) {
         const sortingStrategies = {
+            'newest': (a, b) => new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0),
+            'oldest': (a, b) => new Date(a.dateAdded || 0) - new Date(b.dateAdded || 0),
             'price-asc': (a, b) => a.price - b.price,
             'price-desc': (a, b) => b.price - a.price,
             'area-asc': (a, b) => a.surfaceArea - b.surfaceArea,
