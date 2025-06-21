@@ -505,9 +505,9 @@ public class PropertyRepository {
 
         try (Connection conn = dataSource.getConnection()) {
             String sql = "SELECT p.property_id, p.title, p.rooms, p.floor, p.year_built, p.bathrooms, " +
-                    "p.surface_area, p.city, p.state, p.country, p.latitude, p.longitude, p.price, p.transaction_type " +
+                    "p.surface_area, p.city, p.state, p.country, p.latitude, p.longitude, p.price, p.transaction_type, i.image_data " +
                     "FROM properties p " +
-                    "JOIN top_properties tp ON p.property_id = tp.property_id";
+                    "JOIN top_properties tp ON p.property_id = tp.property_id JOIN property_main_image i ON p.property_id = i.property_id";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery();
@@ -527,7 +527,8 @@ public class PropertyRepository {
                         rs.getDouble("latitude"),
                         rs.getDouble("longitude"),
                         rs.getInt("price"),
-                        rs.getString("transaction_type")
+                        rs.getString("transaction_type"),
+                        Base64Util.encodeBase64(rs.getBytes("image_data"))
                 );
                 topProperties.add(property);
             }

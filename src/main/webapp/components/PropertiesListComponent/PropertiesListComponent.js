@@ -646,7 +646,8 @@ export class PropertiesListComponent extends AbstractComponent {
             const viewDetailsBtn = card.querySelector('.view-details-btn');
             if (viewDetailsBtn) {
                 viewDetailsBtn.addEventListener('click', () => {
-                    const propertyId = card.getAttribute('data-id');
+                    const propertyId = viewDetailsBtn.getAttribute('data-id');
+                    console.log('PropertiesListings' + propertyId);
                     sessionStorage.setItem('selectedPropertyId', propertyId);
                     router.safeNavigate('/property');
                 });
