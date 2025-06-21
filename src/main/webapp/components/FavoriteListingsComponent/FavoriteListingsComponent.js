@@ -145,7 +145,7 @@ export class FavoriteListingsComponent extends AbstractComponent {
         </div>
         <div class="property-actions">
             <a href="#" class="view-button" data-property-id="${propertyId}">View</a>
-            <button class="remove-button" data-id="${listing.id}">Remove</button>
+            <button class="remove-button" data-property-id="${propertyId}">Remove</button>
         </div>
     `;
 
@@ -173,10 +173,10 @@ export class FavoriteListingsComponent extends AbstractComponent {
     }
 
     async removeListing(event) {
-        const listingId = event.currentTarget.dataset.id;
+        const propertyId = event.currentTarget.getAttribute('data-property-id');
 
         try {
-            const response = await fetch(`${environment.backendUrl}/TW_Dumitrascu_Ursache_war_exploded/api/favorites/${listingId}`, {
+            const response = await fetch(`${environment.backendUrl}/TW_Dumitrascu_Ursache_war_exploded/api/favorites/${propertyId}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": "Bearer " + sessionStorage.getItem("jwt")
@@ -184,19 +184,28 @@ export class FavoriteListingsComponent extends AbstractComponent {
             });
 
             if (response.status === 204) {
-                const card = this.container.querySelector(`.property-card[data-id="${listingId}"]`);
-                card.remove();
+                await this.loadFavoriteListings(this.container);
 
-                this.favoriteListings = this.favoriteListings.filter(listing => listing.id !== listingId);
-                const totalFavorites = this.container.querySelector('#total-favorites');
-                totalFavorites.textContent = this.favoriteListings.length;
-
-                if (this.favoriteListings.length === 0) {
-                    this.container.querySelector('#no-favorites').style.display = 'block';
-                    this.container.querySelector('#favorites-container').style.display = 'none';
+                const card = this.container.querySelector(`.property-card[data-id="${propertyId}"]`);
+                if (card) {
+                    card.remove();
                 }
 
-                alert("Listing removed from favorites");
+                const totalFavorites = this.container.querySelector('#total-favorites');
+                if (totalFavorites) {
+                    totalFavorites.textContent = this.favoriteListings.length;
+                }
+
+                const noFavoritesMessage = this.container.querySelector('#no-favorites');
+                const favoritesContainer = this.container.querySelector('#favorites-container');
+                if (this.favoriteListings.length === 0 && noFavoritesMessage && favoritesContainer) {
+                    noFavoritesMessage.style.display = 'block';
+                    favoritesContainer.style.display = 'none';
+                }
+
+                this.eventListenerRemover();
+                this.eventListenerLoader();
+
             } else if (response.status === 401) {
                 throw new Error("Please login to remove listings from favorites.");
             } else {
