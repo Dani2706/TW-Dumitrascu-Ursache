@@ -21,7 +21,7 @@ import exceptions.PropertyDataException;
 import util.HandleErrorUtil;
 import util.JwtUtil;
 
-@WebServlet("/delete-property")
+@WebServlet("/api/delete-property")
 public class DeletePropertyServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(DeletePropertyServlet.class);
     private PropertyService propertyService;

@@ -557,7 +557,7 @@ export class EditListingComponent extends AbstractComponent {
 
             console.log('Submitting property data:', propertyData);
 
-            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/update-property', {
+            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/update-property', {
                 method: 'POST',
                 headers: {
                     "Authorization": "Bearer " + sessionStorage.getItem("jwt")

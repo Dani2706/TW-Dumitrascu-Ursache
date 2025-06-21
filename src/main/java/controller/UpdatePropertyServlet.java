@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet("/update-property")
+@WebServlet("/api/update-property")
 public class UpdatePropertyServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UpdatePropertyServlet.class);
     private PropertyService propertyService;

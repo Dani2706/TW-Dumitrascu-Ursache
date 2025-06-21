@@ -23,7 +23,7 @@ import exceptions.PropertyDataException;
 import util.HandleErrorUtil;
 import util.JwtUtil;
 
-@WebServlet("/user-properties")
+@WebServlet("/api/user-properties")
 public class GetUserPropertiesServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(GetUserPropertiesServlet.class);
     private PropertyService propertyService;

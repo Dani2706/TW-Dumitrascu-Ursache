@@ -173,7 +173,7 @@ export class ListingManagerComponent extends AbstractComponent {
 
         if (confirmed) {
             try {
-                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/delete-property', {
+                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/delete-property', {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -347,7 +347,7 @@ export class ListingManagerComponent extends AbstractComponent {
         try {
             console.log("Fetching user properties data...");
             const userId = sessionStorage.getItem("jwt");
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/user-properties`, {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-properties`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
