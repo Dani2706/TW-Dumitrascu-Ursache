@@ -36,12 +36,63 @@ export class AdminUserDashboardComponent extends AbstractComponent {
                 this.handleDeleteUser(event, deleteButton.dataset.id);
             }
 
+            const adminButton = event.target.closest('.admin-button');
+            if (adminButton){
+                this.handleAdminStatusChange(event, adminButton.dataset.id, adminButton.dataset.status);
+            }
+
             const editButton = event.target.closest('.edit-button');
             if (editButton) {
                 event.preventDefault();
                 this.handleEditUser(event, editButton.dataset.id);
             }
         });
+    }
+
+    async handleAdminStatusChange(event, userId, adminStatus){
+        console.log("Admin change status button clicked");
+        console.log("User ID:", userId);
+
+        const confirmed = await this.showAdminStatusChangeConfirmation('Are you sure you want to change this user admin status?', userId);
+
+        if (confirmed) {
+            try {
+                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+                    },
+                    body: JSON.stringify({userId: userId, adminStatus: (parseInt(adminStatus) === 1) ? 0 : 1})
+                });
+
+                if (response.ok) {
+                    const adminButton = event.target.closest('.admin-button');
+                    if (adminStatus === "1"){
+                        adminButton.textContent = "Make admin";
+                    }
+                    else{
+                        adminButton.textContent = "Demote";
+                    }
+                    adminButton.dataset.status = (parseInt(adminStatus) === 1 ? 0 : 1).toString();
+                    this.showSuccessMessage('User admin status updated successfully!');
+                }
+                else {
+                    const errorText = await response.text();
+                    let errorMessage = 'Could not update admin status of user';
+                    try {
+                        const errorObj = JSON.parse(errorText);
+                        errorMessage = errorObj.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    this.showErrorMessage(`Error: ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                this.showErrorMessage('Failed to change admin status of the user. Please try again later.');
+            }
+        }
     }
 
     handleEditUser(event, userId) {
@@ -271,6 +322,43 @@ export class AdminUserDashboardComponent extends AbstractComponent {
         });
     }
 
+    showAdminStatusChangeConfirmation(message, userId) {
+        const overlay = document.createElement('div');
+        overlay.className = 'admin-confirmation-overlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'admin-confirmation-modal';
+
+        modal.innerHTML = `
+        <div class="admin-confirmation-content">
+            <h3>Confirm Status Change</h3>
+            <p>${message}</p>
+            <div class="admin-confirmation-actions">
+                <button class="btn-cancel">Cancel</button>
+                <button class="btn-confirm">Change</button>
+            </div>
+        </div>
+    `;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        return new Promise((resolve) => {
+            const cancelBtn = modal.querySelector('.btn-cancel');
+            const confirmBtn = modal.querySelector('.btn-confirm');
+
+            cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                resolve(false);
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                document.body.removeChild(overlay);
+                resolve(true);
+            });
+        });
+    }
+
     showSuccessMessage(message) {
         const existingMessage = document.querySelector('.success-message');
         if (existingMessage) {
@@ -345,6 +433,13 @@ export class AdminUserDashboardComponent extends AbstractComponent {
 
             const cardsHTML = users.length > 0
                 ? users.map(user => {
+                    let adminText;
+                    if (user.isAdmin == 1){
+                        adminText = "Demote";
+                    }
+                    else{
+                        adminText = "Make admin"
+                    }
                     const creationDate = new Date(user.createdAt);
                     const formattedDate = creationDate.toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -363,6 +458,7 @@ export class AdminUserDashboardComponent extends AbstractComponent {
                     </div>
                     <div class="user-actions">
                         <a href="/profile" class="edit-button" data-id="${user.userId}">Edit</a>
+                        <button class="admin-button" data-id="${user.userId}" data-status="${user.isAdmin}">${adminText}</button>
                         <button class="delete-button" data-id="${user.userId}">Delete</button>
                     </div>
                 </div>

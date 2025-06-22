@@ -38,7 +38,10 @@ public class AdminGetAllUsersServlet extends HttpServlet {
             if (!this.jwtUtil.isAdmin(token)){
                 throw new NotAuthorizedException("User is not an admin");
             }
-            String usersAsJson = this.userService.getAllUsers();
+
+            int userId = this.jwtUtil.getUserId(token);
+
+            String usersAsJson = this.userService.getAllUsersExceptUserWithId(userId);
 
             resp.setContentType("application/json");
             resp.getWriter().write(usersAsJson);

@@ -1,6 +1,7 @@
 package controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.tools.jconsole.JConsoleContext;
 import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,12 +49,12 @@ public class ChangeAdminStatusServlet extends HttpServlet {
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
 
-            String adminStatusAsString = (String) bodyParams.get("adminStatus");
+            int adminStatus = (Integer) bodyParams.get("adminStatus");
             String userIdAsString = (String) bodyParams.get("userId");
 
-            int adminStatus = Integer.parseInt(adminStatusAsString);
             int userId = Integer.parseInt(userIdAsString);
 
+            logger.info("Admin status changed to " + adminStatus);
 
             this.userService.changeAdminStatusOfUser(adminStatus, userId);
 
