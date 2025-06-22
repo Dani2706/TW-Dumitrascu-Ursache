@@ -325,11 +325,6 @@ public class PropertyRepository {
             stmt.setInt(1, propertyId);
 
             int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected == 0) {
-                logger.error("No rows affected when deleting property images with id{}", propertyId);
-                throw new SQLException("Failed to delete property images, no rows affected");
-            }
         }
     }
 
