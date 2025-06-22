@@ -30,6 +30,11 @@ const routes = {
 export const router = new Router('#main-window', basePath, routes);
 console.log("Router initialized with base path:", basePath);
 
+router.setAfterNavigateCallback(() => {
+    updateActiveNavLink();
+    updateAdminStyling();
+});
+
 document.addEventListener('click', (e) => {
     const link = e.target.closest('[data-route]');
     if (link) {
@@ -60,6 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     updateActiveNavLink();
+    updateAdminStyling();
+
+    document.body.style.visibility = 'visible';
 });
 
 function updateActiveNavLink() {
@@ -74,6 +82,31 @@ function updateActiveNavLink() {
             link.classList.remove('active');
         }
     });
+}
+
+function updateAdminStyling() {
+    const isAdmin = window.sessionStorage.getItem("isAdmin") === "true";
+    const header = document.querySelector('.header');
+    const footer = document.querySelector('.footer');
+    const headerTitle = document.querySelector('.header h1');
+
+    const existingBadge = document.querySelector('.admin-badge');
+    if (existingBadge) {
+        existingBadge.remove();
+    }
+
+    if (isAdmin) {
+        header.style.backgroundColor = '#4a4a4a';
+        footer.style.backgroundColor = '#4a4a4a';
+
+        const adminBadge = document.createElement('span');
+        adminBadge.className = 'admin-badge';
+        adminBadge.textContent = 'Admin Dashboard';
+        headerTitle.appendChild(adminBadge);
+    } else {
+        header.style.backgroundColor = '#003366';
+        footer.style.backgroundColor = '#003366';
+    }
 }
 
 console.log('App initialized');

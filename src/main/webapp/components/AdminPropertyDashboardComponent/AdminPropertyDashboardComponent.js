@@ -378,7 +378,7 @@ export class AdminPropertyDashboardComponent extends AbstractComponent {
                     <img class="photo" src=${formattedImageUrl}>
                     <div class="content">
                         <div class="title-wrapper">
-                            <h2>${property.id}</h2>
+                            <h2>Listing ID: ${property.id}</h2>
                             <h3>${property.title}</h3>
                             <p class="creation-date">Created on: ${formattedDate}</p>
                         </div>

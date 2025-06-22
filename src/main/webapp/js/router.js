@@ -8,6 +8,11 @@ export class Router {
         this.eventListenerLoader();
         this.currentRenderedComponentInstance = null;
         this.currentRenderedComponentDOM = null;
+        this.afterNavigateCallback = null;
+    }
+
+    setAfterNavigateCallback(callback) {
+        this.afterNavigateCallback = callback;
     }
 
     //This sets the eventlisteners that are ment to happen 
@@ -181,5 +186,9 @@ export class Router {
         mainWindow.style.visibility = 'visible';
         footer.style.visibility = 'visible';
         nav_bar.style.visibility = 'visible';
+
+        if (this.afterNavigateCallback) {
+            this.afterNavigateCallback();
+        }
     }
 }

@@ -682,14 +682,14 @@ export class EditListingComponent extends AbstractComponent {
             const messageElement = document.createElement('div');
             messageElement.className = 'message success-message';
             messageElement.innerHTML = `
-            <h3>Property updated successfully!</h3>
-            <p>Your property has been updated.</p>
-        `;
+        <h3>Property updated successfully!</h3>
+        <p>Your property has been updated.</p>
+    `;
             successContent.appendChild(messageElement);
 
             const countdownElement = document.createElement('div');
             countdownElement.className = 'countdown-message';
-            countdownElement.innerHTML = `You will be redirected to manage listings in <span class="countdown">5</span> seconds...`;
+            countdownElement.innerHTML = `You will be redirected in <span class="countdown">5</span> seconds...`;
             successContent.appendChild(countdownElement);
 
             container.appendChild(successContent);
@@ -706,10 +706,18 @@ export class EditListingComponent extends AbstractComponent {
                 if (count <= 0) {
                     clearInterval(countdownInterval);
                     if (this.router) {
-                        this.router.safeNavigate('/manage-listings');
-                    } else { // Fallback if router is not working
+                        if (window.sessionStorage.getItem("isAdmin") === "true") {
+                            this.router.safeNavigate('/admin/PropertyDashboard');
+                        } else {
+                            this.router.safeNavigate('/manage-listings');
+                        }
+                    } else {
                         console.error('Router not found');
-                        window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+                        if (window.sessionStorage.getItem("isAdmin") === "true") {
+                            window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/admin/PropertyDashboard';
+                        } else {
+                            window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+                        }
                     }
                 }
             }, 1000);
@@ -719,10 +727,18 @@ export class EditListingComponent extends AbstractComponent {
     handleCancel(event) {
         event.preventDefault();
         if (this.router) {
-            this.router.safeNavigate('/manage-listings');
+            if (window.sessionStorage.getItem("isAdmin") === "true") {
+                this.router.safeNavigate('/admin/PropertyDashboard');
+            } else {
+                this.router.safeNavigate('/manage-listings');
+            }
         } else { // Fallback if router is not working
             console.error('Router not found');
-            window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+            if (window.sessionStorage.getItem("isAdmin") === "true") {
+                window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/admin/PropertyDashboard';
+            } else {
+                window.location.href = '/TW_Dumitrascu_Ursache_war_exploded/manage-listings';
+            }
         }
     }
 
