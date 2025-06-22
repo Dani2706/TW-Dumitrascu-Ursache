@@ -1,17 +1,7 @@
 import { environment } from "../environment.js";
 
 export class AdminService {
-    API_PATH = environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/admin/user";
-    async addUser (userData){
-        return await fetch(this.API_PATH, {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                },
-                body: JSON.stringify(userData)
-            }
-        );
-    }
+    API_PATH = environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/user";
 
     async getUser (userId){
         return await fetch(`${this.API_PATH}?userId=${userId}`, {
@@ -41,6 +31,17 @@ export class AdminService {
                     "Authorization": "Bearer " + sessionStorage.getItem("jwt")
                 },
                 body: JSON.stringify({userId : userId})
+            }
+        );
+    }
+
+    async registerUser(userData){
+        const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/register", {
+                method: "POST",
+                body: JSON.stringify(userData),
+                headers: {
+                    "Content-Type": "application/json"
+                }
             }
         );
     }

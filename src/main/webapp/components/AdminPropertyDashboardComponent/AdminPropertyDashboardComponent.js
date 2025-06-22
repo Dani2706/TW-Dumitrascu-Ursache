@@ -1,8 +1,8 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
-import { environment } from "../../environment.js";
+import {environment} from "../../environment.js";
 import { router } from "../../js/app.js";
 
-export class ListingManagerComponent extends AbstractComponent {
+export class AdminPropertyDashboardComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
@@ -11,13 +11,14 @@ export class ListingManagerComponent extends AbstractComponent {
 
     //@Override
     async init() {
-        if (window.sessionStorage.getItem("isLoggedIn") === "false"){
+        if (window.sessionStorage.getItem("isLoggedIn") === "false" ||
+            window.sessionStorage.getItem("isAdmin") === "false"){
             window.location.href = environment.navigationUrl + "/home";
             return;
         }
         await super.init();
         // Depending on the page, you can comment the next line
-        this.dynamicallyLoadData();
+        await this.dynamicallyLoadData();
 
         this.initSearchFunctionality();
         this.initSortingFunctionality();
@@ -347,7 +348,7 @@ export class ListingManagerComponent extends AbstractComponent {
         try {
             console.log("Fetching user properties data...");
             const userId = sessionStorage.getItem("jwt");
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-properties`, {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-properties`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -361,11 +362,6 @@ export class ListingManagerComponent extends AbstractComponent {
 
             const properties = await response.json();
             console.log("Received user properties:", properties);
-
-            const totalListingsElement = document.getElementById('total-listings');
-            if (totalListingsElement) {
-                totalListingsElement.textContent = properties.length;
-            }
 
             const cardsHTML = properties.length > 0
                 ? properties.map(property => {
@@ -382,6 +378,7 @@ export class ListingManagerComponent extends AbstractComponent {
                     <img class="photo" src=${formattedImageUrl}>
                     <div class="content">
                         <div class="title-wrapper">
+                            <h2>${property.id}</h2>
                             <h3>${property.title}</h3>
                             <p class="creation-date">Created on: ${formattedDate}</p>
                         </div>
@@ -397,7 +394,7 @@ export class ListingManagerComponent extends AbstractComponent {
                 : `<div class="no-properties-message">
                 <div class="no-properties-icon">📭</div>
                 <h3>No Properties Found</h3>
-                <p>You haven't added any properties yet. Click "Add New Listing" to get started!</p>
+                <p>There are no property to manage</p>
                </div>`;
 
             const tempDiv = document.createElement('div');
@@ -408,22 +405,7 @@ export class ListingManagerComponent extends AbstractComponent {
                 propertiesContainer.innerHTML = cardsHTML;
             }
 
-            const totalListingsTemplateElement = tempDiv.querySelector('#total-listings');
-            if (totalListingsTemplateElement) {
-                totalListingsTemplateElement.textContent = properties.length;
-            }
-
             this.setTemplate(tempDiv.innerHTML);
-
-            const renderedPropertiesContainer = document.querySelector('#user-properties-container');
-            if (renderedPropertiesContainer) {
-                renderedPropertiesContainer.innerHTML = cardsHTML;
-            }
-
-            await this.fetchTotalViewsCount();
-            await this.fetchTotalFavoritesCount();
-
-            this.sortProperties('newest');
 
         } catch (error) {
             console.error('Error loading user property data:', error);
@@ -437,66 +419,6 @@ export class ListingManagerComponent extends AbstractComponent {
             }
 
             this.setTemplate(tempDiv.innerHTML);
-        }
-    }
-
-    async fetchTotalViewsCount() {
-        try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-view-count`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log("Received view count data:", data);
-
-            const totalViewsElement = document.getElementById('total-views');
-            if (totalViewsElement) {
-                totalViewsElement.textContent = data.totalViewCount;
-            }
-        } catch (error) {
-            console.error('Error fetching view count data:', error);
-            const totalViewsElement = document.getElementById('total-views');
-            if (totalViewsElement) {
-                totalViewsElement.textContent = "N/A";
-            }
-        }
-    }
-
-    async fetchTotalFavoritesCount() {
-        try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-favorited-count`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log("Received favorites count data:", data);
-
-            const totalFavoritesElement = document.getElementById('total-favorites');
-            if (totalFavoritesElement) {
-                totalFavoritesElement.textContent = data.totalViewCount || data.totalFavoritedCount || 0;
-            }
-        } catch (error) {
-            console.error('Error fetching favorites count data:', error);
-            const totalFavoritesElement = document.getElementById('total-favorites');
-            if (totalFavoritesElement) {
-                totalFavoritesElement.textContent = "0";
-            }
         }
     }
 }

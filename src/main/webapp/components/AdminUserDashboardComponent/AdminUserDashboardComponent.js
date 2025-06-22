@@ -1,8 +1,8 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
-import { environment } from "../../environment.js";
+import {environment} from "../../environment.js";
 import { router } from "../../js/app.js";
 
-export class ListingManagerComponent extends AbstractComponent {
+export class AdminUserDashboardComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
@@ -11,13 +11,14 @@ export class ListingManagerComponent extends AbstractComponent {
 
     //@Override
     async init() {
-        if (window.sessionStorage.getItem("isLoggedIn") === "false"){
+        if (window.sessionStorage.getItem("isLoggedIn") === "false" ||
+            window.sessionStorage.getItem("isAdmin") === "false"){
             window.location.href = environment.navigationUrl + "/home";
             return;
         }
         await super.init();
         // Depending on the page, you can comment the next line
-        this.dynamicallyLoadData();
+        await this.dynamicallyLoadData();
 
         this.initSearchFunctionality();
         this.initSortingFunctionality();
@@ -32,46 +33,26 @@ export class ListingManagerComponent extends AbstractComponent {
         container.addEventListener('click', event => {
             const deleteButton = event.target.closest('.delete-button');
             if (deleteButton) {
-                this.handleDeleteProperty(event, deleteButton.dataset.id);
+                this.handleDeleteUser(event, deleteButton.dataset.id);
             }
 
             const editButton = event.target.closest('.edit-button');
             if (editButton) {
                 event.preventDefault();
-                this.handleEditProperty(event, editButton.dataset.id);
-            }
-
-            const viewButton = event.target.closest('.view-button');
-            if (viewButton) {
-                this.handleViewProperty(event, viewButton.dataset.id);
+                this.handleEditUser(event, editButton.dataset.id);
             }
         });
     }
 
-    handleViewProperty(event, propertyId) {
+    handleEditUser(event, userId) {
         event.preventDefault();
         event.stopPropagation();
 
-        console.log("Viewing property with ID:", propertyId);
-        sessionStorage.setItem('selectedPropertyId', propertyId);
+        console.log("Navigating with user ID:", userId);
+        sessionStorage.setItem('userId', userId);
 
         if (this.router) {
-            this.router.safeNavigate('/property');
-        } else { // Fallback if router is not working
-            console.error('Router not available for navigation');
-            window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/property?id=${propertyId}`;
-        }
-    }
-
-    handleEditProperty(event, propertyId) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        console.log("Navigating with property ID:", propertyId);
-        sessionStorage.setItem('editPropertyId', propertyId);
-
-        if (this.router) {
-            this.router.safeNavigate('/edit-listing');
+            this.router.safeNavigate('/profile');
         } else { // Fallback if router is not working
             console.error('Router not available for navigation');
             window.location.href = `/TW_Dumitrascu_Ursache_war_exploded/edit-listing`;
@@ -90,19 +71,19 @@ export class ListingManagerComponent extends AbstractComponent {
             const sortSelect = document.getElementById('sort-options');
             if (sortSelect) {
                 sortSelect.addEventListener('change', (e) => {
-                    this.sortProperties(e.target.value);
+                    this.sortUsers(e.target.value);
                 });
             }
         }, 100);
     }
 
-    sortProperties(sortOption) {
-        const propertiesContainer = document.getElementById('user-properties-container');
-        const propertyCards = Array.from(propertiesContainer.querySelectorAll('.property-card'));
+    sortUsers(sortOption) {
+        const usersContainer = document.getElementById('user-users-container');
+        const userCards = Array.from(usersContainer.querySelectorAll('.user-card'));
 
-        if (propertyCards.length === 0) return;
+        if (userCards.length === 0) return;
 
-        propertyCards.sort((a, b) => {
+        userCards.sort((a, b) => {
             const dateA = new Date(a.querySelector('.creation-date').textContent.replace('Created on: ', ''));
             const dateB = new Date(b.querySelector('.creation-date').textContent.replace('Created on: ', ''));
 
@@ -113,10 +94,10 @@ export class ListingManagerComponent extends AbstractComponent {
             }
         });
 
-        propertiesContainer.innerHTML = '';
+        usersContainer.innerHTML = '';
 
-        propertyCards.forEach(card => {
-            propertiesContainer.appendChild(card);
+        userCards.forEach(card => {
+            usersContainer.appendChild(card);
         });
     }
 
@@ -125,7 +106,7 @@ export class ListingManagerComponent extends AbstractComponent {
             const searchInput = document.getElementById('search-listings');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
-                    this.filterProperties(e.target.value.toLowerCase());
+                    this.filterUsers(e.target.value.toLowerCase());
                 });
             }
         }, 100);
@@ -133,10 +114,10 @@ export class ListingManagerComponent extends AbstractComponent {
 
 
 
-    filterProperties(searchTerm) {
-        const propertyCards = document.querySelectorAll('.property-card');
+    filterUsers(searchTerm) {
+        const userCards = document.querySelectorAll('.user-card');
 
-        propertyCards.forEach(card => {
+        userCards.forEach(card => {
             const title = card.querySelector('h3').textContent.toLowerCase();
 
             if (searchTerm === '' || title.includes(searchTerm)) {
@@ -146,8 +127,8 @@ export class ListingManagerComponent extends AbstractComponent {
             }
         });
 
-        const visibleCards = [...propertyCards].filter(card => card.style.display !== 'none');
-        const container = document.getElementById('user-properties-container');
+        const visibleCards = [...userCards].filter(card => card.style.display !== 'none');
+        const container = document.getElementById('user-users-container');
 
         const existingMessage = container.querySelector('.no-results-message');
         if (existingMessage) {
@@ -157,35 +138,35 @@ export class ListingManagerComponent extends AbstractComponent {
         if (visibleCards.length === 0 && searchTerm !== '') {
             const noResultsHTML = `
         <div class="no-results-message">
-            <div class="no-properties-icon">🔍</div>
-            <h3>No Matching Properties</h3>
-            <p>No properties found matching "<strong>${searchTerm}</strong>"</p>
+            <div class="no-users-icon">🔍</div>
+            <h3>No Matching User</h3>
+            <p>No users found matching "<strong>${searchTerm}</strong>"</p>
         </div>`;
             container.insertAdjacentHTML('beforeend', noResultsHTML);
         }
     }
 
-    async handleDeleteProperty(event, propertyId) {
+    async handleDeleteUser(event, userId) {
         console.log("Delete button clicked");
-        console.log("Property ID:", propertyId);
+        console.log("User ID:", userId);
 
-        const confirmed = await this.showCustomConfirmation('Are you sure you want to delete this property?', propertyId);
+        const confirmed = await this.showCustomConfirmation('Are you sure you want to delete this user?', userId);
 
         if (confirmed) {
             try {
-                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/delete-property', {
+                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/user', {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         "Authorization": "Bearer " + sessionStorage.getItem("jwt")
                     },
-                    body: JSON.stringify({propertyId: propertyId})
+                    body: JSON.stringify({userId: userId})
                 });
 
                 if (response.ok) {
-                    this.showSuccessMessage('Property deleted successfully!');
+                    this.showSuccessMessage('User deleted successfully!');
 
-                    const deletedCard = document.querySelector(`.property-card .delete-button[data-id="${propertyId}"]`).closest('.property-card');
+                    const deletedCard = document.querySelector(`.user-card .delete-button[data-id="${userId}"]`).closest('.user-card');
                     if (deletedCard) {
                         deletedCard.remove();
 
@@ -198,13 +179,13 @@ export class ListingManagerComponent extends AbstractComponent {
                         }
                     }
 
-                    const propertiesContainer = document.getElementById('user-properties-container');
-                    if (propertiesContainer && !propertiesContainer.querySelector('.property-card')) {
-                        propertiesContainer.innerHTML = '<p>No properties found. Add some properties to get started!</p>';
+                    const usersContainer = document.getElementById('user-users-container');
+                    if (usersContainer && !usersContainer.querySelector('.user-card')) {
+                        usersContainer.innerHTML = '<p>No users found. Add some users to get started!</p>';
                     }
                 } else {
                     const errorText = await response.text();
-                    let errorMessage = 'Could not delete property';
+                    let errorMessage = 'Could not delete user';
                     try {
                         const errorObj = JSON.parse(errorText);
                         errorMessage = errorObj.message || errorMessage;
@@ -214,8 +195,8 @@ export class ListingManagerComponent extends AbstractComponent {
                     this.showErrorMessage(`Error: ${errorMessage}`);
                 }
             } catch (error) {
-                console.error('Error deleting property:', error);
-                this.showErrorMessage('Failed to delete property. Please try again later.');
+                console.error('Error deleting user:', error);
+                this.showErrorMessage('Failed to delete user. Please try again later.');
             }
         }
     }
@@ -253,7 +234,7 @@ export class ListingManagerComponent extends AbstractComponent {
         }
     }
 
-    showCustomConfirmation(message, propertyId) {
+    showCustomConfirmation(message, userId) {
         const overlay = document.createElement('div');
         overlay.className = 'delete-confirmation-overlay';
 
@@ -336,7 +317,7 @@ export class ListingManagerComponent extends AbstractComponent {
     render(){
         const container = document.createElement('div');
         container.className = this.className;
-        container.innerHTML = this.template;
+        container.innerHTML = this.getTemplate();
         this.eventListenerLoader(container);
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
@@ -345,9 +326,9 @@ export class ListingManagerComponent extends AbstractComponent {
 
     async dynamicallyLoadData() {
         try {
-            console.log("Fetching user properties data...");
+            console.log("Fetching user users data...");
             const userId = sessionStorage.getItem("jwt");
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-properties`, {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-users`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -359,144 +340,64 @@ export class ListingManagerComponent extends AbstractComponent {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const properties = await response.json();
-            console.log("Received user properties:", properties);
+            const users = await response.json();
+            console.log("Received user users:", users);
 
-            const totalListingsElement = document.getElementById('total-listings');
-            if (totalListingsElement) {
-                totalListingsElement.textContent = properties.length;
-            }
-
-            const cardsHTML = properties.length > 0
-                ? properties.map(property => {
-                    const creationDate = new Date(property.creationDate);
+            const cardsHTML = users.length > 0
+                ? users.map(user => {
+                    const creationDate = new Date(user.createdAt);
                     const formattedDate = creationDate.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     });
-                    const formattedImageUrl = `data:image/png;base64,${property.mainPhoto}`;
 
                     return `
-                <div class="property-card">
-                    <img class="photo" src=${formattedImageUrl}>
+                <div class="user-card">
                     <div class="content">
                         <div class="title-wrapper">
-                            <h3>${property.title}</h3>
+                            <h2>Id: ${user.userId}</h2>
+                            <h3>${user.username}</h3>
                             <p class="creation-date">Created on: ${formattedDate}</p>
                         </div>
                     </div>
-                    <div class="property-actions">
-                        <a href="#" class="view-button" data-route="/view-listing" data-id="${property.id}">View</a>
-                        <a href="#" class="edit-button" data-route="/edit-listing" data-id="${property.id}">Edit</a>
-                        <button class="delete-button" data-id="${property.id}">Delete</button>
+                    <div class="user-actions">
+                        <a href="/profile" class="edit-button" data-id="${user.userId}">Edit</a>
+                        <button class="delete-button" data-id="${user.userId}">Delete</button>
                     </div>
                 </div>
                 `;
                 }).join('')
-                : `<div class="no-properties-message">
-                <div class="no-properties-icon">📭</div>
-                <h3>No Properties Found</h3>
-                <p>You haven't added any properties yet. Click "Add New Listing" to get started!</p>
+                : `<div class="no-users-message">
+                <div class="no-users-icon">📭</div>
+                <h3>No Users Found</h3>
+                <p>There are no users to manage</p>
                </div>`;
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.getTemplate();
 
-            const propertiesContainer = tempDiv.querySelector('#user-properties-container');
-            if (propertiesContainer) {
-                propertiesContainer.innerHTML = cardsHTML;
-            }
-
-            const totalListingsTemplateElement = tempDiv.querySelector('#total-listings');
-            if (totalListingsTemplateElement) {
-                totalListingsTemplateElement.textContent = properties.length;
+            const usersContainer = tempDiv.querySelector('#user-users-container');
+            if (usersContainer) {
+                usersContainer.innerHTML = cardsHTML;
             }
 
             this.setTemplate(tempDiv.innerHTML);
 
-            const renderedPropertiesContainer = document.querySelector('#user-properties-container');
-            if (renderedPropertiesContainer) {
-                renderedPropertiesContainer.innerHTML = cardsHTML;
-            }
-
-            await this.fetchTotalViewsCount();
-            await this.fetchTotalFavoritesCount();
-
-            this.sortProperties('newest');
-
         } catch (error) {
-            console.error('Error loading user property data:', error);
+            console.error('Error loading user user data:', error);
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.getTemplate();
 
-            const container = tempDiv.querySelector('#user-properties-container');
+            const container = tempDiv.querySelector('#user-users-container');
             if (container) {
-                container.innerHTML = '<p>Unable to load your properties at this time. Please try again later.</p>';
+                container.innerHTML = '<p>Unable to load your users at this time. Please try again later.</p>';
+                console.log(tempDiv.innerHTML);
             }
 
             this.setTemplate(tempDiv.innerHTML);
-        }
-    }
-
-    async fetchTotalViewsCount() {
-        try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-view-count`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log("Received view count data:", data);
-
-            const totalViewsElement = document.getElementById('total-views');
-            if (totalViewsElement) {
-                totalViewsElement.textContent = data.totalViewCount;
-            }
-        } catch (error) {
-            console.error('Error fetching view count data:', error);
-            const totalViewsElement = document.getElementById('total-views');
-            if (totalViewsElement) {
-                totalViewsElement.textContent = "N/A";
-            }
-        }
-    }
-
-    async fetchTotalFavoritesCount() {
-        try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-favorited-count`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log("Received favorites count data:", data);
-
-            const totalFavoritesElement = document.getElementById('total-favorites');
-            if (totalFavoritesElement) {
-                totalFavoritesElement.textContent = data.totalViewCount || data.totalFavoritedCount || 0;
-            }
-        } catch (error) {
-            console.error('Error fetching favorites count data:', error);
-            const totalFavoritesElement = document.getElementById('total-favorites');
-            if (totalFavoritesElement) {
-                totalFavoritesElement.textContent = "0";
-            }
+            console.log(this.getTemplate());
         }
     }
 }

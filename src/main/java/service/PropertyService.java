@@ -2,6 +2,7 @@ package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.AdminPropertyDTO;
 import dto.GetUserPropertyDTO;
 import entity.*;
 import exceptions.*;
@@ -12,10 +13,7 @@ import util.Base64Util;
 import util.JwtUtil;
 
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.sql.Date;
 
@@ -343,5 +341,12 @@ public class PropertyService {
             return new PropertyExtraImages(propertyId, extraPhotosBase64String);
         }
         return null;
+    }
+
+    public String getAllProperties() throws DatabaseException, JsonProcessingException {
+        List<AdminPropertyDTO> properties = this.propertyRepository.getAllProperties();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(properties);
     }
 }

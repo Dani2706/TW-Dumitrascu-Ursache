@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.net.http.HttpHeaders;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 public class JwtUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
@@ -25,12 +26,14 @@ public class JwtUtil {
         }
     }
 
-    public String generateToken(String username, int userId) {
+    public String generateToken(String username, int userId, int adminStatus) {
         return Jwts.builder()
+                //.setId(UUID.randomUUID().toString())
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + JWT_EXPIRATION_MS))
                 .claim("userId", userId)
+                .claim("admin", adminStatus)
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
 
@@ -57,6 +60,16 @@ public class JwtUtil {
                 .getBody();
 
         return ((Number) claims.get("userId")).intValue();
+    }
+
+    public boolean isAdmin(String token){
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return ((Number) claims.get("admin")).intValue() == 1;
     }
 
     public boolean validateToken(String token) {
@@ -90,4 +103,7 @@ public class JwtUtil {
         }
     }
 
+//    public void blacklistToken(String token) {
+//
+//    }
 }

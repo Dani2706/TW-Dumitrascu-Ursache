@@ -1,6 +1,9 @@
 package service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.AdminUserDTO;
+import dto.DataForJwtCreationDTO;
 import dto.UserDTO;
 import entity.User;
 import exceptions.*;
@@ -10,6 +13,7 @@ import util.JwtUtil;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.util.List;
 
 public class UserService {
     private final UserRepository userRepository;
@@ -32,8 +36,15 @@ public class UserService {
         }
     }
 
-    public String generateJWT(String username, int userId){
-        return jwtUtil.generateToken(username, userId);
+    public String generateJWT(String username) throws DatabaseException, InvalidUsernameException {
+        DataForJwtCreationDTO userData = this.userRepository.getUserDataForJwtRecreationByUsername(username);
+        return jwtUtil.generateToken(userData.getUsername(), userData.getUserId(), userData.getAdminStatus());
+    }
+
+    public String refreshJWT(String token, int userId) throws DatabaseException, InvalidUserIdException {
+        DataForJwtCreationDTO userData = this.userRepository.getUserDataForJwtRecreationByUserId(userId);
+        //this.jwtUtil.blacklistToken(token);
+        return jwtUtil.generateToken(userData.getUsername(), userData.getUserId(), userData.getAdminStatus());
     }
 
     public UserDTO getUserData(int userId) throws DatabaseException, InvalidUserIdException {
@@ -50,5 +61,16 @@ public class UserService {
 
     public void deleteUserById(int userId) throws DatabaseException, InvalidUserIdException {
         this.userRepository.deleteUser(userId);
+    }
+
+    public void changeAdminStatusOfUser(int adminStatus, int userId) throws DatabaseException, InvalidUserIdException {
+        this.userRepository.changeAdminStatusOfUser(adminStatus, userId);
+    }
+
+    public String getAllUsers() throws DatabaseException, JsonProcessingException {
+        List<AdminUserDTO> users = this.userRepository.getAllUsers();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(users);
     }
 }

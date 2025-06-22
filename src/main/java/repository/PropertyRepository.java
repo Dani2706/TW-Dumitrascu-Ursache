@@ -1,14 +1,12 @@
 package repository;
 
+import dto.AdminPropertyDTO;
+import dto.AdminUserDTO;
 import dto.GetUserPropertyDTO;
 import entity.Property;
 import entity.PropertyForAllListings;
 import entity.PropertyMainImage;
-import entity.TopProperty;
-import exceptions.DatabaseException;
-import exceptions.NoListingsForThisCategoryException;
-import exceptions.PropertyNotFoundException;
-import exceptions.PropertyValidationException;
+import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.Base64Util;
@@ -350,10 +348,13 @@ public class PropertyRepository {
     }
 
     public void checkPropertyExistence(Connection conn, int propertyId, int userId) throws SQLException{
-        String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND user_id = ?";
+        String checkSql = "SELECT property_id FROM properties WHERE property_id = ? AND " +
+                "(user_id = ? OR EXISTS (SELECT 1 FROM admin WHERE user_id = ? AND is_admin = 1))";
         try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
             checkStmt.setInt(1, propertyId);
             checkStmt.setInt(2, userId);
+            checkStmt.setInt(3, userId);
+
             ResultSet rs = checkStmt.executeQuery();
 
             if (!rs.next()) {
@@ -370,7 +371,8 @@ public class PropertyRepository {
                 "floor = ?, total_floors = ?, year_built = ?, " +
                 "address = ?, country = ?, city = ?, state = ?, latitude = ?, longitude = ?, " +
                 "contact_name = ?, contact_phone = ?, contact_email = ? " +
-                "WHERE property_id = ? AND user_id = ?";
+                "WHERE property_id = ? AND " +
+                "(user_id = ? OR EXISTS (SELECT 1 FROM admin WHERE user_id = ? AND is_admin = 1))";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, property.getTitle());
@@ -395,6 +397,7 @@ public class PropertyRepository {
             stmt.setString(20, property.getContactEmail());
             stmt.setInt(21, propertyId);
             stmt.setInt(22, userId);
+            stmt.setInt(23, userId);
 
             int rowsAffected = stmt.executeUpdate();
 
@@ -444,60 +447,51 @@ public class PropertyRepository {
     }
 
     public void deleteProperty(int propertyId, int userId) throws DatabaseException, PropertyNotFoundException {
-        logger.debug("Attempting to delete property with ID: {} for user ID: {}", propertyId, userId);
+        String stmtAsString = "DELETE FROM properties WHERE property_id = ? AND " +
+                "(user_id = ? OR EXISTS (SELECT 1 FROM admin WHERE user_id = ? AND is_admin = 1))";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
 
-        Connection conn = null;
-        try {
-            conn = dataSource.getConnection();
-            conn.setAutoCommit(false);
-            checkPropertyExistence(conn, propertyId, userId);
-            deletePropertyMainPhoto(conn, propertyId);
-            deletePropertyExtraPhotos(conn, propertyId);
-            deletePropertyData(conn, propertyId);
+            stmt.setInt(1, propertyId);
+            stmt.setInt(2, userId);
+            stmt.setInt(3, userId);
 
-            conn.commit();
-            conn.close();
+            int rowsAffected = stmt.executeUpdate();
 
-            logger.info("Successfully deleted property with ID: {}", propertyId);
+            if (rowsAffected < 1) {
+                throw new DatabaseException("The property (" + propertyId + ") does not exist, the user (" + userId + ") does not have it, or both");
+            }
         } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                    conn.close();
-                } catch (SQLException e1) {
-                    throw new DatabaseException("Error rolling back property delete: " + e.getMessage());
-                }
-            }
-            throw new DatabaseException("Error deleting property: " + e.getMessage());
+            throw new DatabaseException(e);
         }
     }
 
-    private void deletePropertyData(Connection conn, int propertyId) throws SQLException {
-        String sql = "DELETE FROM properties WHERE property_id = ?";
-        try(PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, propertyId);
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected == 0) {
-                logger.error("No rows affected when deleting property data with id {}", propertyId);
-                throw new SQLException("Failed to delete property data , no rows affected");
-            }
-        }
-    }
-
-    private void deletePropertyMainPhoto(Connection conn, int propertyId) throws SQLException {
-        String stmtAsString = "DELETE FROM property_main_image WHERE property_id = ?";
-        try(PreparedStatement stmt = conn.prepareStatement(stmtAsString)) {
-            stmt.setInt(1, propertyId);
-
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected == 0) {
-                logger.error("No rows affected when deleting property main photo with id {}", propertyId);
-                throw new SQLException("Failed to delete property main photo , no rows affected");
-            }
-        }
-    }
+//    private void deletePropertyData(Connection conn, int propertyId) throws SQLException {
+//        String sql = "DELETE FROM properties WHERE property_id = ?";
+//        try(PreparedStatement stmt = conn.prepareStatement(sql)) {
+//            stmt.setInt(1, propertyId);
+//            int rowsAffected = stmt.executeUpdate();
+//
+//            if (rowsAffected == 0) {
+//                logger.error("No rows affected when deleting property data with id {}", propertyId);
+//                throw new SQLException("Failed to delete property data , no rows affected");
+//            }
+//        }
+//    }
+//
+//    private void deletePropertyMainPhoto(Connection conn, int propertyId) throws SQLException {
+//        String stmtAsString = "DELETE FROM property_main_image WHERE property_id = ?";
+//        try(PreparedStatement stmt = conn.prepareStatement(stmtAsString)) {
+//            stmt.setInt(1, propertyId);
+//
+//            int rowsAffected = stmt.executeUpdate();
+//
+//            if (rowsAffected == 0) {
+//                logger.error("No rows affected when deleting property main photo with id {}", propertyId);
+//                throw new SQLException("Failed to delete property main photo , no rows affected");
+//            }
+//        }
+//    }
 
     public List<PropertyForAllListings> findTopProperties() throws DatabaseException {
         logger.debug("Retrieving top properties");
@@ -546,25 +540,6 @@ public class PropertyRepository {
 
         return topProperties;
     }
-
-    /*public int testAddPropertyAsObject(Property property) throws DatabaseException, PropertyValidationException {
-        String testAddPropertyAsObject = "{call test_add(?)}";
-        try(Connection connection = this.dataSource.getConnection();
-        CallableStatement stmt = connection.prepareCall(testAddPropertyAsObject)){
-            Object[] obj = property.mapPropertyClassToDbPropertyType();
-            Struct propertyStruct = connection.createStruct("PROPERTY", obj);
-
-            stmt.setObject(1, propertyStruct);
-            stmt.execute();
-            return 1;
-        }
-        catch (SQLException e) {
-            if (e.getErrorCode() == 20003) {
-                throw new PropertyValidationException(e.getMessage());
-            }
-            throw new DatabaseException(e.getMessage());
-        }
-    }*/
 
     public List<PropertyForAllListings> getAllPropertiesWithBothFilters(String propertyType, String transactionType)
             throws DatabaseException, NoListingsForThisCategoryException {
@@ -818,38 +793,6 @@ public class PropertyRepository {
             throw new DatabaseException("Error retrieving favorited count data: " + e.getMessage(), e);
         }
     }
-    
-    public int addPropertyMainImage(byte[] mainImageAsBytes, int propertyId) throws DatabaseException{
-        String stmtAsString = "INSERT INTO property_main_image (property_id, image_data) VALUES(?, ?)";
-        try(Connection connection = this.dataSource.getConnection();
-            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
-
-            stmt.setInt(1, propertyId);
-            stmt.setBytes(2, mainImageAsBytes);
-
-            stmt.executeQuery();
-
-            int affectedRows = stmt.executeUpdate();
-
-            if (affectedRows == 0) {
-                logger.error("Creating property failed, no rows affected");
-                throw new DatabaseException("Failed to create property, no rows affected");
-            }
-
-            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    int id = generatedKeys.getInt(1);
-                    logger.info("Added new property with ID: {}", id);
-                    return id;
-                } else {
-                    logger.error("Creating property failed, no ID obtained");
-                    throw new DatabaseException("Failed to create property, no ID obtained");
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException("Error adding property: " + e.getMessage());
-        }
-    }
 
     public byte[] getPropertyMainImage(int propertyId) throws DatabaseException{
         String stmtAsString = "SELECT image_data FROM property_main_image WHERE property_id = ?";
@@ -892,6 +835,30 @@ public class PropertyRepository {
             }
             return extraPhotos;
         } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    public List<AdminPropertyDTO> getAllProperties() throws DatabaseException {
+        String stmtAsString = "SELECT title, created_at, p.property_id, image_data FROM properties p JOIN property_main_image i ON p.property_id = i.property_id";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            ResultSet rs = stmt.executeQuery();
+
+            List<AdminPropertyDTO> properties = new ArrayList<>();
+
+            while(rs.next()){
+                properties.add(new AdminPropertyDTO(
+                        rs.getString("title"),
+                        rs.getDate("created_at"),
+                        rs.getInt(3),
+                        Base64Util.encodeBase64(rs.getBytes("image_data"))
+                ));
+            }
+
+            return properties;
+        } catch (SQLException e){
             throw new DatabaseException(e);
         }
     }

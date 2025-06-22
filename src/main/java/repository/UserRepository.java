@@ -1,11 +1,16 @@
 package repository;
 
+import dto.AdminUserDTO;
+import dto.DataForJwtCreationDTO;
 import dto.UserDTO;
 import entity.User;
 import exceptions.*;
+import oracle.jdbc.proxy.annotation.Pre;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserRepository {
     DataSource dataSource;
@@ -139,6 +144,93 @@ public class UserRepository {
             throw new DatabaseException(e);
         }
     }
+
+    public void changeAdminStatusOfUser(int adminStatus, int userId) throws DatabaseException, InvalidUserIdException {
+        String stmtAsString = "UPDATE admin SET is_admin = ? WHERE user_id = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, adminStatus);
+            stmt.setInt(2, userId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected < 1) {
+                throw new InvalidUserIdException("The user with the given user_id (" + userId + ") does not exist");
+            }
+        } catch (SQLException e){
+            throw new DatabaseException(e);
+        }
+    }
+
+    public DataForJwtCreationDTO getUserDataForJwtRecreationByUsername(String username) throws DatabaseException, InvalidUsernameException {
+        String stmtAsString = "SELECT username, u.user_id, is_admin FROM users u JOIN admin a ON u.user_id = a.user_id WHERE username = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setString(1, username);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (!rs.next()) {
+                throw new InvalidUsernameException("The user with the username (" + username + ") does not exist");
+            }
+
+            return new DataForJwtCreationDTO(
+                    rs.getString("username"),
+                    rs.getInt("user_id"),
+                    rs.getInt("is_admin")
+            );
+        } catch (SQLException e){
+            throw new DatabaseException(e);
+        }
+    }
+
+    public DataForJwtCreationDTO getUserDataForJwtRecreationByUserId(int userId) throws DatabaseException, InvalidUserIdException {
+        String stmtAsString = "SELECT u.username, u.user_id, a.is_admin FROM users u JOIN admin a ON u.user_id = a.user_id WHERE u.user_id = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, userId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (!rs.next()) {
+                throw new InvalidUserIdException("The user with the username (" + userId + ") does not exist");
+            }
+
+            return new DataForJwtCreationDTO(
+                    rs.getString("username"),
+                    rs.getInt("user_id"),
+                    rs.getInt("is_admin")
+            );
+        } catch (SQLException e){
+            throw new DatabaseException(e);
+        }
+    }
+
+    public List<AdminUserDTO> getAllUsers() throws DatabaseException {
+        String stmtAsString = "SELECT username, user_id, created_at FROM users";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            ResultSet rs = stmt.executeQuery();
+
+            List<AdminUserDTO> users = new ArrayList<>();
+
+            while(rs.next()){
+                users.add(new AdminUserDTO(
+                        rs.getString("username"),
+                        rs.getInt("user_id"),
+                        rs.getDate("created_at")
+                        ));
+            }
+
+            return users;
+        } catch (SQLException e){
+            throw new DatabaseException(e);
+        }
+    }
+
 
 //    public boolean doesUserExist(int userId) throws DatabaseException {
 //        String stmtAsString = "SELECT user_id FROM users WHERE user_id = ?";

@@ -44,7 +44,7 @@ public class GetPropertyServlet extends HttpServlet {
                 throw new InvalidPropertyIdException("Missing 'id' parameter");
             }
 
-            int propertyId = HandleErrorUtil.handleIntParsingError(idParam);
+            int propertyId = Integer.parseInt(idParam);
 
             Property property = propertyService.getPropertyById(propertyId);
             PropertyMainImage propertyMainImage = propertyService.getPropertyMainImage(propertyId);
@@ -105,7 +105,7 @@ public class GetPropertyServlet extends HttpServlet {
             out.write(json);
             logger.debug("Successfully returned property data for ID: {}", propertyId);
 
-        } catch (InvalidPropertyIdException e) {
+        } catch (NumberFormatException e) {
             logger.error("Invalid property ID: ", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             HandleErrorUtil.handleGetWriterError(response, e.getMessage(), logger);

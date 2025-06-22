@@ -32,6 +32,9 @@ export class Router {
             await this.navigate(path); // Load the correct view on page load
             document.body.style.visibility = 'visible';
         });
+    }
+
+    setLogoutEventListener(){
         document.querySelector(".logout-button")
             .addEventListener('click', () => {
                 window.sessionStorage.clear();
@@ -40,24 +43,84 @@ export class Router {
     }
 
     async manageNavBarElementsInHeader() {
-        let loginTrueDisplayStatus = "";
-        let loginFalseDisplayStatus = "";
-        const loginTrue = document.querySelectorAll(".login-true");
-        const loginFalse = document.querySelectorAll(".login-false");
-        if (window.sessionStorage.getItem("isLoggedIn") === "true") {
-            loginTrueDisplayStatus = "block";
-            loginFalseDisplayStatus = "none";
+        const navBar = document.getElementById("manage-nav-bar");
+        navBar.replaceChildren();
+        if (sessionStorage.getItem("isAdmin") === "true"){
+            const userDashboard = document.createElement('a');
+            userDashboard.setAttribute("href", "/admin/UserDashboard");
+            userDashboard.setAttribute("data-route", "/admin/UserDashboard")
+            userDashboard.textContent = "User Dashboard";
+
+            const propertyDashboard = document.createElement('a');
+            propertyDashboard.setAttribute("href", "/admin/PropertyDashboard");
+            propertyDashboard.setAttribute("data-route", "/admin/PropertyDashboard")
+            propertyDashboard.textContent = "Property Dashboard";
+
+            const logout = document.createElement('a');
+            logout.classList.add("logout-button");
+            logout.setAttribute("href", "/");
+            logout.setAttribute("class", "logout-button");
+            logout.setAttribute("data-route", "/logout");
+            logout.textContent = "Logout";
+
+            navBar.appendChild(userDashboard);
+            navBar.appendChild(propertyDashboard);
+            navBar.appendChild(logout);
+
+            this.setLogoutEventListener();
         }
         else {
-            loginTrueDisplayStatus = "none";
-            loginFalseDisplayStatus = "block";
+            const home = document.createElement('a');
+            home.setAttribute("href", "/");
+            home.setAttribute("data-route", "/")
+            home.textContent = "Home";
+
+            navBar.appendChild(home);
+
+            if (sessionStorage.getItem("isLoggedIn") === "true"){
+                const favorites = document.createElement('a');
+                favorites.setAttribute("href", "/favorite-listings");
+                favorites.setAttribute("data-route", "/favorite-listings");
+                favorites.textContent = "Favorites";
+
+                const yourListings = document.createElement('a');
+                yourListings.setAttribute("href", "/manage-listings");
+                yourListings.setAttribute("data-route", "/manage-listings");
+                yourListings.textContent = "Your listings";
+
+                const profile = document.createElement('a');
+                profile.setAttribute("href", "/profile");
+                profile.setAttribute("data-route", "/profile");
+                profile.textContent = "Profile";
+
+                const logout = document.createElement('a');
+                logout.classList.add("logout-button");
+                logout.setAttribute("href", "/");
+                logout.setAttribute("class", "logout-button");
+                logout.setAttribute("data-route", "/logout");
+                logout.textContent = "Logout";
+
+                navBar.appendChild(favorites);
+                navBar.appendChild(yourListings);
+                navBar.appendChild(profile);
+                navBar.appendChild(logout);
+
+                this.setLogoutEventListener();
+            } else {
+                const login = document.createElement('a');
+                login.setAttribute("href", "/login");
+                login.setAttribute("data-route", "/login")
+                login.textContent = "Login";
+
+                const register = document.createElement('a');
+                register.setAttribute("href", "/register");
+                register.setAttribute("data-route", "/register")
+                register.textContent = "Register";
+
+                navBar.appendChild(login);
+                navBar.appendChild(register);
+            }
         }
-        loginTrue.forEach(el => {
-            el.style.display = loginTrueDisplayStatus;
-        })
-        loginFalse.forEach(el => {
-            el.style.display = loginFalseDisplayStatus;
-        })
     }
 
     async navigate(path) {

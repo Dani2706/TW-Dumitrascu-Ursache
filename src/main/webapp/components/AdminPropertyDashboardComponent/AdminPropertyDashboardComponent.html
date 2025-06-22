@@ -1,0 +1,33 @@
+<div class="listing-manager">
+    <div class="listing-manager-component">
+        <div class="header-section">
+            <h1>Your Property Listings</h1>
+            <p class="subtitle">Manage and track all your real estate listings in one place</p>
+        </div>
+
+        <div class="filters-section">
+            <div class="search-box">
+                <input type="text" id="search-listings" placeholder="Search your listings...">
+                <button class="search-btn">🔍</button>
+            </div>
+            <div class="filter-options">
+                <select id="sort-options">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="listings-container">
+            <h2>Your Active Listings</h2>
+
+            <div id="user-properties-container" class="properties-grid">
+                <!-- Property cards will be inserted here dynamically -->
+                <div class="loader-container">
+                    <div class="loader"></div>
+                    <p>Loading your listings...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -8,11 +8,8 @@ import { AddPropertyComponent } from "../components/AddPropertyComponent/AddProp
 import { ListingManagerComponent } from "../components/ListingManagerComponent/ListingManagerComponent.js";
 import { EditListingComponent } from "../components/EditListingComponent/EditListingComponent.js";
 import { PropertiesListComponent } from "../components/PropertiesListComponent/PropertiesListComponent.js";
-import { AdminAddPropertyComponent } from "../components/AdminAddPropertyComponent/AdminAddPropertyComponent.js";
-import { AdminEditPropertyComponent} from "../components/AdminEditPropertyComponent/AdminEditPropertyComponent.js";
-import {AdminAddUserComponent} from "../components/AdminAddUserComponent/AdminAddUserComponent.js";
-import {AdminEditUserComponent} from "../components/AdminEditUserComponent/AdminEditUserComponent.js";
-import {AdminDashboardComponent} from "../components/AdminDashboardComponent/AdminDashboardComponent.js";
+import { AdminUserDashboardComponent } from "../components/AdminUserDashboardComponent/AdminUserDashboardComponent.js";
+import { AdminPropertyDashboardComponent } from "../components/AdminPropertyDashboardComponent/AdminPropertyDashboardComponent.js"
 import {FavoriteListingsComponent} from "../components/FavoriteListingsComponent/FavoriteListingsComponent.js";
 
 const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
@@ -27,11 +24,8 @@ const routes = {
             "/property" : PropertyComponent,
             "/login" : LoginComponent,
             "/register" : RegisterComponent,
-            "/admin/add-property" : AdminAddPropertyComponent,
-            "/admin/edit-property" : AdminEditPropertyComponent,
-            "/admin/add-user" : AdminAddUserComponent,
-            "/admin/edit-user" : AdminEditUserComponent,
-            "/dashboard" : AdminDashboardComponent
+            "/admin/PropertyDashboard" : AdminPropertyDashboardComponent,
+            "/admin/UserDashboard" : AdminUserDashboardComponent
         }
 export const router = new Router('#main-window', basePath, routes);
 console.log("Router initialized with base path:", basePath);

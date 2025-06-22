@@ -88,11 +88,13 @@ export class LoginComponent extends AbstractComponent {
 
         if (response.status === 200) {
             const result = await response.json();
-            window.sessionStorage.setItem("jwt", result.token)
-            window.sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("jwt", result.token)
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("isAdmin", result.isAdmin);
+            console.log(result.isAdmin);
 
             if (this.router) {
-                this.router.navigate("/profile");
+                this.router.navigate("/");
             } else { // Fallback if router is not working
                 console.error('Router not found');
                 window.location.href = '/profile';

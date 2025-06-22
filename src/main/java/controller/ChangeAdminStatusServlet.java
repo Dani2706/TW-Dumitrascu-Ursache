@@ -1,8 +1,7 @@
 package controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import exceptions.InvalidPasswordException;
-import exceptions.InvalidUsernameException;
+import exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import service.UserService;
@@ -16,12 +15,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.BufferedReader;
-import java.util.HashMap;
 import java.util.Map;
 
-@WebServlet("/api/login")
-public class LoginController extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+@WebServlet("/api/admin")
+public class ChangeAdminStatusServlet extends HttpServlet {
+    private static final Logger logger = LoggerFactory.getLogger(ChangeAdminStatusServlet.class);
     private UserService userService;
     private JwtUtil jwtUtil;
 
@@ -33,10 +31,15 @@ public class LoginController extends HttpServlet {
     }
 
     @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse resp){
-
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+        String authHeader = req.getHeader("Authorization");
         StringBuilder requestBody = new StringBuilder();
         try (BufferedReader reader = req.getReader()) {
+            String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
+            if (!this.jwtUtil.isAdmin(token)) {
+                throw new NotAuthorizedException("User is not an admin");
+            }
+
             String line;
             while ((line = reader.readLine()) != null) {
                 requestBody.append(line);
@@ -45,30 +48,22 @@ public class LoginController extends HttpServlet {
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
 
-            String username = (String) bodyParams.get("username");
-            String password = (String) bodyParams.get("password");
+            String adminStatusAsString = (String) bodyParams.get("adminStatus");
+            String userIdAsString = (String) bodyParams.get("userId");
 
-            this.userService.validateCredentials(username, password);
+            int adminStatus = Integer.parseInt(adminStatusAsString);
+            int userId = Integer.parseInt(userIdAsString);
 
-            String generatedToken = this.userService.generateJWT(username);
 
-            boolean isAdmin = this.jwtUtil.isAdmin(generatedToken);
-
-            Map<String, String> json = new HashMap<>();
-            json.put("token", generatedToken);
-            json.put("isAdmin", String.valueOf(isAdmin));
-
-            String responseBody = new ObjectMapper().writeValueAsString(json);
+            this.userService.changeAdminStatusOfUser(adminStatus, userId);
 
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.setCharacterEncoding("UTF-8");
-            resp.setContentType("application/json");
-            resp.getWriter().write(responseBody);
-
-        } catch (InvalidUsernameException | InvalidPasswordException e) {
+        } catch (NumberFormatException | InvalidUserIdException e) {
+            logger.warn("", e);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        } catch (NotAuthorizedException e) {
             logger.warn("", e);
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            HandleErrorUtil.handleGetWriterError(resp, e.getClass().getSimpleName(), logger);
         } catch (Exception e) {
             logger.error("", e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

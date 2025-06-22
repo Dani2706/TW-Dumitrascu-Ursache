@@ -25,7 +25,7 @@ public class SpaRedirectFilter implements Filter {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
-        
+
         RequestDispatcher dispatcher = request.getRequestDispatcher("/index.html");
         dispatcher.forward(servletRequest, servletResponse);
     }

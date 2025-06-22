@@ -17,9 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.BufferedReader;
+import java.util.HashMap;
 import java.util.Map;
 
-@WebServlet("/api/user/profile")
+@WebServlet("/api/user")
 public class UserController extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private UserService userService;
@@ -35,9 +36,21 @@ public class UserController extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp){
         String authHeader = req.getHeader("Authorization");
+        String userIdParam = req.getParameter("userId");
         try {
+            int userId;
             String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
-            int userId = this.jwtUtil.getUserId(token);
+            if (jwtUtil.isAdmin(token)){
+                if(userIdParam == null) {
+                    logger.warn("Missing 'user_id' parameter in request");
+                    throw new InvalidUserIdException("Missing 'user_id' parameter");
+                }
+                userId = Integer.parseInt(userIdParam);
+            }
+            else{
+                userId = this.jwtUtil.getUserId(token);
+            }
+
             UserDTO user = this.userService.getUserData(userId);
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -77,10 +90,35 @@ public class UserController extends HttpServlet {
             String email = (String) bodyParams.get("email");
             String phoneNumber = (String) bodyParams.get("phone");
 
-            User user = new User(this.jwtUtil.getUserId(token), username, email, phoneNumber);
+            int userId;
+
+            if (jwtUtil.isAdmin(token)){
+                String userIdAsString = (String) bodyParams.get("userId");
+                userId = Integer.parseInt(userIdAsString);
+            }
+            else{
+                userId = this.jwtUtil.getUserId(token);
+            }
+
+            User user = new User(userId, username, email, phoneNumber);
             this.userService.updateUserById(user);
 
-            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            String newToken = this.userService.refreshJWT(token, userId);
+
+            boolean isAdmin = this.jwtUtil.isAdmin(newToken);
+
+            Map<String, String> json = new HashMap<>();
+            json.put("token", newToken);
+            json.put("isAdmin", String.valueOf(isAdmin));
+
+            String responseBody = new ObjectMapper().writeValueAsString(json);
+
+
+            resp.setCharacterEncoding("UTF-8");
+            resp.setContentType("application/json");
+            resp.getWriter().write(responseBody);
+
+            resp.setStatus(HttpServletResponse.SC_OK);
 
         } catch (NotAuthorizedException e) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -92,6 +130,48 @@ public class UserController extends HttpServlet {
         } catch (Exception e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             logger.error("", e);
+        }
+    }
+
+    @Override
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp){
+        String authHeader = req.getHeader("Authorization");
+
+        StringBuilder requestBody = new StringBuilder();
+        try (BufferedReader reader = req.getReader()) {
+            String token = this.jwtUtil.verifyAuthorizationHeader(authHeader);
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                requestBody.append(line);
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
+
+            int userId;
+
+            if (jwtUtil.isAdmin(token)){
+                String userIdAsString = (String) bodyParams.get("userId");
+                userId = Integer.parseInt(userIdAsString);
+            }
+            else{
+                userId = this.jwtUtil.getUserId(token);
+            }
+
+            this.userService.deleteUserById(userId);
+
+            resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            resp.setContentType("application/json");
+        } catch (NumberFormatException | InvalidUserIdException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            logger.warn("", e);
+        } catch (NotAuthorizedException e) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            logger.warn("", e);
+        } catch (Exception e) {
+            logger.error("", e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }

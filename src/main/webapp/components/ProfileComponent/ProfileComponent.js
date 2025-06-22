@@ -1,5 +1,6 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { UserService } from "../../services/UserService.js";
+import { AdminService} from "../../services/AdminService.js";
 import {environment} from "../../environment.js";
 
 export class ProfileComponent extends AbstractComponent {
@@ -8,6 +9,7 @@ export class ProfileComponent extends AbstractComponent {
         this.setClassName(this.constructor.name);
         this.container = "";
         this.userService = new UserService();
+        this.adminService = new AdminService();
         this.errorContainer = null;
         this.runtimeErrorContainer = null;
         this.runtimeErrorParentContainer = null;
@@ -73,7 +75,14 @@ export class ProfileComponent extends AbstractComponent {
 
     async getUserProfile(profileContainer) {
         try {
-            const response = await this.userService.getUserProfile();
+            const userId = sessionStorage.getItem("userId");
+            let response = null;
+            if (userId != null && sessionStorage.getItem("isAdmin")){
+                response = await this.adminService.getUser(userId);
+            }
+            else {
+                response = await this.userService.getUserProfile();
+            }
 
             if (response.status === 200) {
                 const userData = await response.json();
@@ -90,6 +99,7 @@ export class ProfileComponent extends AbstractComponent {
                 throw new Error("Unable to upload your profile information. \n Please login first!");
             }
             else {
+                console.log("Inserted in get");
                 throw new Error("There was an error uploading your profile information. \n Please retry or try again later!");
             }
 
@@ -107,25 +117,29 @@ export class ProfileComponent extends AbstractComponent {
 
         const errorMessage = this.verifyPasswordValidity(formData);
         if (!this.appendErrorMessage(errorMessage)) {
-            const plainObject = Object.fromEntries(formData.entries());
 
-            const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/user/profile", {
-                    method: "PUT",
-                    body: JSON.stringify(plainObject),
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                    }
-                }
-            );
+            const userId = sessionStorage.getItem("userId");
+            let response = null;
+            if (userId != null && (sessionStorage.getItem("isAdmin") === "true")){
+                formData.append("userId", userId);
+                const userData = Object.fromEntries(formData.entries());
+                response = await this.adminService.updateUser(userData);
+            }
+            else {
+                const userData = Object.fromEntries(formData.entries());
+                response = await this.userService.updateUserProfile(userData);
+            }
+
             try {
                 let errorMessage = "";
                 console.log(response.status);
-                console.log(response);
-                if (response.status === 204) {
+                if (response.status === 200) {
                     alert("Profile updated succesfully!");
+                    const json = await response.json();
+                    sessionStorage.setItem("jwt", json.token)
+                    sessionStorage.setItem("isAdmin", json.isAdmin)
                 } else if (response.status === 401) {
-                    throw new Error("Unable to update your profile information. Please login first!");
+                        throw new Error("Unable to update your profile information. Please login first!");
                 } else if (response.status === 409) {
                     const result = await response.text();
                     if (result === "UsernameAlreadyInUseException") {
@@ -138,11 +152,13 @@ export class ProfileComponent extends AbstractComponent {
                         errorMessage = "* Phone number already in use";
                         this.runtimeErrorParentContainer = this.container.querySelector(".phone-number-field");
                     }
+                    this.appendErrorMessage(errorMessage);
                 } else {
+                    console.log("Inserted in update");
                     throw new Error("There was an error uploading your profile information. Please retry or try again later!");
                 }
-                this.appendErrorMessage(errorMessage);
             } catch (error) {
+                console.log(error);
                 this.prependErrorMessage(this.container.querySelector(".profile-container"), error.message);
             }
         }

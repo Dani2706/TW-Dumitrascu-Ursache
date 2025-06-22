@@ -1,6 +1,8 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
 import { router } from "../../js/app.js";
+import {UserService} from "../../services/UserService.js";
+import {AdminService} from "../../services/AdminService.js";
 
 export class RegisterComponent extends AbstractComponent {
     constructor() {
@@ -11,6 +13,8 @@ export class RegisterComponent extends AbstractComponent {
         this.isSignUpFailed = true;
         this.errorSelectorName = "";
         this.container = "";
+        this.userService = new UserService();
+        this.adminService = new AdminService();
     }
 
     //@Override
@@ -83,15 +87,14 @@ export class RegisterComponent extends AbstractComponent {
             this.showErrorMessage();
         }
         else {
-            const plainObject = Object.fromEntries(formData.entries());
-            const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/register", {
-                method: "POST",
-                body: JSON.stringify(plainObject),
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
+            const userData = Object.fromEntries(formData.entries());
+            let response = null;
+            if (sessionStorage.getItem("isAdmin")){
+                response = await this.adminService.registerUser(userData);
             }
-            );
+            else{
+                response = await this.userService.registerUser(userData);
+            }
 
             if (response.status === 201) {
                 alert("User registered!");

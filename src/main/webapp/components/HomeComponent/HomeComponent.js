@@ -10,6 +10,10 @@ export class HomeComponent extends AbstractComponent {
     }
 
     async init() {
+        if (sessionStorage.getItem("isAdmin") === "true"){
+            this.router.safeNavigate("/admin/PropertyDashboard")
+            return;
+        }
         await super.init();
     }
 
