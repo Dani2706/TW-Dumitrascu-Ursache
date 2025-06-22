@@ -7,6 +7,7 @@ import dto.DataForJwtCreationDTO;
 import dto.UserDTO;
 import entity.User;
 import exceptions.*;
+import repository.TokenRepository;
 import repository.UserRepository;
 import org.mindrot.jbcrypt.BCrypt;
 import util.JwtUtil;
@@ -17,11 +18,13 @@ import java.util.List;
 
 public class UserService {
     private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
     private final JwtUtil jwtUtil;
 
     public UserService(DataSource dataSource) {
         this.jwtUtil = new JwtUtil();
         this.userRepository = new UserRepository(dataSource);
+        this.tokenRepository = new TokenRepository(dataSource);
     }
 
     public void addUser(String username, String email, String password, String phoneNumber) throws UsernameAlreadyInUseException, EmailAlreadyInUseException, PhoneNumberAlreadyInUseException, DatabaseException {
@@ -72,5 +75,18 @@ public class UserService {
 
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(users);
+    }
+
+    public String generateResetToken(String email) throws InvalidEmailException, DatabaseException {
+        int userId = this.userRepository.getUserIdByEmail(email);
+        String resetToken =  this.jwtUtil.generateResetToken(userId);
+        this.tokenRepository.saveResetToken(resetToken);
+        return resetToken;
+    }
+
+    public void resetPassword(String token, String password) throws DatabaseException, InvalidResetTokenException, NumberFormatException {
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        int userId = Integer.parseInt(this.jwtUtil.getUserIdFromResetToken(token));
+        this.userRepository.resetPassword(userId, token, hashedPassword);
     }
 }

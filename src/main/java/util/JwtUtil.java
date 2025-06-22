@@ -1,5 +1,6 @@
 package util;
 
+import config.ConfigLoader;
 import entity.User;
 import exceptions.JwtSecretNotSet;
 import exceptions.NotAuthorizedException;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 public class JwtUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
-    private final String jwtSecret = "abc6655sa54d5a4s54d54a5d1awd5adajsbdhaf5as5a656a6s56af6s5a6fa656f5s6a5f65a6sf56a5sf";//System.getenv("JWT_SECRET");
+    private final String jwtSecret = ConfigLoader.get("jwt.secret");
     private static final int JWT_EXPIRATION_MS = 86400000;
     //private static final int JWT_PASSWORD_EXPIRATION_MS = 600000;
 
@@ -101,6 +102,24 @@ public class JwtUtil {
         else {
             throw new NotAuthorizedException("Authorization header is not set");
         }
+    }
+
+    public String generateResetToken(int userId) {
+        return Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(new Date().getTime() + JWT_EXPIRATION_MS))
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String getUserIdFromResetToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
 //    public void blacklistToken(String token) {

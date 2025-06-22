@@ -14,9 +14,11 @@ import java.util.List;
 
 public class UserRepository {
     DataSource dataSource;
+    TokenRepository tokenRepository;
 
     public UserRepository(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.tokenRepository = new TokenRepository(dataSource);
     }
 
     public void addUser(String username, String email, String password, String phoneNumber) throws EmailAlreadyInUseException, UsernameAlreadyInUseException, PhoneNumberAlreadyInUseException, DatabaseException {
@@ -232,6 +234,73 @@ public class UserRepository {
         } catch (SQLException e){
             throw new DatabaseException(e);
         }
+    }
+
+    public int getUserIdByEmail(String email) throws InvalidEmailException, DatabaseException {
+        String stmtAsString = "SELECT user_id FROM users WHERE email = ?";
+        try(Connection connection = this.dataSource.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setString(1, email);
+            ResultSet result = stmt.executeQuery();
+
+            if (!result.next()) {
+                throw new InvalidEmailException("The user with the given email (" + email + ") does not exist");
+            }
+            else {
+                return result.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    public void resetPassword(int userId, String token, String password) throws DatabaseException, InvalidResetTokenException {
+        Connection conn = null;
+        try {
+            conn = this.dataSource.getConnection();
+            conn.setAutoCommit(false);
+            this.tokenRepository.verifyResetTokenExistence(conn, token);
+            this.setUserPassword(conn, password, userId);
+
+            conn.commit();
+            conn.close();
+        } catch(InvalidResetTokenException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    conn.close();
+                } catch (SQLException e1) {
+                    throw new DatabaseException("Error rolling back password update: " + e.getMessage());
+                }
+                throw new InvalidResetTokenException(e);
+            }
+            throw new DatabaseException("Error resetting password and conn is null: " + e.getMessage());
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    conn.close();
+                } catch (SQLException e1) {
+                    throw new DatabaseException("Error rolling back password update: " + e.getMessage());
+                }
+                throw new DatabaseException("Error resetting password: " + e.getMessage());
+            }
+            throw new DatabaseException("Error resetting password and conn is null: " + e.getMessage());
+        }
+    }
+
+    private void setUserPassword(Connection conn, String password, int userId) throws SQLException {
+        String stmtAsString = "UPDATE users SET password = ? WHERE user_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(stmtAsString);
+            stmt.setString(1, password);
+            stmt.setInt(2, userId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected < 1) {
+                throw new SQLException("The user with the given id (" + userId + ") does not exist");
+            }
     }
 
 
