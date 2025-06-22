@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Documentație - REM</title>
+    <link rel="stylesheet" href="docs.css">
+</head>
+<body prefix="schema: https://schema.org">
+
+<div id="toc" class="toc">
+    <h2>Cuprins</h2>
+    <ul id="toc-list">
+        <li class="toc-level-1"><a href="#introduction">1. Introducere</a>
+            <ul>
+                <li class="toc-level-2"><a href="#purpose">1.1 Scop</a></li>
+                <li class="toc-level-2"><a href="#scope">1.2 Sfera produsului</a></li>
+                <li class="toc-level-2"><a href="#definitions">1.3 Definiții, acronime și prescurtări</a></li>
+            </ul>
+        </li>
+        <li class="toc-level-1"><a href="#overall-description">2. Descriere generală</a>
+            <ul>
+                <li class="toc-level-2"><a href="#product-perspective">2.1 Perspectiva produsului</a></li>
+                <li class="toc-level-2"><a href="#product-functions">2.2 Funcțiile produsului</a></li>
+                <li class="toc-level-2"><a href="#user-characteristics">2.3 Caracteristicile utilizatorilor</a></li>
+                <li class="toc-level-2"><a href="#constraints">2.4 Constrângeri</a></li>
+            </ul>
+        </li>
+        <li class="toc-level-1"><a href="#specific-requirements">3. Cerințe specifice</a>
+            <ul>
+                <li class="toc-level-2"><a href="#functional-requirements">3.1 Cerințe funcționale</a>
+                    <ul>
+                        <li class="toc-level-3"><a href="#user-management">3.1.1 Gestionarea utilizatorilor</a></li>
+                        <li class="toc-level-3"><a href="#property-management">3.1.2 Gestionarea proprietăților</a></li>
+                        <li class="toc-level-3"><a href="#property-browsing">3.1.3 Navigarea și căutarea proprietăților listate</a></li>
+                        <li class="toc-level-3"><a href="#favorites">3.1.4 Gestionarea favoritelor</a></li>
+                        <li class="toc-level-3"><a href="#admin">3.1.5 Funcționalități administrative</a></li>
+                        <li class="toc-level-3"><a href="#statistics">3.1.6 Statistici și analiză</a></li>
+                    </ul>
+                </li>
+                <li class="toc-level-2"><a href="#non-functional-requirements">3.2 Cerințe nefuncționale</a>
+                    <ul>
+                        <li class="toc-level-3"><a href="#performance">3.2.1 Performanță</a></li>
+                        <li class="toc-level-3"><a href="#security">3.2.2 Securitate</a></li>
+                        <li class="toc-level-3"><a href="#usability">3.2.3 Utilizabilitate</a></li>
+                        <li class="toc-level-3"><a href="#reliability">3.2.4 Fiabilitate</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+        <li class="toc-level-1"><a href="#system-architecture">4. Arhitectura Sistemului</a>
+            <ul>
+                <li class="toc-level-2"><a href="#component-diagram">4.1 Diagrama componentelor</a></li>
+                <li class="toc-level-2"><a href="#deployment-diagram">4.2 Diagrama de implementare</a></li>
+            </ul>
+        </li>
+        <li class="toc-level-1"><a href="#implementation-details">5. Detalii despre Implementare</a>
+            <ul>
+                <li class="toc-level-2"><a href="#frontend">5.1 Implementarea Frontend-ului</a>
+                    <ul>
+                        <li class="toc-level-3"><a href="#ui-details">5.1.1 Detalii de Interfață Utilizator</a></li>
+                    </ul>
+                </li>
+                <li class="toc-level-2"><a href="#backend">5.2 Implementarea Backend-ului</a></li>
+                <li class="toc-level-2"><a href="#database">5.3 Proiectarea Bazei de Date</a></li>
+                <li class="toc-level-2"><a href="#security-details">5.4 Securitate</a></li>
+            </ul>
+        </li>
+        <li class="toc-level-1"><a href="#conclusion">6. Concluzii</a></li>
+        <li class="toc-level-1"><a href="#references">Referințe</a></li>
+    </ul>
+</div>
+
+<a href="#" class="back-to-top" id="back-to-top" title="Înapoi sus">↑</a>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const backToTop = document.getElementById('back-to-top');
+
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
+<header>
+    <h1>Document de specificare a cerințelor principale - REM</h1>
+    <div role="contentinfo">
+        <section typeof="sa:AuthorList">
+            <h2>Autori</h2>
+            <ul>
+                <li typeof="sa:ContributorRole" property="schema:author">
+                        <span typeof="schema:Person">
+                            <meta property="schema:givenName" content="Stefan Daniel">
+                            <meta property="schema:familyName" content="Dumitrascu">
+                            <span property="schema:name">Dumitrașcu Ștefan Daniel</span>
+                        </span>
+                </li>
+                <li typeof="sa:ContributorRole" property="schema:author">
+                        <span typeof="schema:Person">
+                            <meta property="schema:givenName" content="Stefan">
+                            <meta property="schema:familyName" content="Ursache">
+                            <span property="schema:name">Ursache Ștefan</span>
+                        </span>
+                </li>
+            </ul>
+        </section>
+    </div>
+</header>
+
+<section id="introduction">
+    <h2>1. Introducere</h2>
+    <section id="purpose">
+        <h3>1.1 Scop</h3>
+        <p>Acest document stabilește cerințele pentru o platformă imobiliară care le oferă utilizatorilor posibilitatea de a explora, căuta și publica anunțuri de proprietăți. El include o descriere amplă a funcționalităților sistemului, a limitărilor sale și a modului în care acesta interacționează cu utilizatorii și alte sisteme.</p>
+    </section>
+        <section id="scope">
+            <h3>1.2 Sfera produsului</h3>
+            <p>REM este o aplicație web care permite proprietarilor să își listeze proprietățile pentru vânzare sau închiriere, în timp ce potențialii cumpărători sau chiriași pot căuta și naviga prin aceste anunțuri. Sistemul oferă, de asemenea, funcționalități administrative pentru gestionarea utilizatorilor și a proprietăților.</p>
+        </section>
+        <section id="definitions">
+            <h3>1.3 Definiții, acronime și prescurtări</h3>
+            <dl>
+                <dt>SRS</dt><dd>Software Requirements Specification</dd>
+                <dt>UI</dt><dd>User Interface</dd>
+                <dt>API</dt><dd>Application Programming Interface</dd>
+                <dt>DTO</dt><dd>Data Transfer Object</dd>
+                <dt>JWT</dt><dd>JSON Web Token</dd>
+            </dl>
+        </section>
+    </section>
+
+    <section id="overall-description">
+        <h2>2. Descriere generală</h2>
+        <section id="product-perspective">
+            <h3>2.1 Perspectiva produsului</h3>
+            <p>REM este o aplicație web independentă, construită pe o arhitectură client-server. Aceasta include un backend Java bazat pe servlete și un frontend JavaScript cu arhitectură bazată pe componente.</p>
+        </section>
+        <section id="product-functions">
+            <h3>2.2 Funcțiile produsului</h3>
+            <ul>
+                <li>Înregistrarea și autentificarea utilizatorilor</li>
+                <li>Gestionarea proprietăților listate (creare, vizualizare, actualizare, ștergere)</li>
+                <li>Căutarea și filtrarea proprietăților</li>
+                <li>Gestionarea anunțurilor favorite</li>
+                <li>Administrarea profilului utilizatorului</li>
+                <li>Funcții administrative pentru gestionarea utilizatorilor și a proprietăților</li>
+                <li>Statistici privind proprietățile listate</li>
+            </ul>
+        </section>
+        <section id="user-characteristics">
+            <h3>2.3 Caracteristicile utilizatorilor</h3>
+            <p>Sistemul suportă două tipuri principale de utilizatori:</p>
+            <ul>
+                <li><strong>Utilizatori:</strong> Orice persoană înregistrată în sistem poate folosi aplicația pentru a cumpăra, închiria sau pentru a oferi proprietăți spre vânzare și/sau închiriere. Astfel, un utilizator poate avea unul sau mai multe roluri active simultan: cumpărător, chiriaș sau proprietar.</li>
+                <li><strong>Administratori:</strong> Au acces complet la funcțiile de gestionare a utilizatorilor și a proprietăților.</li>
+            </ul>
+        </section>
+        <section id="constraints">
+            <h3>2.4 Constrângeri</h3>
+            <ul>
+                <li>Sistemul trebuie să fie accesibil prin intermediul browserelor web.</li>
+                <li>Backend-ul este dezvoltat în Java, iar frontend-ul în JavaScript.</li>
+                <li>Autentificarea utilizatorilor se realizează folosind JWT.</li>
+                <li>Sistemul trebuie să gestioneze eficient imaginile proprietăților.</li>
+                <li>Designul sistemului trebuie să fie responsive, adaptându-se la diferite dimensiuni de ecran.</li>
+            </ul>
+        </section>
+    </section>
+
+    <section id="specific-requirements">
+        <h2>3. Cerințe specifice</h2>
+
+        <section id="functional-requirements">
+            <h3>3.1 Cerințe funcționale</h3>
+
+            <section id="user-management">
+                <h4>3.1.1 Gestionarea utilizatorilor</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CF-GU-01</td>
+                        <td>Înregistrarea utilizatorilor</td>
+                        <td>Utilizatorii trebuie să poată crea un cont nou folosind nume de utilizator, email, număr de telefon și parolă.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GU-02</td>
+                        <td>Autentificarea utilizatorilor</td>
+                        <td>Utilizatorii înregistrați trebuie să se poată autentifica folosind email și parolă.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GU-03</td>
+                        <td>Gestionarea profilului utilizatorului</td>
+                        <td>Utilizatorii trebuie să poată vizualiza și actualiza informațiile din profilul lor.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GU-04</td>
+                        <td>Resetarea parolei</td>
+                        <td>Utilizatorii trebuie să aibă posibilitatea să își reseteze parola în cazul în care o uită.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="property-management">
+                <h4>3.1.2 Gestionarea proprietăților</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CF-GP-01</td>
+                        <td>Adăugarea anunțurilor</td>
+                        <td>Proprietarii trebuie să poată crea anunțuri noi cu detalii și imagini despre proprietăți.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GP-02</td>
+                        <td>Editarea anunțurilor</td>
+                        <td>Proprietarii trebuie să poată modifica informațiile din anunțurile lor.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GP-03</td>
+                        <td>Ștergerea anunțurilor</td>
+                        <td>Proprietarii trebuie să poată elimina anunțurile publicate anterior.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GP-04</td>
+                        <td>Gestionarea imaginilor proprietății</td>
+                        <td>Sistemul trebuie să permită încărcarea și administrarea mai multor imagini pentru fiecare proprietate.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GP-05</td>
+                        <td>Localizarea proprietății pe hartă</td>
+                        <td>Utilizatorii trebuie să poată seta locația exactă a unei proprietăți prin plasarea unui pin pe hartă în interfața aplicației. De asemenea, trebuie să poată actualiza ulterior poziția pinului pentru a reflecta corect amplasarea imobilului.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="property-browsing">
+                <h4>3.1.3 Navigarea și căutarea proprietăților listate</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CF-NCPL-01</td>
+                        <td>Afișarea anunțurilor</td>
+                        <td>Utilizatorii trebuie să poată vizualiza toate anunțurile de proprietăți disponibile.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-NCPL-02</td>
+                        <td>Detalii despre proprietate</td>
+                        <td>Utilizatorii trebuie să poată accesa informații detaliate despre o anumită proprietate.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-NCPL-03</td>
+                        <td>Căutare proprietăți</td>
+                        <td>Utilizatorii trebuie să poată căuta proprietăți pe baza unor criterii variate.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-NCPL-04</td>
+                        <td>Filtrare proprietăți</td>
+                        <td>Utilizatorii trebuie să poată filtra anunțurile în funcție de locație și alte caracteristici.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-NCPL-05</td>
+                        <td>Proprietăți de top</td>
+                        <td>Sistemul trebuie să afișeze cele mai vizualizate anunțuri din fiecare categorie.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="favorites">
+                <h4>3.1.4 Gestionarea favoritelor</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CF-GF-01</td>
+                        <td>Adăugare la favorite</td>
+                        <td>Utilizatorii trebuie să poată adăuga proprietăți în lista lor de favorite.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GF-02</td>
+                        <td>Vizualizare favorite</td>
+                        <td>Utilizatorii trebuie să poată accesa și vizualiza lista cu proprietățile marcate ca favorite.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-GF-03</td>
+                        <td>Eliminare din favorite</td>
+                        <td>Utilizatorii trebuie să poată elimina proprietăți din lista lor de favorite.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="admin">
+                <h4>3.1.5 Funcționalități administrative</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CF-FA-01</td>
+                        <td>Gestionarea utilizatorilor</td>
+                        <td>Administratorii trebuie să poată vizualiza și administra toți utilizatorii din sistem.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-FA-02</td>
+                        <td>Gestionarea anunțurilor</td>
+                        <td>Administratorii trebuie să poată vizualiza și gestiona toate anunțurile de proprietăți.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-FA-03</td>
+                        <td>Gestionarea statutului de admin</td>
+                        <td>Administratorii trebuie să poată acorda sau retrage drepturi administrative altor utilizatori.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="statistics">
+                <h4>3.1.6  Statistici și analiză</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CF-SA-01</td>
+                        <td>Număr de vizualizări</td>
+                        <td>Sistemul trebuie să înregistreze și să afișeze numărul total de vizualizări pentru fiecare proprietate.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-SA-02</td>
+                        <td>Număr de adăugări la favorite</td>
+                        <td>Sistemul trebuie să monitorizeze și să afișeze de câte ori a fost adăugată o proprietate la favorite.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-SA-03</td>
+                        <td>Număr de anunțuri active</td>
+                        <td>Sistemul trebuie să afișeze numărul total de anunțuri active publicate de utilizator.</td>
+                    </tr>
+                    <tr>
+                        <td>CF-SA-04</td>
+                        <td>Favoritele utilizatorului</td>
+                        <td>Sistemul trebuie să afișeze pentru fiecare utilizator numărul total de anunțuri adăugate la favorite.</td>
+                    </tr>
+                </table>
+            </section>
+        </section>
+
+        <section id="non-functional-requirements">
+            <h3>3.2 Cerințe nefuncționale</h3>
+
+            <section id="performance">
+                <h4>3.2.1 Performanță</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CN-P-01</td>
+                        <td>Timp de răspuns</td>
+                        <td>Sistemul ar trebui să răspundă la interacțiunile utilizatorului în maximum 2 secunde.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-P-02</td>
+                        <td>Capacitate de încărcare</td>
+                        <td>Sistemul ar trebui să poată susține cel puțin 1000 de utilizatori simultan.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="security">
+                <h4>3.2.2 Securitate</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CN-S-01</td>
+                        <td>Autentificare securizată</td>
+                        <td>Sistemul trebuie să utilizeze JWT pentru autentificarea sigură a utilizatorilor.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-S-02</td>
+                        <td>Protecția datelor</td>
+                        <td>Parolele utilizatorilor trebuie stocate într-un format criptat.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-S-03</td>
+                        <td>Controlul accesului</td>
+                        <td>Sistemul trebuie să aplice un mecanism de control al accesului bazat pe roluri pentru diferite funcționalități.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="usability">
+                <h4>3.2.3 Utilizabilitate</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CN-U-01</td>
+                        <td>Design Responsiv</td>
+                        <td>Interfața utilizatorului trebuie să se adapteze la diferite dimensiuni de ecran (desktop, tabletă, mobil).</td>
+                    </tr>
+                    <tr>
+                        <td>CN-U-02</td>
+                        <td>Navigare intuitivă</td>
+                        <td>Interfața trebuie să asigure o navigare clară și ușor de înțeles între diferitele secțiuni.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-U-03</td>
+                        <td>Design centrat pe utilizator</td>
+                        <td>Interfața trebuie să folosească o paletă cromatică cu albastru închis (#003366), asociată cu încrederea și profesionalismul, pentru a reduce anxietatea și stimula concentrarea utilizatorilor.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-U-04</td>
+                        <td>Feedback vizual</td>
+                        <td>Sistemul trebuie să ofere mesaje de încărcare clare în timpul procesării datelor și să gestioneze elegant situațiile fără rezultate prin mesaje personalizate.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-U-05</td>
+                        <td>Hartă interactivă</td>
+                        <td>Aplicația trebuie să integreze o hartă interactivă pentru vizualizarea proprietăților, cu funcționalitate de delimitare a zonei de interes printr-un poligon.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-U-06</td>
+                        <td>Filtrare inteligentă</td>
+                        <td>Sistemul de căutare și filtrare trebuie să fie responsiv, afișând rezultate în timp real și precompletând filtrele de tip "range" cu valorile minime și maxime existente.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="reliability">
+                <h4>3.2.4 Fiabilitate</h4>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cerință</th>
+                        <th>Descriere</th>
+                    </tr>
+                    <tr>
+                        <td>CN-F-01</td>
+                        <td>Disponibilitate</td>
+                        <td>Sistemul trebuie să fie disponibil 99,9% din timp.</td>
+                    </tr>
+                    <tr>
+                        <td>CN-F-02</td>
+                        <td>Gestionarea erorilor</td>
+                        <td>Sistemul trebuie să gestioneze automat erorile minore și să se recupereze rapid fără intervenție manuală.</td>
+                    </tr>
+                </table>
+            </section>
+        </section>
+    </section>
+
+    <section id="system-architecture">
+        <h2>4. Arhitectura Sistemului</h2>
+        <section id="component-diagram">
+            <h3>4.1 Diagrama componentelor</h3>
+            <p>Aplicația urmează o arhitectură în trei niveluri:</p>
+            <ul>
+                <li><strong>Stratul de prezentare:</strong> Interfață frontend bazată pe JavaScript, cu arhitectură componentă</li>
+                <li><strong>Stratul de aplicație:</strong> Servlete Java care gestionează logica și punctele finale API</li>
+                <li><strong>Stratul de date:</strong> Gestionarea bazei de date și obiectele de acces la date</li>
+            </ul>
+        </section>
+
+        <section id="deployment-diagram">
+            <h3>4.2 Diagrama de implementare</h3>
+            <p>Aplicația este implementată astfel::</p>
+            <ul>
+                <li><strong>Partea client:</strong> Browsere web care accesează HTML, CSS și JavaScript</li>
+                <li><strong>Partea server:</strong> Aplicație Java rulând într-un container de servlete</li>
+                <li><strong>Serverul de baze de date:</strong> Bază de date relațională pentru persistența datelor</li>
+            </ul>
+        </section>
+    </section>
+
+    <section id="implementation-details">
+        <h2>5. Detalii despre Implementare</h2>
+        <section id="frontend">
+            <h3>5.1 Implementarea Frontend-ului</h3>
+            <p>Interfața frontend este realizată folosind o arhitectură bazată pe componente, cu JavaScript simplu. Componentele principale includ:</p>
+            <ul>
+                <li>HomeComponent: Pagina principală a aplicației</li>
+                <li>LoginComponent și RegisterComponent: Interfețe pentru autentificarea utilizatorilor</li>
+                <li>PropertiesListComponent: Afișează lista de proprietăți</li>
+                <li>PropertyComponent: Vizualizare detaliată a unei singure proprietăți</li>
+                <li>AddPropertyComponent și EditListingComponent: Formulare pentru gestionarea proprietăților</li>
+                <li>FavoriteListingsComponent: Gestionarea proprietăților favorite ale utilizatorului</li>
+                <li>AdminPropertyDashboardComponent și AdminUserDashboardComponent: Interfețe administrative</li>
+            </ul>
+
+            <section id="ui-details">
+                <h4>5.1.1 Detalii de Interfață Utilizator</h4>
+                <p>Interfața utilizator implementează următoarele caracteristici pentru a asigura o experiență optimă:</p>
+
+                <h5>Navigare și Interacțiune</h5>
+                <ul>
+                    <li>Tranziții graduale între paginile principale și la selectarea categoriilor de anunțuri</li>
+                    <li>Iconițe vizuale dedicate fiecărei categorii de proprietăți pentru orientare rapidă</li>
+                    <li>Componente ascunse inițial (precum butoanele de schimbare a categoriei) și afișate doar când este necesar</li>
+                </ul>
+
+                <h5>Design și Feedback</h5>
+                <ul>
+                    <li>Paletă cromatică dominată de albastru închis (#003366) pentru transmiterea valorilor de încredere și profesionalism</li>
+                    <li>Mesaje de încărcare clare în timpul procesării datelor din backend</li>
+                    <li>Mesaje personalizate pentru situațiile fără rezultate (căutări nereușite, conturi fără anunțuri)</li>
+                    <li>Validare în timp real pentru câmpurile formularelor, cu mesaje de eroare contextuale</li>
+                </ul>
+
+                <h5>Funcționalități avansate</h5>
+                <ul>
+                    <li>Hartă interactivă cu marcarea proprietăților sub formă de pin-uri</li>
+                    <li>Actualizare automată a hărții în timp real la filtrarea sau căutarea proprietăților</li>
+                    <li>Funcționalitate de delimitare a zonei de interes direct pe hartă prin desenarea unui poligon</li>
+                    <li>Câmpuri de selecție dinamice pentru oraș și stat, afișând doar valorile relevante pentru proprietățile curente</li>
+                    <li>Sistem de sortare flexibil și căutare în timp real, fără necesitatea apăsării unui buton suplimentar</li>
+                </ul>
+
+                <h5>Experiență completă</h5>
+                <ul>
+                    <li>Anunțuri cu imagine principală reprezentativă, titlu, preț și caracteristici secundare relevante</li>
+                    <li>Funcționalitate de adăugare la favorite cu verificare automată a autentificării</li>
+                    <li>Sistem complet de căutare și sortare în pagina de anunțuri proprii</li>
+                </ul>
+            </section>
+        </section>
+
+        <section id="backend">
+            <h3>5.2 Implementarea Backend-ului</h3>
+            <p>Backend-ul este dezvoltat folosind Java Servlets. Componentele principale includ:</p>
+            <ul>
+                <li>Controlere: Servlete care gestionează diferite cereri HTTP</li>
+                <li>DTO-uri: Obiecte pentru transferul datelor între straturi</li>
+                <li>Entități: Modele de domeniu care reprezintă tabelele din baza de date</li>
+                <li>Servicii: Implementarea logicii de business</li>
+                <li>Repository-uri: Strat de acces la date pentru operațiuni pe baza de date</li>
+                <li>Filtre: Filtre pentru procesarea cererilor, responsabile de autentificare și autorizare</li>
+            </ul>
+        </section>
+
+        <section id="database">
+            <h3>5.3 Proiectarea Bazei de Date</h3>
+            <p>Schema bazei de date include următoarele entități principale:</p>
+            <ul>
+                <li>Users: Stochează informațiile și credențialele utilizatorilor</li>
+                <li>Admin: Reține toți utilizatorii cu un câmp care indică statusul de administrator</li>
+                <li>Properties: Stochează detaliile proprietăților listate</li>
+                <li>PropertyMainImage: Stochează imaginile principale ale proprietăților</li>
+                <li>PropertyImages: Stochează imaginile suplimentare pentru proprietăți</li>
+                <li>Favorites: Leagă utilizatorii de proprietățile lor favorite</li>
+                <li>Views: Monitorizează numărul de vizualizări ale proprietăților</li>
+                <li>TopProperties: Reține anunțurile considerate „de top”, pe baza numărului de vizualizări</li>
+                <li>TopUsersHistory: Păstrează istoricul utilizatorilor care au avut anunțuri în lista TopProperties</li>
+            </ul>
+        </section>
+
+        <section id="security-details">
+            <h3>5.4 Securitate</h3>
+            <p>Securitatea aplicației este implementată prin mai multe mecanisme:</p>
+            <ul>
+                <li><strong>Autentificare bazată pe JWT</strong>:
+                    <ul>
+                        <li>Utilizatorii primesc un token JWT după autentificarea cu succes (<code>LoginController</code> generează acest token)</li>
+                        <li>Tokenul conține informații despre utilizator (username, userId și adminStatus), gestionate prin <code>DataForJwtCreationDTO</code></li>
+                        <li>Clasa <code>JwtUtil</code> oferă funcționalități pentru generarea, validarea și verificarea rolurilor din token</li>
+                        <li>Tokenul este transmis în header-ele HTTP pentru autentificarea ulterioară a cererilor</li>
+                    </ul>
+                </li>
+                <li><strong>Controlul accesului bazat pe roluri</strong>:
+                    <ul>
+                        <li>Există două roluri principale: utilizatori standard și administratori</li>
+                        <li>Statutul de administrator este verificat prin metoda <code>isAdmin()</code> din clasa <code>JwtUtil</code></li>
+                        <li>Anumite rute și funcționalități sunt disponibile doar pentru administratori</li>
+                        <li>Clientul primește informația despre rolul utilizatorului (<code>isAdmin</code>) în timpul autentificării</li>
+                    </ul>
+                </li>
+                <li><strong>Protecția rutelor</strong>:
+                    <ul>
+                        <li>Rutele API sunt protejate prin verificarea prezenței și validității tokenului JWT</li>
+                        <li>Rutele administrative sunt accesibile doar utilizatorilor cu statut de administrator</li>
+                        <li>Rutele pentru editarea și ștergerea anunțurilor sunt restricționate la proprietarul anunțului sau administratori</li>
+                    </ul>
+                </li>
+                <li><strong>Redirecționare SPA</strong>:
+                    <ul>
+                        <li><code>SpaRedirectFilter</code> asigură că toate cererile care nu sunt pentru resurse statice sau API sunt redirecționate către pagina principală</li>
+                        <li>Acest filtru permite rutarea pe partea de client pentru aplicația SPA, menținând securitatea navigației</li>
+                    </ul>
+                </li>
+                <li><strong>Securitatea parolelor</strong>:
+                    <ul>
+                        <li>Parolele utilizatorilor sunt stocate în format hash, nu în text clar</li>
+                        <li>Validarea parolelor se face prin compararea hash-urilor, nu a parolelor în text</li>
+                    </ul>
+                </li>
+                <li><strong>Gestionarea erorilor de autentificare</strong>:
+                    <ul>
+                        <li>Erorile de autentificare sunt gestionate explicit (vezi <code>InvalidUsernameException</code> și <code>InvalidPasswordException</code>)</li>
+                        <li>Mesajele de eroare sunt generale pentru a evita divulgarea informațiilor sensibile</li>
+                        <li>Evenimentele de autentificare eșuată sunt înregistrate în jurnal pentru detectarea potențialelor atacuri</li>
+                    </ul>
+                </li>
+                <li><strong>Securitatea API</strong>:
+                    <ul>
+                        <li>Validarea și sanitizarea intrărilor pentru a preveni atacurile de injecție</li>
+                        <li>Folosirea tipelor de conținut adecvate (<code>application/json</code>) pentru comunicarea client-server</li>
+                        <li>Codificarea caracterelor adecvată (<code>UTF-8</code>) pentru a preveni probleme de securitate legate de codificare</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>Aceste măsuri de securitate lucrează împreună pentru a proteja datele utilizatorilor și a asigura că numai utilizatorii autorizați pot accesa și modifica informațiile din sistem.</p>
+        </section>
+
+        </section>
+    </section>
+
+    <section id="conclusion">
+        <h2>6. Concluzii</h2>
+        <p>Acest document oferă o specificație detaliată a cerințelor pentru Platforma de Anunțuri Imobiliare. El servește drept ghid pentru dezvoltare și testare, asigurând o înțelegere clară a funcționalităților și constrângerilor sistemului pentru toți factorii implicați.</p>
+    </section>
+
+    <section id="references">
+        <h2>Referințe</h2>
+        <ol>
+            <li>IEEE System Requirements Specification Template</li>
+            <li>Java Servlet Specification</li>
+            <li>JWT Authentication Best Practices</li>
+        </ol>
+    </section>
+</body>
+</html>
