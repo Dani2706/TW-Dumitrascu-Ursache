@@ -10,7 +10,8 @@ import { EditListingComponent } from "../components/EditListingComponent/EditLis
 import { PropertiesListComponent } from "../components/PropertiesListComponent/PropertiesListComponent.js";
 import { AdminUserDashboardComponent } from "../components/AdminUserDashboardComponent/AdminUserDashboardComponent.js";
 import { AdminPropertyDashboardComponent } from "../components/AdminPropertyDashboardComponent/AdminPropertyDashboardComponent.js"
-import {FavoriteListingsComponent} from "../components/FavoriteListingsComponent/FavoriteListingsComponent.js";
+import { FavoriteListingsComponent } from "../components/FavoriteListingsComponent/FavoriteListingsComponent.js";
+import { ResetPasswordComponent } from "../components/ResetPasswordComponent/ResetPasswordComponent.js";
 
 const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
 const routes = {
@@ -24,6 +25,7 @@ const routes = {
             "/property" : PropertyComponent,
             "/login" : LoginComponent,
             "/register" : RegisterComponent,
+            "/reset-password" : ResetPasswordComponent,
             "/admin/PropertyDashboard" : AdminPropertyDashboardComponent,
             "/admin/UserDashboard" : AdminUserDashboardComponent
         }
