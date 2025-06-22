@@ -120,7 +120,7 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: var(--transition-standard);
+    transition: all 0.2s ease;
     color: var(--text-color);
     position: relative;
     z-index: 1;
@@ -129,7 +129,14 @@
 
 .category-btn:first-child {
     border-right: 1px solid #eee;
+}
+
+.category-btn:first-child::before {
     border-bottom-left-radius: var(--border-radius);
+}
+
+.category-btn:last-child::before {
+    border-bottom-right-radius: var(--border-radius);
 }
 
 .category-btn:last-child {
@@ -160,6 +167,14 @@
 
 .category-btn:hover::before {
     animation: border-fill 0.5s linear forwards;
+}
+
+.category-btn:first-child:hover::before {
+    border-bottom-left-radius: var(--border-radius);
+}
+
+.category-btn:last-child:hover::before {
+    border-bottom-right-radius: var(--border-radius);
 }
 
 .featured-properties {

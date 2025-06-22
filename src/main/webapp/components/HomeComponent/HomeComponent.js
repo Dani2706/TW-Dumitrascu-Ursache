@@ -21,36 +21,20 @@ export class HomeComponent extends AbstractComponent {
         if (!this.templateLoaded) {
             throw new Error('Template not loaded. Call super.init() first.');
         }
-        this._setupCategoryButtons();
+
+        this.setupCategoryCardListeners();
         this.addPropertyCardListeners();
     }
 
-    _setupCategoryButtons() {
-        const categoryCards = this.container.querySelectorAll('.category-card');
-        categoryCards.forEach(card => {
-            const categoryType = card.dataset.category;
-            ['buy', 'rent'].forEach(actionType => {
-                const button = card.querySelector(`.category-btn[data-type="${actionType}"]`);
-                if (!button) return;
-                button.addEventListener('click', () => {
-                    const propertyType = this.getPropertyTypeParam(categoryType);
-                    const transactionType = actionType === 'buy' ? 'sell' : 'rent';
-                    sessionStorage.setItem('propertyType', propertyType);
-                    sessionStorage.setItem('transactionType', transactionType);
-                    this.router.safeNavigate("/properties-list");
-                });
-            });
-        });
-    }
-
     getPropertyTypeParam(category) {
-        const propertyTypes = {
+        const propertyTypeMap = {
             'flat': 'flat',
             'house': 'house',
             'land': 'land',
             'commercial': 'commercial'
         };
-        return propertyTypes[category] || 'flat';
+
+        return propertyTypeMap[category] || 'flat';
     }
 
     eventListenerRemover() {
@@ -286,5 +270,35 @@ export class HomeComponent extends AbstractComponent {
                 });
             }
         });
+    }
+
+    setupCategoryCardListeners() {
+        const categoryCards = this.container.querySelectorAll('.category-card');
+
+        categoryCards.forEach(card => {
+            const categoryType = card.dataset.category;
+            const buyButton = card.querySelector('.category-btn[data-type="buy"]');
+            const rentButton = card.querySelector('.category-btn[data-type="rent"]');
+
+            if (buyButton) {
+                buyButton.addEventListener('click', () => {
+                    this.navigateToFilteredProperties(categoryType, 'sell');
+                });
+            }
+
+            if (rentButton) {
+                rentButton.addEventListener('click', () => {
+                    this.navigateToFilteredProperties(categoryType, 'rent');
+                });
+            }
+        });
+    }
+
+    navigateToFilteredProperties(categoryType, transactionType) {
+        const propertyType = this.getPropertyTypeParam(categoryType);
+        sessionStorage.setItem('propertyType', propertyType);
+        sessionStorage.setItem('transactionType', transactionType);
+
+        this.router.safeNavigate('/properties-list');
     }
 }
