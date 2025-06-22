@@ -146,12 +146,11 @@ public class UserController extends HttpServlet {
                 requestBody.append(line);
             }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
-
             int userId;
 
             if (jwtUtil.isAdmin(token)){
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
                 String userIdAsString = (String) bodyParams.get("userId");
                 userId = Integer.parseInt(userIdAsString);
             }

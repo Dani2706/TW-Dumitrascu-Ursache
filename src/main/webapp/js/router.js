@@ -130,7 +130,15 @@ export class Router {
 
     async navigate(path) {
         if (!this.routes[path]) {
-            path = '/';
+            const firstPart = path.split('/').slice(0, 2).join('/');
+            if (firstPart === "/reset-password"){
+                const resetToken = path.replace('/reset-password/', '');
+                sessionStorage.setItem("resetToken", resetToken);
+                path = firstPart;
+            }
+            else {
+                path = '/';
+            }
         }
         const fullPath = `${this.basePath}${path}`;
         history.pushState({}, '', fullPath);

@@ -44,7 +44,7 @@ public class ResetPasswordServlet extends HttpServlet {
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> bodyParams = objectMapper.readValue(requestBody.toString(), Map.class);
 
-            String password = (String) bodyParams.get("password");
+            String password = (String) bodyParams.get("new-password");
 
             this.userService.resetPassword(token, password);
 

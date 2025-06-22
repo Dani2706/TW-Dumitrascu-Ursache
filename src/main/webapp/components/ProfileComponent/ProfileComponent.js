@@ -1,12 +1,14 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { UserService } from "../../services/UserService.js";
 import { AdminService} from "../../services/AdminService.js";
+import {router} from "../../js/app.js";
 import {environment} from "../../environment.js";
 
 export class ProfileComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
+        this.router = router;
         this.container = "";
         this.userService = new UserService();
         this.adminService = new AdminService();
@@ -29,6 +31,9 @@ export class ProfileComponent extends AbstractComponent {
         }
         const updateProfileForm = this.container.querySelector('.update-profile-form');
         updateProfileForm.addEventListener("submit", this.updateUserProfile.bind(this));
+
+        const deleteButton = this.container.querySelector('#delete-account-button');
+        deleteButton.addEventListener("click", this.handleDelete.bind(this));
         // Add event listeners to the container
         //Acces the container with this.container
     }
@@ -71,6 +76,88 @@ export class ProfileComponent extends AbstractComponent {
         // Add logic to dynamically load data into the component
 
         this.setTemplate(tempDiv.innerHTML);
+    }
+
+    showNotificationPopup(message) {
+        const existingPopup = document.querySelector('.notification-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+
+        const popupOverlay = document.createElement('div');
+        popupOverlay.className = 'notification-popup-overlay';
+
+        const popup = document.createElement('div');
+        popup.className = 'notification-popup';
+
+        const popupContent = document.createElement('div');
+        popupContent.className = 'notification-content';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'notification-close-btn';
+        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+
+        const messageEl = document.createElement('p');
+        messageEl.textContent = message;
+
+        popupContent.appendChild(messageEl);
+        popup.appendChild(closeBtn);
+        popup.appendChild(popupContent);
+        popupOverlay.appendChild(popup);
+        document.body.appendChild(popupOverlay);
+
+        setTimeout(() => {
+            popup.classList.add('show');
+        }, 10);
+
+        closeBtn.addEventListener('click', () => {
+            popup.classList.remove('show');
+            setTimeout(() => {
+                popupOverlay.remove();
+            }, 300);
+        });
+
+        setTimeout(() => {
+            if (document.body.contains(popupOverlay)) {
+                popup.classList.remove('show');
+                setTimeout(() => {
+                    popupOverlay.remove();
+                }, 300);
+            }
+        }, 5000);
+    }
+
+    async handleDelete(){
+        console.log("Deleting");
+        const userId = sessionStorage.getItem("userId");
+        let response = null;
+        if (userId != null && sessionStorage.getItem("isAdmin")){
+            response = await this.adminService.deleteUser(userId);
+        }
+        else {
+            response = await this.userService.deleteUser();
+        }
+
+        if (response.status === 204){
+            console.log("Status 204");
+            if (sessionStorage.getItem("isAdmin") === "true")
+            {
+                this.router.safeNavigate("/admin/UserDashboard");
+            }
+            else{
+                sessionStorage.clear();
+                console.log("Clearing sessionStorage");
+                console.log(sessionStorage.getItem("jwt"));
+                this.router.safeNavigate("/");
+            }
+        }
+        else if (response.status === 401){
+            this.showNotificationPopup("You are not authorized to do this");
+        } else if(response.status === 400){
+            this.showNotificationPopup("There is no user to delete");
+        } else {
+            this.showNotificationPopup("An error occurred. Please try again later");
+        }
     }
 
     async getUserProfile(profileContainer) {

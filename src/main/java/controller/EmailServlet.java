@@ -80,6 +80,7 @@ public class EmailServlet extends HttpServlet {
                     "/" + resetToken;
 
             EmailUtil.sendEmail(session, toEmail, "REM - Reset password", body);
+            resp.setStatus(HttpServletResponse.SC_OK);
         } catch (InvalidEmailException e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             logger.warn("", e);

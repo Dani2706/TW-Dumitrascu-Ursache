@@ -17,7 +17,7 @@ public class TokenRepository {
     }
 
     public void saveResetToken(String token) throws DatabaseException {
-        String stmtAsString = "INSERT INTO reset_token (token) VALUES (?)";
+        String stmtAsString = "INSERT INTO reset_token (token_data) VALUES (?)";
         try(Connection connection = this.dataSource.getConnection();
             PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
 
@@ -34,7 +34,7 @@ public class TokenRepository {
     }
 
     public void verifyResetTokenExistence(Connection conn, String token) throws SQLException, InvalidResetTokenException {
-        String stmtAsString = "SELECT 1 FROM reset_token WHERE token = ?";
+        String stmtAsString = "SELECT 1 FROM reset_token WHERE token_data = ?";
         PreparedStatement stmt = conn.prepareStatement(stmtAsString);
         stmt.setString(1, token);
         ResultSet rs = stmt.executeQuery();
