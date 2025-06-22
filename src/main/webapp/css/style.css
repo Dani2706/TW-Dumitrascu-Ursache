@@ -185,3 +185,26 @@ body .app .header .nav-bar, .nav-bar {
         padding: 0.8rem;
     }
 }
+
+.admin-badge {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+    background-color: #e74c3c;
+    border-radius: 12px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+@media screen and (max-width: 768px) {
+    .admin-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+        margin-left: 6px;
+    }
+}
