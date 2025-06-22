@@ -1,5 +1,6 @@
 package controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import entity.Property;
 import entity.PropertyExtraImages;
 import entity.PropertyMainImage;
@@ -18,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 @WebServlet("/api/property")
 public class GetPropertyServlet extends HttpServlet {
@@ -50,59 +53,43 @@ public class GetPropertyServlet extends HttpServlet {
             PropertyMainImage propertyMainImage = propertyService.getPropertyMainImage(propertyId);
             PropertyExtraImages propertyExtraImages = propertyService.getPropertyExtraImages(propertyId);
 
-            StringBuilder extraPhotosAsJson = new StringBuilder();
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> jsonMap = new HashMap<>();
+
+            jsonMap.put("id", property.getPropertyId());
+            jsonMap.put("title", property.getTitle());
+            jsonMap.put("description", property.getDescription());
+            jsonMap.put("propertyType", property.getPropertyType());
+            jsonMap.put("transactionType", property.getTransactionType());
+            jsonMap.put("price", property.getPrice());
+            jsonMap.put("surface", property.getSurface());
+            jsonMap.put("rooms", property.getRooms());
+            jsonMap.put("bathrooms", property.getBathrooms());
+            jsonMap.put("floor", property.getFloor());
+            jsonMap.put("totalFloors", property.getTotalFloors());
+            jsonMap.put("yearBuilt", property.getYearBuilt());
+            jsonMap.put("createdAt", property.getCreatedAt());
+            jsonMap.put("address", property.getAddress());
+            jsonMap.put("country", property.getCountry());
+            jsonMap.put("city", property.getCity());
+            jsonMap.put("state", property.getState());
+            jsonMap.put("latitude", property.getLatitude());
+            jsonMap.put("longitude", property.getLongitude());
+            jsonMap.put("contactName", property.getContactName());
+            jsonMap.put("contactPhone", property.getContactPhone());
+            jsonMap.put("contactEmail", property.getContactEmail());
+            jsonMap.put("mainPhoto", propertyMainImage.getData());
+
             if (propertyExtraImages != null) {
-                extraPhotosAsJson.append("[");
-                System.out.println("[");
-                boolean first = true;
-                for (String extraPhoto : propertyExtraImages.getData()){
-                    if (!first) {
-                        extraPhotosAsJson.append(",");
-                        System.out.println(",");
-                    }
-                    first = false;
-                    extraPhotosAsJson.append("\"").append(extraPhoto).append("\"");
-                    System.out.println("img");
-                }
-                extraPhotosAsJson.append("]");
-                System.out.println("]");
-            }
-            else {
-                extraPhotosAsJson.append("null");
+                jsonMap.put("extraPhotos", propertyExtraImages.getData());
+            } else {
+                jsonMap.put("extraPhotos", null);
             }
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             PrintWriter out = response.getWriter();
-
-            String json = "{" +
-                    "\"id\":" + property.getPropertyId() + "," +
-                    "\"title\":\"" + property.getTitle() + "\"," +
-                    "\"description\":\"" + property.getDescription() + "\"," +
-                    "\"propertyType\":\"" + property.getPropertyType() + "\"," +
-                    "\"transactionType\":\"" + property.getTransactionType() + "\"," +
-                    "\"price\":" + property.getPrice() + "," +
-                    "\"surface\":" + property.getSurface() + "," +
-                    "\"rooms\":" + property.getRooms() + "," +
-                    "\"bathrooms\":" + property.getBathrooms() + "," +
-                    "\"floor\":" + property.getFloor() + "," +
-                    "\"totalFloors\":" + property.getTotalFloors() + "," +
-                    "\"yearBuilt\":" + property.getYearBuilt() + "," +
-                    "\"createdAt\":\"" + property.getCreatedAt() + "\"," +
-                    "\"address\":\"" + property.getAddress() + "\"," +
-                    "\"country\":\"" + property.getCountry() + "\"," +
-                    "\"city\":\"" + property.getCity() + "\"," +
-                    "\"state\":\"" + property.getState() + "\"," +
-                    "\"latitude\":" + property.getLatitude() + "," +
-                    "\"longitude\":" + property.getLongitude() + "," +
-                    "\"contactName\":\"" + property.getContactName() + "\"," +
-                    "\"contactPhone\":\"" + property.getContactPhone() + "\"," +
-                    "\"contactEmail\":\"" + property.getContactEmail() + "\"," +
-                    "\"mainPhoto\":\"" + propertyMainImage.getData() + "\"," +
-                    "\"extraPhotos\":" + extraPhotosAsJson +
-                    "}";
-
-            out.write(json);
+            out.write(objectMapper.writeValueAsString(jsonMap));
             logger.debug("Successfully returned property data for ID: {}", propertyId);
 
         } catch (NumberFormatException e) {
