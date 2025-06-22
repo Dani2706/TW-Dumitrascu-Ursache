@@ -208,10 +208,12 @@ public class UserRepository {
         }
     }
 
-    public List<AdminUserDTO> getAllUsers() throws DatabaseException {
-        String stmtAsString = "SELECT username, user_id, created_at FROM users";
+    public List<AdminUserDTO> getAllUsersExceptUserWithId(int userId) throws DatabaseException {
+        String stmtAsString = "SELECT username, u.user_id, created_at, is_admin FROM users u JOIN admin a ON u.user_id = a.user_id WHERE u.user_id != ?";
         try(Connection connection = this.dataSource.getConnection();
             PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+
+            stmt.setInt(1, userId);
 
             ResultSet rs = stmt.executeQuery();
 
@@ -221,7 +223,8 @@ public class UserRepository {
                 users.add(new AdminUserDTO(
                         rs.getString("username"),
                         rs.getInt("user_id"),
-                        rs.getDate("created_at")
+                        rs.getDate("created_at"),
+                        rs.getInt("is_admin")
                         ));
             }
 

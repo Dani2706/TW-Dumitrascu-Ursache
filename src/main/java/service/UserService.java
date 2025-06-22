@@ -67,8 +67,8 @@ public class UserService {
         this.userRepository.changeAdminStatusOfUser(adminStatus, userId);
     }
 
-    public String getAllUsers() throws DatabaseException, JsonProcessingException {
-        List<AdminUserDTO> users = this.userRepository.getAllUsers();
+    public String getAllUsersExceptUserWithId(int userId) throws DatabaseException, JsonProcessingException {
+        List<AdminUserDTO> users = this.userRepository.getAllUsersExceptUserWithId(userId);
 
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(users);
