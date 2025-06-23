@@ -644,7 +644,7 @@ export class PropertiesListComponent extends AbstractComponent {
 
             return `
             <div class="property-card" data-id="${property.propertyId}">
-                <img class="photo" src=${formattedImageUrl}>
+                <img class="photo" src=${formattedImageUrl} alt="Property Image">
                 <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
                     <i class="fas fa-heart"></i>
                 </button>

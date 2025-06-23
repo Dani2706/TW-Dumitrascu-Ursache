@@ -379,7 +379,7 @@ export class ListingManagerComponent extends AbstractComponent {
 
                     return `
                 <div class="property-card">
-                    <img class="photo" src=${formattedImageUrl}>
+                    <img class="photo" src=${formattedImageUrl} alt="Property Image">
                     <div class="content">
                         <div class="title-wrapper">
                             <h3>${property.title}</h3>
