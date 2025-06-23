@@ -7,6 +7,8 @@ export class AdminPropertyDashboardComponent extends AbstractComponent {
         super();
         this.setClassName(this.constructor.name);
         this.router = router;
+        this.container = null;
+        this.properties = null;
     }
 
     //@Override
@@ -47,6 +49,9 @@ export class AdminPropertyDashboardComponent extends AbstractComponent {
                 this.handleViewProperty(event, viewButton.dataset.id);
             }
         });
+
+        const downloadButton = this.container.querySelector(".download-button");
+        downloadButton.addEventListener('click', this.createFileForDownload.bind(this));
     }
 
     handleViewProperty(event, propertyId) {
@@ -338,10 +343,22 @@ export class AdminPropertyDashboardComponent extends AbstractComponent {
         const container = document.createElement('div');
         container.className = this.className;
         container.innerHTML = this.template;
+        this.container = container;
         this.eventListenerLoader(container);
         console.log(`Template render loaded for ${this.constructor.name}:`, this.template);
 
         return container;
+    }
+
+    createFileForDownload(){
+        console.log(this.properties);
+        const jsonStringAsBlob = new Blob([this.properties], { type: "application/json"});
+        const url = URL.createObjectURL(jsonStringAsBlob);
+        const downloadButton = document.createElement('a');
+        downloadButton.href = url;
+        downloadButton.download = "propertiesAsJson.json";
+        downloadButton.click();
+        window.URL.revokeObjectURL(url);
     }
 
     async dynamicallyLoadData() {
@@ -360,7 +377,11 @@ export class AdminPropertyDashboardComponent extends AbstractComponent {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            const responseClone = response.clone();
             const properties = await response.json();
+
+            this.properties = await responseClone.text();
+
             console.log("Received user properties:", properties);
 
             const cardsHTML = properties.length > 0
