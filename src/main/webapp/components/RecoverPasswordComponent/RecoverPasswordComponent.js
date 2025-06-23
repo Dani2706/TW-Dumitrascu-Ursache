@@ -2,7 +2,7 @@ import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
 import { router } from "../../js/app.js";
 
-export class ResetPasswordComponent extends AbstractComponent {
+export class RecoverPasswordComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
@@ -25,16 +25,16 @@ export class ResetPasswordComponent extends AbstractComponent {
         if (!this.templateLoaded) {
             throw new Error('Template not loaded. Call super.init() first.');
         }
-        const resetPasswordForm = this.container.querySelector(".reset-password-form");
-        resetPasswordForm.addEventListener("submit", this.resetPassword.bind(this));
+        const resetPasswordForm = this.container.querySelector(".email-account-recovery-form");
+        resetPasswordForm.addEventListener("submit", this.recoverAccount.bind(this));
     }
 
     //@Override
     eventListenerRemover() {
         if (this.templateLoaded) {
-            const resetPasswordForm = this.container.querySelector(".reset-password-form");
+            const resetPasswordForm = this.container.querySelector(".email-account-recovery-form");
             if (resetPasswordForm) {
-                resetPasswordForm.removeEventListener("submit", this.resetPassword.bind(this));
+                resetPasswordForm.removeEventListener("submit", this.recoverAccount.bind(this));
             }
         }
     }
@@ -69,10 +69,10 @@ export class ResetPasswordComponent extends AbstractComponent {
         this.setTemplate(tempDiv.innerHTML);
     }
 
-    async resetPassword(event) {
+    async recoverAccount(event) {
         event.preventDefault();
 
-        if (this.errorSelectorName != "") {
+        if (this.errorSelectorName !== "") {
             const errorMessage = this.container.querySelector(this.errorSelectorName);
             errorMessage.style.display = "none";
             this.errorSelectorName = "";
@@ -85,18 +85,16 @@ export class ResetPasswordComponent extends AbstractComponent {
             this.showErrorMessage();
         } else {
             const userData = Object.fromEntries(formData.entries());
-            const response = await fetch("/TW_Dumitrascu_Ursache_war_exploded/api/reset-password", {
+            const response = await fetch("/TW_Dumitrascu_Ursache_war_exploded/api/email", {
                 method: 'POST',
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("resetToken")
-                },
                 body: JSON.stringify(userData)
             });
             if (response.status === 200){
                 this.replaceFormWithSuccess();
                 return;
-            } else if (response.status === 401){
-                this.showNotificationPopup("You are not authorized to do this");
+            } else if (response.status === 400){
+                this.errorSelectorName = ".backend-email-error-message";
+                this.showErrorMessage();
             } else {
                 this.showNotificationPopup("An error occured. Please try again later");
             }
@@ -105,7 +103,6 @@ export class ResetPasswordComponent extends AbstractComponent {
     }
 
     showNotificationPopup(message) {
-        console.log("showPopUp");
         const existingPopup = document.querySelector('.notification-popup');
         if (existingPopup) {
             existingPopup.remove();
@@ -160,34 +157,30 @@ export class ResetPasswordComponent extends AbstractComponent {
     }
 
     verifyPasswordValidity(formData) {
-        const password = formData.get("new-password");
-        const confirmedPassword = formData.get("confirm-password");
+        const email = formData.get("email");
 
-        if (!(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password))) {
-            this.errorMessage = "Password must be at least 8 characters, include upper and lower case letters, a number, and a special character.";
-            this.errorSelectorName = ".password-error-message";
-            this.showErrorMessage();
-        } else if (password !== confirmedPassword) {
-            this.errorMessage = "Passwords do not match";
-            this.errorSelectorName = ".confirm-password-error-message";
+        if (!(/^.+@.+$/.test(email))) {
+            this.errorMessage = "Invalid email";
+            this.errorSelectorName = ".frontend-email-error-message";
             this.showErrorMessage();
         } else {
             this.isResetFailed = false;
         }
+
     }
 
     replaceFormWithSuccess() {
-        const resetPasswordContainer = this.container.querySelector('.reset-password-container');
-        const form = this.container.querySelector('.reset-password-form');
+        const emailAccountRecoveryContainer = this.container.querySelector('.email-account-recovery-container');
+        const form = this.container.querySelector('.email-account-recovery-form');
 
-        if (resetPasswordContainer && form) {
+        if (emailAccountRecoveryContainer && form) {
             const successContent = document.createElement('div');
             successContent.className = 'success-content';
 
             const messageElement = document.createElement('div');
             messageElement.className = 'success-message';
             messageElement.innerHTML = `
-            <h3>Your password has been successfully reset!</h3>
+            <h3>Your email was submitted</h3>
             <p>You will be redirected to login page in <span id="countdown">5</span> seconds...</p>
         `;
             successContent.appendChild(messageElement);
@@ -242,7 +235,7 @@ export class ResetPasswordComponent extends AbstractComponent {
             successContent.appendChild(buttonContainer);
 
             form.style.display = 'none';
-            resetPasswordContainer.appendChild(successContent);
+            emailAccountRecoveryContainer.appendChild(successContent);
 
             let countdown = 5;
             const countdownElement = document.getElementById('countdown');

@@ -291,7 +291,7 @@ public class UserRepository {
     }
 
     private void setUserPassword(Connection conn, String password, int userId) throws SQLException {
-        String stmtAsString = "UPDATE users SET password = ? WHERE user_id = ?";
+        String stmtAsString = "UPDATE users SET password_hash = ? WHERE user_id = ?";
             PreparedStatement stmt = conn.prepareStatement(stmtAsString);
             stmt.setString(1, password);
             stmt.setInt(2, userId);

@@ -12,6 +12,7 @@ import { AdminUserDashboardComponent } from "../components/AdminUserDashboardCom
 import { AdminPropertyDashboardComponent } from "../components/AdminPropertyDashboardComponent/AdminPropertyDashboardComponent.js"
 import { FavoriteListingsComponent } from "../components/FavoriteListingsComponent/FavoriteListingsComponent.js";
 import { ResetPasswordComponent } from "../components/ResetPasswordComponent/ResetPasswordComponent.js";
+import {RecoverPasswordComponent} from "../components/RecoverPasswordComponent/RecoverPasswordComponent.js";
 
 const basePath = window.location.pathname.split('/').slice(0, 2).join('/');
 const routes = {
@@ -26,6 +27,7 @@ const routes = {
             "/login" : LoginComponent,
             "/register" : RegisterComponent,
             "/reset-password" : ResetPasswordComponent,
+            "/recovery-account" : RecoverPasswordComponent,
             "/admin/PropertyDashboard" : AdminPropertyDashboardComponent,
             "/admin/UserDashboard" : AdminUserDashboardComponent
         }
