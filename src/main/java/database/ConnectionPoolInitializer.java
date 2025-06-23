@@ -6,33 +6,23 @@ import javax.servlet.annotation.WebListener;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import config.ConfigLoader;
 
 @WebListener
-public class ConnectionPoolInitializer implements ServletContextListener {
-    private final HikariDataSource dataSource;
+public class ConnectionPoolInitializer{
 
-    public ConnectionPoolInitializer() {
+    public static HikariDataSource initPool() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:oracle:thin:@localhost:1521:xe");
-        config.setUsername("TW");
-        config.setPassword("TW123");
-        config.setDriverClassName("oracle.jdbc.OracleDriver");
+        config.setJdbcUrl(ConfigLoader.get("jdbcUrl"));
+        config.setUsername(ConfigLoader.get("dbUsername"));
+        config.setPassword(ConfigLoader.get("dbPassword"));
+        config.setDriverClassName(ConfigLoader.get("dbDriver"));
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);
         config.setIdleTimeout(30000);
         config.setMaxLifetime(1800000);
         config.setAutoCommit(true);
 
-        dataSource = new HikariDataSource(config);
-    }
-
-    @Override
-    public void contextInitialized(ServletContextEvent sce){
-        sce.getServletContext().setAttribute("dataSource", dataSource);
-    }
-
-    @Override
-    public void contextDestroyed(ServletContextEvent sce){
-        dataSource.close();
+        return new HikariDataSource(config);
     }
 }

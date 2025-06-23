@@ -8,10 +8,10 @@ import java.io.InputStream;
 import java.util.Properties;
 
 @WebListener
-public class ConfigLoader implements ServletContextListener {
+public class ConfigLoader {
     private final static Properties properties = new Properties();
 
-    private void init(){
+    public static void init(){
         try (InputStream input = ConfigLoader.class.getClassLoader().getResourceAsStream("config.properties")) {
             if (input == null) {
                 throw new RuntimeException("config.properties not found in resources folder");
@@ -25,13 +25,5 @@ public class ConfigLoader implements ServletContextListener {
     public static String get(String key) {
         return properties.getProperty(key);
     }
-
-    @Override
-    public void contextInitialized(ServletContextEvent sce){
-        init();
-    }
-
-    @Override
-    public void contextDestroyed(ServletContextEvent sce){}
 }
 
