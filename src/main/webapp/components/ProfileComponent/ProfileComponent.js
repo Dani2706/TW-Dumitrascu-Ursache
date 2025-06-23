@@ -221,10 +221,13 @@ export class ProfileComponent extends AbstractComponent {
                 let errorMessage = "";
                 console.log(response.status);
                 if (response.status === 200) {
-                    alert("Profile updated succesfully!");
                     const json = await response.json();
-                    sessionStorage.setItem("jwt", json.token)
-                    sessionStorage.setItem("isAdmin", json.isAdmin)
+                    if (sessionStorage.getItem("isAdmin") === "false") {
+                        console.log("Updating sessionStorage token");
+                        sessionStorage.setItem("jwt", json.token)
+                    }
+                    this.showNotificationPopup("Profile updated succesfully!");
+                    //sessionStorage.setItem("isAdmin", json.isAdmin)
                 } else if (response.status === 401) {
                         throw new Error("Unable to update your profile information. Please login first!");
                 } else if (response.status === 409) {
