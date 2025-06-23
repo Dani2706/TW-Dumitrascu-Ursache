@@ -1,12 +1,14 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
 import { router } from "../../js/app.js";
+import {PropertyService} from "../../services/PropertyService.js";
 
 export class ListingManagerComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
         this.router = router;
+        this.propertyService = new PropertyService();
     }
 
     //@Override
@@ -173,14 +175,7 @@ export class ListingManagerComponent extends AbstractComponent {
 
         if (confirmed) {
             try {
-                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/delete-property', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                    },
-                    body: JSON.stringify({propertyId: propertyId})
-                });
+                const response = await this.propertyService.deleteProperty(propertyId);
 
                 if (response.ok) {
                     this.showSuccessMessage('Property deleted successfully!');
@@ -347,13 +342,7 @@ export class ListingManagerComponent extends AbstractComponent {
         try {
             console.log("Fetching user properties data...");
             const userId = sessionStorage.getItem("jwt");
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-properties`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
+            const response = await this.propertyService.getUserProperties();
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -442,13 +431,7 @@ export class ListingManagerComponent extends AbstractComponent {
 
     async fetchTotalViewsCount() {
         try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-view-count`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
+            const response = await this.propertyService.getUserListingsViewCount();
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -472,13 +455,7 @@ export class ListingManagerComponent extends AbstractComponent {
 
     async fetchTotalFavoritesCount() {
         try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/user-listings-favorited-count`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
+            const response = await this.propertyService.getUserListingsFavoriteCount();
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

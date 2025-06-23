@@ -1,6 +1,7 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
 import { router } from "../../js/app.js";
+import {AuthService} from "../../services/AuthService.js";
 
 export class LoginComponent extends AbstractComponent {
     constructor() {
@@ -9,6 +10,7 @@ export class LoginComponent extends AbstractComponent {
         this.setClassName(this.constructor.name);
         this.container = "";
         this.errorSelectorName = "";
+        this.authService = new AuthService();
     }
 
     //@Override
@@ -77,14 +79,7 @@ export class LoginComponent extends AbstractComponent {
         const formData = new FormData(event.target);
         const plainObject = Object.fromEntries(formData.entries());
 
-        const response = await fetch(environment.backendUrl + "/TW_Dumitrascu_Ursache_war_exploded/api/login", {
-                method : "POST",
-                body : JSON.stringify(plainObject),
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
-            }
-        );
+        const response = await this.authService.login(plainObject);
 
         if (response.status === 200) {
             const result = await response.json();

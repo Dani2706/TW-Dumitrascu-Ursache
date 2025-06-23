@@ -1,5 +1,6 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { environment } from "../../environment.js";
+import {PropertyService} from "../../services/PropertyService.js";
 
 export class FavoriteListingsComponent extends AbstractComponent {
     constructor() {
@@ -7,6 +8,7 @@ export class FavoriteListingsComponent extends AbstractComponent {
         this.setClassName(this.constructor.name);
         this.container = "";
         this.favoriteListings = [];
+        this.propertyService = new PropertyService();
     }
 
     //@Override
@@ -81,13 +83,7 @@ export class FavoriteListingsComponent extends AbstractComponent {
 
     async loadFavoriteListings(container) {
         try {
-            const response = await fetch(`${environment.backendUrl}/TW_Dumitrascu_Ursache_war_exploded/api/favorites`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
+            const response = await this.propertyService.getFavoriteProperties();
 
             if (response.status === 200) {
                 this.favoriteListings = await response.json();
@@ -176,12 +172,7 @@ export class FavoriteListingsComponent extends AbstractComponent {
         const propertyId = event.currentTarget.getAttribute('data-property-id');
 
         try {
-            const response = await fetch(`${environment.backendUrl}/TW_Dumitrascu_Ursache_war_exploded/api/favorites/${propertyId}`, {
-                method: "DELETE",
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
+            const response = await this.propertyService.deleteFavoriteProperty(propertyId);
 
             if (response.status === 204) {
                 await this.loadFavoriteListings(this.container);

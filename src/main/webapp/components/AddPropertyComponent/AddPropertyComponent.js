@@ -1,5 +1,6 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import {environment} from "../../environment.js";
+import {PropertyService} from "../../services/PropertyService.js";
 
 export class AddPropertyComponent extends AbstractComponent {
     constructor() {
@@ -13,6 +14,7 @@ export class AddPropertyComponent extends AbstractComponent {
         this.numberOfPhotosUploaded = 1;
         this.dialogBoxOpen = false;
         this.activeInputEvent = null;
+        this.propertyService = new PropertyService();
     }
 
     //@Override
@@ -438,13 +440,7 @@ export class AddPropertyComponent extends AbstractComponent {
 
             console.log('Json: ' + JSON.stringify(propertyData));
 
-            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/add-property', {
-                method: 'POST',
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                },
-                body: JSON.stringify(propertyData)
-            });
+            const response = await this.propertyService.addProperty(propertyData);
 
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {

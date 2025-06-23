@@ -1,12 +1,14 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import {environment} from "../../environment.js";
 import { router } from "../../js/app.js";
+import { AdminService } from "../../services/AdminService.js";
 
 export class AdminUserDashboardComponent extends AbstractComponent {
     constructor() {
         super();
         this.setClassName(this.constructor.name);
         this.router = router;
+        this.adminService = new AdminService();
     }
 
     //@Override
@@ -57,14 +59,7 @@ export class AdminUserDashboardComponent extends AbstractComponent {
 
         if (confirmed) {
             try {
-                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/admin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                    },
-                    body: JSON.stringify({userId: userId, adminStatus: (parseInt(adminStatus) === 1) ? 0 : 1})
-                });
+                const response = await this.adminService.changeAdminStatus(userId, adminStatus);
 
                 if (response.ok) {
                     const adminButton = event.target.closest('.admin-button');
@@ -205,14 +200,7 @@ export class AdminUserDashboardComponent extends AbstractComponent {
 
         if (confirmed) {
             try {
-                const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/user', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                    },
-                    body: JSON.stringify({userId: userId})
-                });
+                const response = await this.adminService.deleteUser(userId);
 
                 if (response.ok) {
                     this.showSuccessMessage('User deleted successfully!');
@@ -416,13 +404,7 @@ export class AdminUserDashboardComponent extends AbstractComponent {
         try {
             console.log("Fetching user users data...");
             const userId = sessionStorage.getItem("jwt");
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-users`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                }
-            });
+            const response = await this.adminService.getAllUsers();
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

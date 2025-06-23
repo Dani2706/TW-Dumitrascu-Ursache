@@ -45,4 +45,46 @@ export class AdminService {
             }
         );
     }
+
+    async changeAdminStatus(userId, adminStatus){
+        return await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/admin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+            },
+            body: JSON.stringify({userId: userId, adminStatus: (parseInt(adminStatus) === 1) ? 0 : 1})
+        });
+    }
+
+    async getAllUsers(){
+        return await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-users`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+            }
+        });
+    }
+
+    async deleteProperty(propertyId){
+        return await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/delete-property', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+            },
+            body: JSON.stringify({propertyId: propertyId})
+        });
+    }
+
+    async getAllPropertiesWOI(){
+        await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-propertieswoi`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": "Bearer " + sessionStorage.getItem("jwt")
+            }
+        });
+    }
 }

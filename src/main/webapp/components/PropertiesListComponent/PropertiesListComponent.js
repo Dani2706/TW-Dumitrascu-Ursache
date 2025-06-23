@@ -1,10 +1,12 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { router } from "../../js/app.js";
+import {PropertyService} from "../../services/PropertyService.js";
 
 export class PropertiesListComponent extends AbstractComponent {
     constructor() {
         super();
         this.router = router;
+        this.popertyService = new PropertyService();
         this.setClassName(this.constructor.name);
         this.container = "";
         this.properties = [];
@@ -801,13 +803,7 @@ export class PropertiesListComponent extends AbstractComponent {
 
             if (isLoggedIn) {
                 try {
-                    const favoritesResponse = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/favorites', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + sessionStorage.getItem('jwt')
-                        }
-                    });
+                    const favoritesResponse = await this.popertyService.getFavoriteProperties();
 
                     if (favoritesResponse.ok) {
                         userFavorites = await favoritesResponse.json();

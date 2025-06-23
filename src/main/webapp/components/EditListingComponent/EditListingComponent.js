@@ -1,6 +1,7 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import {environment} from "../../environment.js";
 import { router } from "../../js/app.js";
+import { PropertyService } from "../../services/PropertyService.js";
 
 export class EditListingComponent extends AbstractComponent {
     constructor() {
@@ -14,6 +15,7 @@ export class EditListingComponent extends AbstractComponent {
         this.debounceTimer = null;
         this.container = null;
         this.numberOfPhotosUploaded = 0;
+        this.propertyService = new PropertyService();
     }
 
     //@Override
@@ -35,24 +37,6 @@ export class EditListingComponent extends AbstractComponent {
             console.error('No property ID provided for editing');
         } else {
             console.log("Successfully found property ID:", this.propertyId);
-            //await this.prefetchPropertyData();
-        }
-    }
-
-    async prefetchPropertyData() {
-        try {
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${this.propertyId}`);
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch property data: ${response.status}`);
-            }
-
-            const propertyData = await response.json();
-            sessionStorage.setItem('editPropertyData', JSON.stringify(propertyData));
-            return propertyData;
-        } catch (error) {
-            console.error('Error pre-fetching property data:', error);
-            return null;
         }
     }
 
@@ -270,7 +254,7 @@ export class EditListingComponent extends AbstractComponent {
                 propertyData = JSON.parse(cachedData);
                 console.log("Using cached property data:", propertyData);
             } else {
-                const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${this.propertyId}`);
+                const response = await this.propertyService.getProperty(this.propertyId);
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch property data: ${response.status}`);
@@ -638,13 +622,7 @@ export class EditListingComponent extends AbstractComponent {
 
             console.log('Submitting property data:', propertyData);
 
-            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/update-property', {
-                method: 'POST',
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("jwt")
-                },
-                body: JSON.stringify(propertyData)
-            });
+            const response = await this.propertyService.updateProperty(propertyData);
 
             const text = await response.text();
             console.log('Server response:', text);

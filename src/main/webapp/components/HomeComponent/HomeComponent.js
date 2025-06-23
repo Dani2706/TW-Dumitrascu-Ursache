@@ -1,5 +1,6 @@
 import { AbstractComponent } from "../abstractComponent/AbstractComponent.js";
 import { router } from "../../js/app.js";
+import {PropertyService} from "../../services/PropertyService.js";
 
 export class HomeComponent extends AbstractComponent {
     constructor() {
@@ -7,6 +8,7 @@ export class HomeComponent extends AbstractComponent {
         this.router = router;
         this.setClassName(this.constructor.name);
         this.properties = [];
+        this.propertyService = new PropertyService();
     }
 
     async init() {
@@ -66,7 +68,7 @@ export class HomeComponent extends AbstractComponent {
         propertiesContainer.innerHTML = '<div class="loading">Loading properties...</div>';
 
         try {
-            const response = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/properties/top');
+            const response = await this.propertyService.getTopProperties();
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             let properties = await response.json();
 
@@ -75,13 +77,7 @@ export class HomeComponent extends AbstractComponent {
 
             if (isLoggedIn) {
                 try {
-                    const favoritesResponse = await fetch('/TW_Dumitrascu_Ursache_war_exploded/api/favorites', {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + sessionStorage.getItem('jwt')
-                        }
-                    });
+                    const favoritesResponse = await this.propertyService.getFavoriteProperties();
 
                     if (favoritesResponse.ok) {
                         userFavorites = await favoritesResponse.json();
