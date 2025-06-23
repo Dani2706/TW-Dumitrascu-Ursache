@@ -47,7 +47,8 @@ export class PropertiesListComponent extends AbstractComponent {
         if (sortSelect) {
             sortSelect.addEventListener('change', () => {
                 this.sortProperties(sortSelect.value);
-                this.updatePropertiesDisplay(this.properties);
+                const filteredProperties = this.applyCurrentFilters(this.properties);
+                this.updatePropertiesDisplay(filteredProperties);
             });
         }
     }
@@ -295,7 +296,14 @@ export class PropertiesListComponent extends AbstractComponent {
 
         instructionMsg.style.display = 'none';
 
-        this.drawnPolygon = L.polygon(this.drawnPoints, {
+        const centroid = this.calculateCentroid(this.drawnPoints);
+
+        const sortedPoints = [...this.drawnPoints].sort((a, b) => {
+            return Math.atan2(a[0] - centroid[0], a[1] - centroid[1]) -
+                Math.atan2(b[0] - centroid[0], b[1] - centroid[1]);
+        });
+
+        this.drawnPolygon = L.polygon(sortedPoints, {
             color: '#3498db',
             fillColor: '#3498db',
             fillOpacity: 0.2,
@@ -310,6 +318,19 @@ export class PropertiesListComponent extends AbstractComponent {
         this.map.off('click', this.mapClickHandler);
 
         this.filterPropertiesByPolygon();
+    }
+
+    calculateCentroid(points) {
+        const numPoints = points.length;
+        let sumLat = 0;
+        let sumLng = 0;
+
+        points.forEach(point => {
+            sumLat += point[0];
+            sumLng += point[1];
+        });
+
+        return [sumLat/numPoints, sumLng/numPoints];
     }
 
     clearDrawnArea(resetFilter = true) {
