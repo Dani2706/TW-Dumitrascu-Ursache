@@ -111,6 +111,9 @@ export class PropertyComponent extends AbstractComponent {
 
     loadPropertyDetails(id) {
         console.log(`Attempting to fetch property with id: ${id}`);
+
+        this.recordPropertyView(id);
+
         fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/property?id=${id}`, {
             method: 'GET',
             headers: {
@@ -129,6 +132,37 @@ export class PropertyComponent extends AbstractComponent {
             .catch(error => {
                 console.error("Detailed error:", error);
                 this.handleError(error);
+            });
+    }
+
+    recordPropertyView(propertyId) {
+        console.log(`Recording view for property with id: ${propertyId}`);
+
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/views/${propertyId}`, {
+            method: 'POST',
+            headers: headers
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Property view recorded successfully');
+                } else {
+                    console.warn(`Failed to record property view: ${response.status}`);
+                    response.text().then(text => {
+                        console.error('Error details:', text);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error recording property view:', error);
             });
     }
 

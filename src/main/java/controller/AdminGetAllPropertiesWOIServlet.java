@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-@WebServlet("/api/all-properties")
-public class AdminGetAllPropertiesServlet extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(AdminGetAllPropertiesServlet.class);
+@WebServlet("/api/all-propertieswoi")
+public class AdminGetAllPropertiesWOIServlet extends HttpServlet {
+    private static final Logger logger = LoggerFactory.getLogger(AdminGetAllPropertiesWOIServlet.class);
     private PropertyService propertyService;
     private JwtUtil jwtUtil;
 
@@ -35,7 +35,7 @@ public class AdminGetAllPropertiesServlet extends HttpServlet {
             if (!this.jwtUtil.isAdmin(token)){
                 throw new NotAuthorizedException("User is not an admin");
             }
-            String propertiesAsJson = this.propertyService.getAllProperties(1);
+            String propertiesAsJson = this.propertyService.getAllProperties(0);
 
             resp.setContentType("application/json");
             resp.getWriter().write(propertiesAsJson);

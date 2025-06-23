@@ -348,7 +348,7 @@ export class AdminPropertyDashboardComponent extends AbstractComponent {
         try {
             console.log("Fetching user properties data...");
             const userId = sessionStorage.getItem("jwt");
-            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-properties`, {
+            const response = await fetch(`/TW_Dumitrascu_Ursache_war_exploded/api/all-propertieswoi`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

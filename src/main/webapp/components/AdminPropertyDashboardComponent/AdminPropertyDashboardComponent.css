@@ -5,12 +5,7 @@
 }
 
 .photo {
-    max-height: 400px;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 4; /* optional: control image height */
-    object-fit: cover;
-    display: block;
+    display: none;
 }
 
 .listing-manager-component {
@@ -266,8 +261,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    min-height: 340px;
-    height: 100%;
+    min-height: 200px; 
 }
 
 .property-card:hover {
@@ -276,10 +270,7 @@
 }
 
 .property-card .thumbnail {
-    height: 220px;
-    background-color: #e0e0e0;
-    background-size: cover;
-    background-position: center;
+    display: none;
 }
 
 .property-card .title-wrapper {
@@ -288,14 +279,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: 20px 10px;
 }
 
 .property-card .content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 0;
+    padding: 20px;
 }
 
 .property-card h3 {

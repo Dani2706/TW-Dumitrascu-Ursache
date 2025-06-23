@@ -219,24 +219,28 @@ export class HomeComponent extends AbstractComponent {
     }
 
     createPropertyCardHTML(property) {
+        const formattedImageUrl = `data:image/png;base64,${property.mainPhoto}`;
+
         const isFavorited = property.isFavorite ? 'favorited' : '';
+        const formattedPrice = property.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
         return `
-        <div class="property-card" data-property-id="${property.propertyId}">
+        <div class="property-card" data-id="${property.propertyId}">
+            <img class="photo" src="${formattedImageUrl}">
             <button class="favorite-btn ${isFavorited}" data-id="${property.propertyId}">
                 <i class="fas fa-heart"></i>
             </button>
             <div class="property-details">
                 <h3>${property.title}</h3>
-                <p class="property-location">${property.city}, ${property.country}</p>
+                <div class="property-location">${property.city}, ${property.state}</div>
                 <div class="property-features">
                     <span>${property.rooms} rooms</span>
-                    <span>${property.bathrooms} bathrooms</span>
+                    <span>${property.bathrooms} baths</span>
                     <span>${property.surfaceArea} m²</span>
                 </div>
                 <div class="property-action-row">
-                    <div class="property-price">€${property.price.toLocaleString('ro-RO')}</div>
-                    <button class="view-details-btn">View Details</button>
+                    <div class="property-price">${formattedPrice} ${property.transactionType === 'rent' ? '€/month' : '€'}</div>
+                    <button class="view-details-btn" data-id="${property.propertyId}">View Details</button>
                 </div>
             </div>
         </div>
@@ -247,20 +251,13 @@ export class HomeComponent extends AbstractComponent {
         const propertyCards = this.container.querySelectorAll('.property-card');
         propertyCards.forEach(card => {
             const viewDetailsBtn = card.querySelector('.view-details-btn');
-            const propertyId = card.dataset.propertyId;
-
             if (viewDetailsBtn) {
-                viewDetailsBtn.addEventListener('click', (event) => {
-                    event.stopPropagation();
+                viewDetailsBtn.addEventListener('click', () => {
+                    const propertyId = viewDetailsBtn.getAttribute('data-id');
                     sessionStorage.setItem('selectedPropertyId', propertyId);
-                    this.router.safeNavigate("/property");
+                    this.router.safeNavigate('/property');
                 });
             }
-
-            card.addEventListener('click', () => {
-                sessionStorage.setItem('selectedPropertyId', propertyId);
-                this.router.safeNavigate("/property");
-            });
 
             const favoriteBtn = card.querySelector('.favorite-btn');
             if (favoriteBtn) {

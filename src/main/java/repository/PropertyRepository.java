@@ -834,27 +834,73 @@ public class PropertyRepository {
         }
     }
 
-    public List<AdminPropertyDTO> getAllProperties() throws DatabaseException {
-        String stmtAsString = "SELECT title, created_at, p.property_id, image_data FROM properties p JOIN property_main_image i ON p.property_id = i.property_id";
-        try(Connection connection = this.dataSource.getConnection();
-            PreparedStatement stmt = connection.prepareStatement(stmtAsString)){
+    public List<AdminPropertyDTO> getAllProperties(int photosIncluded) throws DatabaseException {
+        logger.debug("Retrieving all properties with photosIncluded={}", photosIncluded);
+
+        String sql;
+        if (photosIncluded == 1) {
+            sql = "SELECT p.title, p.created_at, p.property_id, i.image_data FROM properties p JOIN property_main_image i ON p.property_id = i.property_id";
+        } else {
+            sql = "SELECT p.title, p.created_at, p.property_id FROM properties p";
+        }
+
+        try (Connection connection = this.dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
-
             List<AdminPropertyDTO> properties = new ArrayList<>();
 
-            while(rs.next()){
-                properties.add(new AdminPropertyDTO(
-                        rs.getString("title"),
-                        rs.getDate("created_at"),
-                        rs.getInt(3),
-                        Base64Util.encodeBase64(rs.getBytes("image_data"))
-                ));
+            while (rs.next()) {
+                if (photosIncluded == 1) {
+                    properties.add(new AdminPropertyDTO(
+                            rs.getString("title"),
+                            rs.getDate("created_at"),
+                            rs.getInt("property_id"),
+                            Base64Util.encodeBase64(rs.getBytes("image_data"))
+                    ));
+                } else {
+                    properties.add(new AdminPropertyDTO(
+                            rs.getString("title"),
+                            rs.getDate("created_at"),
+                            rs.getInt("property_id"),
+                            null // No image data included
+                    ));
+                }
             }
 
+            logger.debug("Found {} properties", properties.size());
             return properties;
-        } catch (SQLException e){
-            throw new DatabaseException(e);
+
+        } catch (SQLException e) {
+            logger.error("Database error when retrieving all properties", e);
+            throw new DatabaseException("Error retrieving all properties: " + e.getMessage(), e);
+        }
+    }
+
+    public void addPropertyView(int propertyId, int userId) throws DatabaseException {
+        logger.debug("Recording view for property ID: {} by user ID: {}", propertyId, userId > 0 ? userId : "anonymous");
+
+        String sql = "INSERT INTO property_views (property_id, user_id) VALUES (?, ?)";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, propertyId);
+            stmt.setInt(2, userId);
+
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                logger.debug("Successfully recorded view for property ID: {} by user ID: {}",
+                        propertyId, userId > 0 ? userId : "anonymous");
+            } else {
+                logger.warn("Failed to record view - no rows affected");
+                throw new DatabaseException("Failed to record property view");
+            }
+
+        } catch (SQLException e) {
+            logger.error("Database error when recording property view", e);
+            throw new DatabaseException("Error recording property view: " + e.getMessage(), e);
         }
     }
 }

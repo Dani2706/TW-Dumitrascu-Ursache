@@ -343,10 +343,32 @@ public class PropertyService {
         return null;
     }
 
-    public String getAllProperties() throws DatabaseException, JsonProcessingException {
-        List<AdminPropertyDTO> properties = this.propertyRepository.getAllProperties();
+    public String getAllProperties(int photosIncluded) throws DatabaseException, JsonProcessingException {
+        List<AdminPropertyDTO> properties = this.propertyRepository.getAllProperties(photosIncluded);
 
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(properties);
+    }
+
+    public void addPropertyView(int propertyId, String token) throws PropertyDataException, DatabaseException {
+        if (propertyId <= 0) {
+            logger.warn("Attempt to record view for invalid property ID: {}", propertyId);
+            throw new PropertyDataException("Property ID must be positive");
+        }
+
+        int userId = 202; // Default for anonymous users
+
+        if (token != null && !token.isEmpty()) {
+            userId = jwtUtil.getUserId(token);
+        }
+
+        try {
+            logger.debug("Recording view for property ID: {} by user ID: {}", propertyId, userId > 0 ? userId : "anonymous");
+            propertyRepository.addPropertyView(propertyId, userId);
+            logger.info("Successfully recorded view for property ID: {}", propertyId);
+        } catch (DatabaseException e) {
+            logger.error("Database error when recording view for property ID: {}", propertyId, e);
+            throw new DatabaseException("Error recording property view: " + e.getMessage(), e);
+        }
     }
 }
