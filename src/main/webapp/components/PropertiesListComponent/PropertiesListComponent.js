@@ -47,7 +47,8 @@ export class PropertiesListComponent extends AbstractComponent {
         if (sortSelect) {
             sortSelect.addEventListener('change', () => {
                 this.sortProperties(sortSelect.value);
-                this.updatePropertiesDisplay(this.properties);
+                const filteredProperties = this.applyCurrentFilters(this.properties);
+                this.updatePropertiesDisplay(filteredProperties);
             });
         }
     }
